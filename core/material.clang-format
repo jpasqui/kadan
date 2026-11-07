@@ -1,0 +1,51 @@
+# The format of the material recovery headers (material_*.h, custom_material_*.h): one statement per line,
+# Allman braces, 4 spaces, 120 columns. It is named, not .clang-format, so it applies only to those headers:
+#     py -3.11 tools/navigation/check_material_format.py [--fix]
+# Every option that could change a token (includes, braces, comments, string literals, qualifiers) is off.
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++14
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+BreakBeforeBraces: Allman
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+AllowShortCaseExpressionOnASingleLine: false
+NamespaceIndentation: None
+CompactNamespaces: false
+FixNamespaceComments: false
+ShortNamespaceLines: 0
+SortIncludes: Never
+SortUsingDeclarations: Never
+IncludeBlocks: Preserve
+ReflowComments: Never
+BreakStringLiterals: false
+InsertBraces: false
+RemoveBracesLLVM: false
+RemoveParentheses: Leave
+RemoveSemicolon: false
+QualifierAlignment: Leave
+InsertNewlineAtEOF: true
+KeepEmptyLines:
+  AtEndOfFile: false
+  AtStartOfBlock: false
+  AtStartOfFile: false
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+IndentCaseLabels: true
+AccessModifierOffset: -4
+AlwaysBreakTemplateDeclarations: Yes
+SeparateDefinitionBlocks: Leave
+...

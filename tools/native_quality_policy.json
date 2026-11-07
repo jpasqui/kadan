@@ -1,0 +1,399 @@
+{
+  "format": 1,
+  "engine": "UE4.26.2",
+  "platform": "Win64",
+  "cxx_standard": "C++14",
+  "coverage_targets": {
+    "lines": 90,
+    "branches": 90
+  },
+  "coverage_policy": "Coverage is measured for every owned source and reported against these targets. It does not decide a release (user decision 2026-10-08).",
+  "coverage_scopes": {
+    "core": [
+      "core/**/*"
+    ],
+    "editor": [
+      "Kadan/Source/Kadan/Private/**/*",
+      "Kadan/Source/Kadan/Public/**/*"
+    ],
+    "runtime": [
+      "modding/content/**/*",
+      "modding/game/native_table_edits.h",
+      "native/map_loader/**/*",
+      "modding/api.h",
+      "modding/assets.h",
+      "modding/creatures.h",
+      "modding/frame.h",
+      "modding/game/actor_position.h",
+      "modding/game/actor_warp.h",
+      "modding/game/actors.h",
+      "modding/game/assets.h",
+      "modding/game/build_111.h",
+      "modding/game/colltree_lifetime.h",
+      "modding/game/generator_additions.h",
+      "modding/game/native_actor_ai.h",
+      "modding/game/native_actor_ai_stream.h",
+      "modding/game/owned_parts.h",
+      "modding/game/progress.h",
+      "modding/game/puppet_defeat.h",
+      "modding/game/puppet_gauge.h",
+      "modding/game/puppet_physical.h",
+      "modding/game/puppet_region.h",
+      "modding/game/reflect.h",
+      "modding/game/reflect_allocation_plan.h",
+      "modding/game/reflect_parameter_copy.h",
+      "modding/game/session.h",
+      "modding/game/species_additions.h",
+      "modding/game/table_additions.h",
+      "modding/game/treasure_additions.h",
+      "modding/game/treasures.h",
+      "modding/game/ue_objects.h",
+      "modding/ini_text.h",
+      "modding/levels/levels_format.h",
+      "modding/maps/explore_library.h",
+      "modding/maps/explore_roster.h",
+      "modding/maps/map_registry.h",
+      "modding/maps/map_table_edits.h",
+      "modding/maps/map_ui_inset.h",
+      "modding/maps/map_ui_presentation.h",
+      "modding/maps/map_ui_publish.h",
+      "modding/maps/map_ui_spec.h",
+      "modding/maps/scene_library.h",
+      "modding/match.h",
+      "navigation/nav_tiles.h",
+      "modding/objects.h",
+      "modding/progress.h",
+      "modding/reflect.h",
+      "modding/shaders/shader_set_format.h",
+      "modding/treasure_series.h",
+      "modding/treasures.h"
+    ]
+  },
+  "coverage_exclusions": [
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityAutomation.cpp",
+      "reason": "Native test assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityTextureAutomation.cpp",
+      "reason": "Native test assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityMaterialAutomation.cpp",
+      "reason": "Native test assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureAuthoringAutomation.cpp",
+      "reason": "Synthetic native source-construction tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertiesAutomation.cpp",
+      "reason": "Synthetic native texture-property tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureProfileCaptureAutomation.cpp",
+      "reason": "Native literal capture syntax, identity, refusal and cancellation tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4WorldExportGraphAutomation.cpp",
+      "reason": "Native editor graph, streaming and property behavior/refusal/undo tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingAutomation.cpp",
+      "reason": "Native editor graph, streaming and property behavior/refusal/undo tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyValuesAutomation.cpp",
+      "reason": "Native editor graph, streaming and property behavior/refusal/undo tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4StaticMeshStagingAutomation.cpp",
+      "reason": "Native transient mesh staging readback and data-loss refusal tests, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshNegativesAutomation.cpp",
+      "reason": "Native original mesh material, source contradiction and cancellation assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshCancellationAutomation.cpp",
+      "reason": "Native original mesh material, source contradiction and cancellation assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalTableAutomation.cpp",
+      "reason": "Native original table import, comparison and status assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshNegativeTests.h",
+      "reason": "Native original mesh material, source contradiction and cancellation assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAggregatesAutomation.cpp",
+      "reason": "Native aggregate property fidelity, reference, transaction and refusal assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureCaptureEvidenceAutomation.cpp",
+      "reason": "Native editor test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyCoverageAutomation.cpp",
+      "reason": "Native editor test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertySignedZeroAutomation.cpp",
+      "reason": "Native editor test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertySignedZeroAggregatesAutomation.cpp",
+      "reason": "Native aggregate signed-zero, callback rollback and Undo test assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertiesCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyRefusalCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4MeshPreparationCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyHelperCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureProfileCaptureBoundaryAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingBoundaryCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsBoundaryCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshBoundaryCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyContainerBoundaryAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertyRemainingCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsMatrixCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyRemainingCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingSavedWorldCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsInspectionCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAfter163CoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PlacementGenBaseCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureSourceAfter163CoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureCaptureAfter201CoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4ProjectInventoryCoverageAutomation.cpp",
+      "reason": "Focused native C++ test assertions and fixture controls, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4InventoryAfter201CoverageAutomation.cpp",
+      "reason": "Native test fixtures and assertions, not production code; compiled bytes remain qualification inputs"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4NativeHashBudgetCoverageAutomation.cpp",
+      "reason": "Native test fixtures and assertions, not production code; compiled bytes remain qualification inputs"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAfter201CoverageAutomation.cpp",
+      "reason": "Native test fixtures and assertions, not production code; compiled bytes remain qualification inputs"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertyAfter201CoverageAutomation.cpp",
+      "reason": "Native test fixtures and assertions, not production code; compiled bytes remain qualification inputs"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoredSchemaDepthCoverageAutomation.cpp",
+      "reason": "Native automation fixtures and independent preservation/readback assertions, not production code"
+    },
+    {
+      "path": "Kadan/Source/P4MapKitTests/Private/Authoring/P4NativeAutomationPacingAutomation.cpp",
+      "reason": "Test-only isolated native automation pacing harness; zero production registrations or release behavior."
+    }
+  ],
+  "qualification_inputs": [
+    "tests/**/*.cpp",
+    "tests/**/*.h",
+    "tools/native_quality_policy.json",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityTextureAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4QualityMaterialAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureAuthoringAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertiesAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureProfileCaptureAutomation.cpp",
+    "Kadan/Source/Kadan/Kadan.Build.cs",
+    "Kadan/Kadan.uplugin",
+    "tools/navigation/test_authoring_candidate_build.py",
+    "tools/navigation/test_import_fidelity.py",
+    "tools/navigation/test_native_tables.py",
+    "tools/navigation/test_native_assets.py",
+    "tools/navigation/test_native_quality_gate.py",
+    "tools/test_native_release_publish.py",
+    "tools/navigation/native_core*.py",
+    "tools/navigation/native_texture_pixel_probe.py",
+    "tools/navigation/native_editor_coverage.py",
+    "tools/navigation/test_native_editor_coverage.py",
+    "tools/native_quality_gate.py",
+    "tools/navigation/native_coverage_report.py",
+    "tools/navigation/test_native_coverage_report.py",
+    "tools/native_release_publish.py",
+    "tools/navigation/build_authoring_candidate.py",
+    "tools/navigation/import_fidelity.py",
+    "tools/navigation/native_tables.py",
+    "tools/navigation/native_assets.py",
+    "tools/navigation/game_kit.py",
+    "tools/navigation/ue4kit/p4import_fidelity_ue.py",
+    "tools/navigation/ue4kit/p4native_tables_ue.py",
+    "tools/navigation/ue4kit/p4native_assets_ue.py",
+    "tools/navigation/ue4kit/p4gamekit_ue.py",
+    "tools/navigation/ue4kit/p4mapkit_ue.py",
+    "tools/navigation/ue4kit/p4visuals_ue.py",
+    "tools/navigation/test_native_property_corpus.py",
+    "tools/navigation/test_native_texture_payloads_ue.py",
+    "tools/navigation/test_native_texture_profiles_ue.py",
+    "tools/navigation/texture_decode.py",
+    "tools/navigation/test_native_text_cook.py",
+    "tools/navigation/test_native_text_cook_admission.py",
+    "tools/navigation/export_collision_scene.py",
+    "tools/navigation/test_collision_slot_order.py",
+    "tools/navigation/test_collision_placements.py",
+    "tools/ue_tagged.py",
+    "tools/ue_deep.py",
+    "tools/ue_package.py",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4WorldExportGraphAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyValuesAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4StaticMeshStagingAutomation.cpp",
+    "tools/navigation/test_native_streaming_graph_ue.py",
+    "tools/navigation/ue4kit/p4bake_scene_ue.py",
+    "tools/navigation/native_runtime_build_proof.py",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshNegativesAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshCancellationAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalTableAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshNegativeTests.h",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAggregatesAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureCaptureEvidenceAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertySignedZeroAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertySignedZeroAggregatesAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertiesCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyRefusalCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4MeshPreparationCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyHelperCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureProfileCaptureBoundaryAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingBoundaryCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsBoundaryCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4OriginalMeshBoundaryCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyContainerBoundaryAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertyRemainingCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsMatrixCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyRemainingCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4StreamingSavedWorldCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoringRowsInspectionCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAfter163CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PlacementGenBaseCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureSourceAfter163CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TextureCaptureAfter201CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4ProjectInventoryCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4InventoryAfter201CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4NativeHashBudgetCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4PropertyAfter201CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4TexturePropertyAfter201CoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4AuthoredSchemaDepthCoverageAutomation.cpp",
+    "Kadan/Source/P4MapKitTests/Private/Authoring/P4NativeAutomationPacingAutomation.cpp"
+  ],
+  "acceptance_chain": [
+    {
+      "check": "acceptance_import_map",
+      "what": "An original game map is imported into a clean project."
+    },
+    {
+      "check": "acceptance_compare_source",
+      "what": "Every imported item is compared with the game's files and equals them."
+    },
+    {
+      "check": "acceptance_edit",
+      "what": "The map is edited through ordinary Unreal assets and actors: changes, additions and deletions."
+    },
+    {
+      "check": "acceptance_save_reopen",
+      "what": "The project is saved and reopened in a second editor process with nothing lost."
+    },
+    {
+      "check": "acceptance_export",
+      "what": "The mod is exported: baked, cooked and packed."
+    },
+    {
+      "check": "acceptance_no_game_assets",
+      "what": "The exported mod holds none of the game's own assets."
+    },
+    {
+      "check": "acceptance_play",
+      "what": "The exported mod runs in the game and shows the edits."
+    }
+  ],
+  "required_checks": [
+    "native_unit",
+    "native_sanitizers",
+    "native_static_analysis",
+    "warning_clean_build",
+    "editor_undo_redo",
+    "editor_lifetime",
+    "threaded_cancellation",
+    "parser_corruption",
+    "pristine_bundle",
+    "ui_performance",
+    "acceptance_import_map",
+    "acceptance_compare_source",
+    "acceptance_edit",
+    "acceptance_save_reopen",
+    "acceptance_export",
+    "acceptance_no_game_assets",
+    "acceptance_play"
+  ],
+  "import_policy": "No silent data loss. Preserve full private source, account for all features and dependencies, independently compare staged readback, and refuse incomplete publication.",
+  "release_policy": "A release is decided by the acceptance chain, passed link by link on one original map with the exact distributable, and by the other required checks. The exact distributable must pass. Unmeasured, stale, missing or unsupported evidence and unresolved regressions block release. Passing repeats do not resolve an unexplained failure. Engine/generated/third-party sources are outside the owned source denominator; handwritten kit sources are never silently excluded.",
+  "coverage_contracts": {
+    "runtime": {
+      "target": "aarch64-none-elf",
+      "cxx_standard": "C++20",
+      "freestanding": true
+    }
+  }
+}

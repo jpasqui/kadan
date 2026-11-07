@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kadan.jpasqui.dev/sitemap-index.xml

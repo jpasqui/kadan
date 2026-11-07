@@ -1,0 +1,52 @@
+---
+title: Edit a map
+description: Add actors, move or remove game objects, and change their properties.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+:::caution[WIP]
+Placing the game's objects, setting their options, and moving or removing the game's gameplay objects work in the game. Changing other values or World Settings hasn't been tested in the game yet. A baked test cube has loaded and drawn in Eden, but a rebake of the game's lighting hasn't been seen in the game yet.
+:::
+
+If you haven't [imported a map](/guides/import/) yet, you'll need to do that first.
+To start with an empty level and make a new area, follow [Create a map](/guides/create-a-map/).
+
+## Steps
+
+<Steps>
+
+1. In the Content Browser, open the persistent level of the map that you imported, the one whose
+   name ends in `_P`.
+2. Select a game object and move it, delete it, or change its supported properties in the Details
+   panel. To change World Settings, select the map's persistent level.
+3. To add an actor, place it in the level the same way that you would in any other Unreal level.
+   For an enemy, treasure, or gate, set its placement options in the Details panel.
+4. Save every level that you changed.
+5. Keep the map open when you export, so Kadan can bake the static meshes that you added.
+
+</Steps>
+
+When you export, Kadan puts added scenery in your mod's own sublevels and writes gameplay objects
+as placement lists. Changes to game actors and World Settings become Tsuchi map overrides. Kadan
+also builds the [lighting and navigation](/guides/export/#lighting-and-navigation) that your
+changes need, and your mod includes them. Your mod includes your content and changes
+without copying the game's original data.
+
+The game builds its own gameplay objects, such as pots, enemies, and treasures, from the map's
+placement lists rather than from the level. When you move or delete one of them, Kadan writes the
+change to that object's row in the game's placement list, and the export review and the Kadan panel
+name each row that changed. A save that already has the map's record keeps the game's own objects as
+they were, because the game builds the map from the save then. To see your changes, play from a save
+that hasn't visited the map yet.
+
+Check [Properties](/guides/export/#properties) for the values that you can change, and
+[Lighting and navigation](/guides/export/#lighting-and-navigation) for what to check in the game.
+Map changes apply before actors start play. By default, changes to ground, levels, and navigation
+apply in story, night expeditions, and Olimar's Shipwreck Tale. Placement lists and AI settings
+apply in daytime story play unless the map entry chooses another mode.
+
+For gameplay objects, check [Tables and placements](/guides/export/#tables-and-placements) for
+how the game records them in the player's save.
+
+When you're done, you can [export your changes as a mod](/guides/export/).

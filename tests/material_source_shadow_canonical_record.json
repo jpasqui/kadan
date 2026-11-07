@@ -1,0 +1,160 @@
+{
+ "package": "/Game/Carrot4/MasterMaterial/chr/M_chr_Shadow_Master",
+ "graph": {
+  "format": 2,
+  "domain": "MD_Surface",
+  "render_settings": {
+   "bFullyRough": true
+  },
+  "nodes": {
+   "Constant_0": {
+    "type": "Constant",
+    "inputs": {},
+    "props": {
+     "R": 1.0
+    }
+   },
+   "Constant3Vector_0": {
+    "type": "Constant3Vector",
+    "inputs": {},
+    "props": {
+     "Constant": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "Constant_1": {
+    "type": "Constant",
+    "inputs": {},
+    "props": {
+     "R": 0.0
+    }
+   },
+   "Constant3Vector_1": {
+    "type": "Constant3Vector",
+    "inputs": {},
+    "props": {
+     "Constant": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    }
+   },
+   "TextureCoordinate_0": {
+    "type": "TextureCoordinate",
+    "inputs": {},
+    "props": {
+     "CoordinateIndex": 0
+    }
+   },
+   "TextureSampleParameter2D_0": {
+    "type": "TextureSampleParameter2D",
+    "inputs": {
+     "Coordinates": [
+      "TextureCoordinate_0",
+      ""
+     ]
+    },
+    "props": {
+     "ParameterName": "Mask_01_Expand01",
+     "Texture": "/Game/Carrot4/MasterMaterial/Texture/T_Base_M.T_Base_M",
+     "SamplerSource": "SSM_FromTextureAsset",
+     "SamplerType": "SAMPLERTYPE_LinearColor"
+    }
+   },
+   "ScalarParameter_0": {
+    "type": "ScalarParameter",
+    "inputs": {},
+    "props": {
+     "ParameterName": "Dissolve",
+     "DefaultValue": 0.0
+    }
+   },
+   "Subtract_0": {
+    "type": "Subtract",
+    "inputs": {
+     "A": [
+      "TextureSampleParameter2D_0",
+      "A"
+     ],
+     "B": [
+      "ScalarParameter_0",
+      ""
+     ]
+    },
+    "props": {}
+   },
+   "Ceil_0": {
+    "type": "Ceil",
+    "inputs": {
+     "Input": [
+      "Subtract_0",
+      ""
+     ]
+    },
+    "props": {}
+   },
+   "Saturate_0": {
+    "type": "Saturate",
+    "inputs": {
+     "Input": [
+      "Ceil_0",
+      ""
+     ]
+    },
+    "props": {}
+   },
+   "Constant_2": {
+    "type": "Constant",
+    "inputs": {},
+    "props": {
+     "R": 0.5
+    }
+   }
+  },
+  "outputs": {
+   "AmbientOcclusion": [
+    "Constant_0",
+    ""
+   ],
+   "BaseColor": [
+    "Constant3Vector_0",
+    ""
+   ],
+   "EmissiveColor": [
+    "Constant3Vector_0",
+    ""
+   ],
+   "Metallic": [
+    "Constant_1",
+    ""
+   ],
+   "Normal": [
+    "Constant3Vector_1",
+    ""
+   ],
+   "OpacityMask": [
+    "Saturate_0",
+    ""
+   ],
+   "Roughness": [
+    "Constant_0",
+    ""
+   ],
+   "Specular": [
+    "Constant_2",
+    ""
+   ]
+  },
+  "blend_mode": "BLEND_Opaque",
+  "two_sided": false,
+  "shading_model": "MSM_DefaultLit",
+  "clip": 0.3333,
+  "tangent_space_normal": true
+ },
+ "proved": true,
+ "source": "python material_masters.recover"
+}

@@ -1,0 +1,40 @@
+{
+ "folder": "private/stub-inputs",
+ "inputs": {
+  "reflection": {
+   "file": "reflection.json",
+   "sha256": "4477e0eef5aa12f8c997dbc6d1aa7e3b3019c3fb1b931ec7ad047cb50c51be8d",
+   "source": "the game's reflection capture, merged (rich-merged-v2)"
+  },
+  "engine_index": {
+   "file": "engine-index.json",
+   "sha256": "2f9a4a2e93440b31ea5b5f512600892bb657fc46d2241aceec67746f46c645c5",
+   "source": "the stock UE 4.26 engine header index"
+  },
+  "defaults": {
+   "file": "defaults.json",
+   "sha256": "e6d4f8235e81f260c61d40435a0a6a4ed5d7510720f51f8262e5eeeda2a38555",
+   "source": "the running game's class defaults (eden_defaults.py)"
+  },
+  "engine_declared": {
+   "file": "engine-declared.json",
+   "sha256": "a05504d5b61ac9c4b9c850bc195214ad5fd65d8f29099028b61ae7dfd200320d",
+   "source": "what the stock editor's classes declare (host.py declared)"
+  },
+  "zero_constructor": {
+   "file": "zero-structs.json",
+   "sha256": "46dcf8b09c4642b753adbcc52a29ae90184572f0adebcfa11ccbce1a604e112c",
+   "source": "structs the game makes by zero-filling"
+  },
+  "native_engine_evidence": {
+   "file": "native-engine-evidence.json",
+   "sha256": "00af599536986ebc954debd2beccc650a62a150f1525f676b76dfba3e1b6c051",
+   "source": "original native layout facts for the six engine types the game adds"
+  },
+  "terrain_native_receipt": {
+   "file": "terrain-receipt.json",
+   "sha256": "5ea51527ed55d7259fe8bbb4d07484a83d60d4b92413580fe66fc671e84317dc",
+   "source": "original terrain storage receipt for the C4 terrain tag structs"
+  }
+ }
+}

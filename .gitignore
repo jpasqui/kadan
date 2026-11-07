@@ -1,0 +1,15 @@
+/private/
+build/
+.remote/
+Binaries/
+Intermediate/
+DerivedDataCache/
+Saved/
+__pycache__/
+*.pyc
+node_modules/
+site/dist/
+site/.astro/
+/.venv/
+/local/
+/dist/

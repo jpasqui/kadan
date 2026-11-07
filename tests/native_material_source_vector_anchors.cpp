@@ -1,0 +1,13 @@
+#include "../core/material_source_vector_anchors.h"
+#include "../core/material_source_schedule_pipeline.h"
+#include <iostream>
+using namespace P4MapKit;using namespace P4MapKit::Material;
+int checks=0;void Check(bool ok,const char* name){++checks;if(!ok)throw std::runtime_error(name);}template<class F>void Refuses(F action){++checks;try{action();}catch(const Refused&){return;}throw std::runtime_error("expected vector source refusal");}
+int main(){try{
+    MaterialOriginalSourceAnchors source;source.Surface={{"stop",MaterialAnchor::Register(1,"","")},{"BaseColor",MaterialAnchor::Register(3,"R2","xyz")},{"SubsurfaceColor",MaterialAnchor::Register(3,"R2","xyz")}};source.Surface["SubsurfaceColor"].saturate=true;
+    const std::vector<std::string> lines={"MOV.F R0.xyz, {2,3,4}","LDC.F32 R8, buf9[9996]","MUL.F R2.xyz, R0, {2}.x","DP3.F R7.x, R2, R2"};
+    const auto scheduled=ScheduleOriginalMaterialVectorAnchors(lines,source);Check(scheduled.Surface.at("stop").line==1&&scheduled.Scheduled.at("BaseColor").Indices==std::vector<std::size_t>{2},"exact vector slice retains original stop and omits lighting input");Check(scheduled.Scheduled.at("SubsurfaceColor").ValueAnchor.saturate,"vector SAT property preserved");MaterialRecoveryPlan plan;plan.Lines=lines;plan.Settings=Json::MakeObject();plan.Defaults=Json::MakeObject();const auto bound=BindOriginalMaterialSourceOutputs(plan,scheduled,{"BaseColor","SubsurfaceColor"});Check(bound.Values[0][0].number()==4&&bound.Values[0][1].number()==6&&bound.Values[1][2].number()==1,"scheduled vector pins bind in one original arena with original numeric SAT");
+    auto held=source;held.Surface["BaseColor"]=MaterialAnchor::Register(3,"R0","xyz");Check(!ScheduleOriginalMaterialVectorAnchors(lines,held).Scheduled.count("BaseColor"),"held vector stays unscheduled");auto before=source;before.Surface["BaseColor"].line=0;Check(!ScheduleOriginalMaterialVectorAnchors(lines,before).Scheduled.count("BaseColor"),"early vector is not pulled forward");auto missing=source;missing.Surface.erase("stop");Check(ScheduleOriginalMaterialVectorAnchors(lines,missing).Scheduled.empty(),"unlit no-stop source remains unchanged");
+    auto conditional=lines;conditional[2]="MUL.F R2.xyz(NE.x), R0, {2}.x";Refuses([&]{ScheduleOriginalMaterialVectorAnchors(conditional,source);});auto texture=lines;texture[2]="TEX.F R2.xyz, texture[0], sampler[0], R0";Check(ScheduleOriginalMaterialVectorAnchors(texture,source).Scheduled.at("BaseColor").Indices==std::vector<std::size_t>{2},"original texture dependency is retained for typed binding rather than guessed");
+    std::cout<<"native original late vector checks="<<checks<<"\n";
+}catch(const std::exception& e){std::cerr<<e.what()<<"\n";return 1;}return 0;}

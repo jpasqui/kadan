@@ -1,0 +1,111 @@
+---
+title: Install Kadan
+description: How to install Kadan in an Unreal Engine project.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+## Requirements
+
+Before you start, make sure that you have these:
+
+- **Unreal Engine 4.26.** You can install it from the Epic Games Launcher, on the Unreal Engine
+  tab under Library.
+- **Your game files.** Kadan doesn't include any of the game's files, so you'll need to dump
+  Pikmin 4 from your own Switch, with the version 1.1.1 or 2.0.0 update included. In the dump, the game's
+  packages are in `romfs/Carrot4/Content/Paks`.
+- **retoc and repak.** Kadan uses [retoc](https://github.com/trumank/retoc) and
+  [repak](https://github.com/trumank/repak) to read game packages and pack your mod. The release
+  ZIP includes both tools in `Kadan/Tools`. If you use a source checkout, the Import page asks
+  for them with **Choose retoc** and **Choose repak**.
+
+Keep the dump's `Paks` folder intact. Kadan reads its catalog and extracts selected packages
+when it needs them, so you don't need to extract every package before importing.
+
+## Steps
+
+<Steps>
+
+1. Close Unreal Editor.
+2. Download Kadan from the [releases on GitHub](https://github.com/jpasqui/kadan/releases) and extract it. You should now have two folders named `Kadan` and `P4Stubs`,
+   and a file named `README.txt`.
+3. Open your Unreal project's folder. If there isn't a folder named `Plugins` in there, then
+   create one.
+4. Move both the `Kadan` and `P4Stubs` folders into `Plugins`. If you installed an earlier
+   version of Kadan, replace its folders with the new ones.
+5. Open your project in Unreal Engine 4.26.
+
+</Steps>
+
+Your project's folder should now look like this:
+
+```text
+YourProject/
+  Plugins/
+    Kadan/
+      Binaries/
+      Config/
+      Tools/
+      Kadan.uplugin
+    P4Stubs/
+      Binaries/
+      P4Stubs.uplugin
+  YourProject.uproject
+```
+
+Kadan needs P4Stubs to load. P4Stubs declares the game's types for Unreal Editor, and it doesn't
+contain any of the game's assets. To use Kadan in every project, put both folders in your
+engine's `Plugins` folder instead.
+
+## Updating Kadan
+
+Use the existing project when updating Kadan. The installed version alone does not
+establish compatibility, so review the packages and their outcomes during repair.
+
+<Steps>
+
+1. Close Unreal Editor, then replace both `Kadan` and `P4Stubs` with the folders from the new
+   download. Use the same `Plugins` folder as before, and keep your project's `Content`,
+   `Config`, and `.uproject` file.
+2. Open your project, choose **Kadan > Import from game**, and select your dump next to **Game**.
+   If Kadan asks to set up the project, let it restart Unreal before importing.
+3. Choose **In this project** in the kind list and tick **N shown** to select everything Kadan
+   imported before. Save your work, then click **Reimport**.
+4. Read the list Kadan shows, including what the selection needs and levels with unsaved changes.
+   Save pending edits, then confirm **Reimport**. The importer can find more content it needs.
+5. Read the result. If an asset is refused, Kadan gives the reason and leaves it in place. The
+   Output Log lists the affected packages.
+
+</Steps>
+
+Reimport reads the selected content and its dependencies again, so it can also import references
+that a previous Kadan version missed. Your own assets and saved map edits stay in the project,
+including actors you added, moved, or removed.
+
+## Testing
+
+To make sure that Kadan installed correctly, look at the menu bar at the top of the editor.
+There should now be a menu named **Kadan**, after **Help**. If the menu isn't there, then
+double-check that the `Kadan` and `P4Stubs` folders are inside of `Plugins`, and that
+**Kadan** is enabled in **Edit > Plugins**.
+The packaged plugin appears under **Installed > Pikmin 4**. A development copy appears under
+**Project > Pikmin 4**.
+
+## Game folder and project setup
+
+Open **Kadan > Import from game**, and choose your dump's `romfs` or `Paks` folder with
+**Browse**. If you type the path, press Enter. Kadan reads the game's list of maps and assets.
+
+The first time, click **Set up project**. It replaces the project's collision and navigation
+settings with the game's, so Kadan only does it when you ask, and then restarts Unreal. The first
+start after setup may take a while: Unreal compiles thousands of shaders, and the loading screen
+stays near 39% until they're done.
+
+Kadan finds `retoc.exe` and `repak.exe` in its `Tools` folder. If either is missing, the Import
+page shows **Choose retoc** or **Choose repak**.
+
+## Where mods go
+
+With Eden installed, the Mods page exports to Eden's Pikmin 4 mod folder. To choose another
+folder, open **Export to** on the Mods page. Kadan puts one folder per mod ID in it, with
+`romfs/tsuchi/mods/<id>` inside each mod. Export doesn't turn the mod on or start the game.

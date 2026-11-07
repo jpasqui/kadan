@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        default: ''
+    outputs:
+      source_commit:
+        description: Exact source commit validated by portable checks
+        value: ${{ jobs.checks.outputs.source_commit }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ inputs.ref || github.ref }}
+  cancel-in-progress: ${{ github.workflow == 'CI' }}
+
+jobs:
+  checks:
+    name: Portable checks
+    runs-on: windows-2025
+    timeout-minutes: 45
+    outputs:
+      source_commit: ${{ steps.source.outputs.commit }}
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Record source commit
+        id: source
+        shell: pwsh
+        run: "'commit=' + (git rev-parse HEAD) | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8"
+      - uses: ./.github/actions/setup-build
+      - name: Run portable core and tool tests
+        shell: pwsh
+        run: python tools/check.py --ci --report build/ci/checks.json
+      - name: Verify authored shader source inventory
+        shell: pwsh
+        run: python own_shaders/verify_sources.py --check
+      - name: Upload check report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kadan-checks
+          path: build/ci/checks.json
+          if-no-files-found: error
+          retention-days: 14
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+        working-directory: site
+      - run: npm run build
+        working-directory: site
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kadan-docs
+          path: site/dist/
+          if-no-files-found: error
+          retention-days: 14

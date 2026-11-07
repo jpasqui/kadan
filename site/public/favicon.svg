@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="298" height="388" viewBox="0 0 298 388" role="img" aria-labelledby="title desc">
+  <title id="title">Kadan</title>
+  <desc id="desc">A cream flower with a golden-yellow centre grows on a bare green stem from a sage-green flowerbed over two earthy brown layers.</desc>
+  <g id="soil-bed"><g xmlns="http://www.w3.org/2000/svg" id="soil-75-percent-width">
+      <g>
+        <path id="lower-soil" d="M14 318.45 C14 314.05 17 312.95 23 315.15 L140 348.7 C146 350.9 152 350.9 158 348.7 L275 315.15 C281 312.95 284 314.05 284 318.45 L284 330.55 C284 334.217 281 336.967 275 338.8 L158 372.35 C152 374.55 146 374.55 140 372.35 L23 338.8 C17 336.967 14 334.217 14 330.55 Z" fill="#b48559" />
+        <path id="middle-soil" d="M14 288.75 C14 284.35 17 283.25 23 285.45 L140 319 C146 321.2 152 321.2 158 319 L275 285.45 C281 283.25 284 284.35 284 288.75 L284 301.95 C284 305.617 281 308.367 275 310.2 L158 343.2 C152 345.033 146 345.033 140 343.2 L23 310.2 C17 308.367 14 305.617 14 301.95 Z" fill="#986849" />
+        <path id="upper-soil-side" d="M14 256.3 L149 293.15 L284 256.3 L284 273.35 C284 277.017 281 279.767 275 281.6 L158 314.6 C152 316.8 146 316.8 140 314.6 L23 281.6 C17 279.767 14 277.017 14 273.35 Z" fill="#566d43" />
+        <path id="soil-surface" d="M23 249.15 L140 215.05 C146 213.217 152 213.217 158 215.05 L275 249.15 C287 252.817 287 256.667 275 260.7 L158 294.8 C152 297 146 297 140 294.8 L23 260.7 C11 256.667 11 252.817 23 249.15 Z" fill="#8ca86b" />
+      </g>
+    </g>
+    </g>
+  <g id="flower-stem"><path xmlns="http://www.w3.org/2000/svg" id="symmetric-tapered-stalk" d="M144.95 155.2 L153.05 155.2 C153.05 198.4 157.775 233.5 161.825 244.9 C165.065 245.98 165.47 250.03 162.5 251.38 C160.475 252.325 158.855 252.19 157.505 251.65 C156.56 251.245 155.885 251.245 155.21 252.055 C154.13 253.945 152.645 254.89 149 254.89 C145.355 254.89 143.87 253.945 142.79 252.055 C142.115 251.245 141.44 251.245 140.495 251.65 C139.145 252.19 137.525 252.325 135.5 251.38 C132.53 250.03 132.935 245.98 136.175 244.9 C140.225 233.5 144.95 198.4 144.95 155.2 Z" fill="#658b42" />
+      </g>
+  <g id="flower-head" transform="translate(149 14) scale(1.216164090113984) translate(-149 -14)">
+  <g id="flower-petals" fill="#f3e7cc">
+    <circle id="top-petal" cx="149" cy="44" r="30"/>
+    <circle id="right-petal" cx="187.042" cy="71.639" r="30"/>
+    <circle id="lower-right-petal" cx="172.511" cy="116.361" r="30"/>
+    <circle id="lower-left-petal" cx="125.489" cy="116.361" r="30"/>
+    <circle id="left-petal" cx="110.958" cy="71.639" r="30"/>
+    <circle cx="149" cy="84" r="34"/>
+  </g>
+  <circle id="flower-centre" cx="149" cy="84" r="23" fill="#d8b65a"/>
+  </g>
+</svg>

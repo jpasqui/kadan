@@ -1,0 +1,60 @@
+name: Draft native release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag matching Kadan.uplugin, such as v0.3.0-rc.1
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ inputs.tag }}
+
+  draft:
+    name: Admit qualified native archive
+    needs: validate
+    runs-on: [self-hosted, Windows, X64, kadan-release]
+    environment: native-release
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.validate.outputs.source_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+      - name: Verify qualification and prepare public files
+        shell: pwsh
+        run: python tools/github_release.py --tag $env:RELEASE_TAG
+      - name: Create draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $folder = 'build/github-release'
+          $receipt = Get-Content -LiteralPath "$folder/release.json" -Encoding utf8 -Raw | ConvertFrom-Json
+          $arguments = @('release', 'create', $env:RELEASE_TAG, '--verify-tag', '--draft', '--title', "Kadan $env:RELEASE_TAG", '--notes-file', "$folder/release-notes.md")
+          if ($receipt.prerelease) { $arguments += '--prerelease' }
+          $arguments += @($receipt.files.PSObject.Properties.Name | ForEach-Object { Join-Path $folder $_ })
+          $arguments += @("$folder/release.json", "$folder/SHA256SUMS")
+          gh @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

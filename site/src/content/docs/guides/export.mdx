@@ -1,0 +1,293 @@
+---
+title: Export a mod
+description: How to turn your changes into a mod that Tsuchi or the game can load.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+If you haven't filled in the [export setup](/guides/install/#game-folder-and-project-setup) yet, you'll need to do
+that first.
+
+You can export your assets, materials, and actors, along with changes to the game's maps and
+data tables. Kadan puts added scenery in your mod's own sublevels, writes gameplay objects as
+placement lists, and exports changes to game actors and World Settings as Tsuchi map overrides.
+When you export changes to a game map, Kadan also builds the lighting and navigation that your
+changes need, and your mod includes them.
+
+## Steps
+
+<Steps>
+
+1. Open the Kadan menu and choose **Mods and export**. The Kadan panel should open on its Mods
+   page.
+2. Click **New mod**, enter the **Name**, check its suggested **ID**, and enter a **Version**, then
+   click **Save**. The ID names the mod's folder and files, so it can't change after you save, and
+   an update replaces the earlier export. The name and version can change later with **Edit**.
+3. If you made assets for your mod, you can keep them in any folder of your project, for example
+   next to the game's folders under `Carrot4`. Kadan ships them at the paths they have.
+4. Select what your mod should include in the Content Browser, and click **Add selected**. To
+   ship the actors that you added or the changes that you made to a game map, add each level that
+   you changed. Kadan includes the supported assets that your added actors or property changes
+   refer to.
+5. If your mod changes one of the game's maps, open that map's persistent level, the one whose
+   name ends in `_P`. Kadan bakes the meshes that you added only when their map is open in the
+   editor.
+6. Save the levels that you changed.
+7. Read [What ships](#what-ships). It updates by itself when the mod's content changes, and
+   lists anything that can't ship first.
+8. Check **Export to**: Eden's mod folder when Eden is installed, or a folder you choose.
+9. Click **Export mod**. Kadan checks the mod again, then builds the map's
+   [lighting and navigation](#lighting-and-navigation) if your changes need them.
+
+</Steps>
+
+The progress window shows the current stage, asset or map, elapsed time, and completed
+stages. **Cancel export** stops before the next stage.
+
+## Assets
+
+Your assets ship at the paths they have in your project, from any folder, and
+[several mods can ship the same ones](/guides/several-mods/#shared-assets). Kadan
+includes the assets that your selection uses and refers to unchanged game assets by their game
+paths. Kadan checks the supported route for each asset. Creator widgets and unsupported
+behavior assets remain unavailable. Static meshes ship with their collision.
+
+## Asset ownership
+
+Original imports retain recorded game identity. New content needs a supported authoring or
+replacement route. Removing metadata does not turn copied game content into creator content.
+Kadan checks current content and its source before export.
+
+A supported editable copy can become creator content, but copying alone does not qualify it
+for export. Kadan refuses creator content that exactly matches a game asset and names that
+source. It compares texture pixels, a static mesh's first level of detail, and sound data.
+Use the supported authoring route for the content you change, or
+[replace the game's asset](#replacements) with a file of your own.
+
+## Replacements
+
+:::caution
+Texture and mesh replacements have bounded game checks on stock consumers. That does not
+qualify every mesh, material, collision setup, or map. Test each replacement in the game.
+:::
+
+You can replace one of the game's textures or static meshes with a file of your own. Your file
+takes the place of the game's asset everywhere the game uses it, in every map.
+
+<Steps>
+
+1. Find the game's texture or static mesh in the Content Browser.
+2. Right-click it and choose **Replace with my own file**.
+3. Choose an image for a texture, or an FBX or OBJ file for a mesh. Kadan imports your file in
+   place of the game's asset, with the same name at the same path.
+4. Save the asset, add it to your mod's selection, and export your mod.
+
+</Steps>
+
+A replaced texture keeps the game texture's settings, such as its compression and color space.
+A replaced mesh keeps the game mesh's materials, sockets, and collision settings. Its shape comes
+from your file, and so does its collision. If your file has collision shapes, Kadan uses them.
+If it doesn't, Kadan makes collision from your mesh's shape.
+
+The replacement is your own asset, so you can edit it or replace it again with another file.
+Kadan exports it at the game's path, and Tsuchi loads it in place of the game's asset. If two
+mods replace the same asset, the mod that loads later wins.
+
+Kadan refuses a replacement that holds exactly the game's own content, such as the game's
+texture saved out and imported again. Sounds can't be replaced this way. Your own sounds go into
+your mod's sound bank instead.
+
+To change a mesh in one map only, delete the game's actor from that map's level and add your
+own in its place. That needs no replacement.
+
+## Actor Blueprints
+
+Complete recovered actor Blueprints can ship whole at their game paths after supported edits.
+Review reports missing source, incomplete reconstruction, and unsupported families. Other
+Blueprint families retain their own restrictions. A successful export still needs testing in
+the game, including when an original actor Blueprint ships whole.
+
+## Materials
+
+:::caution[WIP]
+Creator materials have bounded game checks on static and instanced renderers. Static mesh
+coverage is stronger. Masked, translucent, skinned, and other renderer routes have separate
+limits, and a runtime material assignment does not qualify every saved consumer. Read
+What ships before exporting, then test its appearance in the game. Kadan's shader library is required for creator shaders.
+:::
+
+An instance of a game material using a creator's diffuse texture has rendered in the game.
+Other material-instance settings still need game testing.
+
+To change a game material's appearance, make a material instance and change its scalar, vector,
+and texture parameters. For static switches, choose one of the options that the game has shaders
+for. Parameters that the game controls, such as `C4SkyLightParam`, keep their inherited values.
+
+You can also make your own material from scratch. Kadan compiles your material for the game and
+shows unavailable nodes, blend modes, and mesh kinds while you work. Kadan ships the material
+and the textures it uses together.
+
+Choose a supported material and renderer combination. A material instance of a game parent
+can reuse that parent's supported shader route. A successful static mesh export does not
+qualify the same material on a skeletal mesh or particle system.
+
+Material Details displays **Game settings**. Known fields have readable labels, while unknown
+values belong in **Advanced**. Preserve unknown values unless testing a specific change.
+Serialized names remain searchable. Scene clipping is uncompiled and read-only. An instance
+shows supported C4 fields with override checkboxes. Unchecked fields inherit through the
+parent chain. Enable an override to change its value, or use **Open parent** to inspect
+the parent. Reimport older instances that lack typed C4 settings before exporting edits.
+
+## Properties
+
+On game actors and in World Settings, you can export numbers, checkboxes, names, strings, enum
+values, and asset references. Structs can contain those values. If a property refers to one of
+your assets, Kadan includes that asset.
+
+Use the fields Kadan enables in Unreal Editor. Unsupported fields are marked while you work,
+so you can see which changes your mod can carry before export. For World Settings, edit the map's
+persistent level, as the game takes its settings from that level.
+
+## Tables and placements
+
+To change a game data table, import the table, edit its supported fields, save it, and add it to
+your mod's selection. Kadan exports the edits as Tsuchi table overrides. Importing a map doesn't
+import its data tables. Game rows can't be deleted, renamed, or reordered.
+
+You can add a row as a copy of an existing row and change supported array lengths. Give a new
+row an ID such as `yourname.mod-name:row-name`. Arrays of structs can't be resized. For a new
+treasure, creature, or Pikmin type, use a content declaration so Kadan includes its class, rows,
+and text together.
+
+For placed enemies, treasures, and gates, change the placement options in Unreal's Details
+panel. Kadan writes the object and its options as a placement list, so your mod refers to the
+game's content without copying its data. Place a creature by dragging its Blueprint into the
+level, and use the Details panel for that placement's options.
+
+The game records placement lists in the player's save. Once a list has been applied, collected,
+broken, or defeated objects stay that way. Changes to that list don't add more objects to a save
+that already has it, so put later additions in a new list. Removing the mod doesn't remove the
+objects that the save already records.
+
+## Content
+
+To make a treasure, creature, or Pikmin type, choose a donor and give the new content an ID such
+as `yourname.mod-name:stonehog`. Set the class, values, text, and icons that the content needs,
+and include its assets in your mod's selection. Kadan writes the content declaration in
+`mod.json`, and Tsuchi adds its rows and text when the mod starts. New content keeps its own ID
+and doesn't change its donor.
+
+Tsuchi assigns the game's numbers and keeps them with the player's save. A save supports two
+added Pikmin types across all mods, and an assigned color remains reserved if its mod is removed.
+
+You can use another mod's content as a building block. Declare that mod as a dependency and use
+its content ID, then set the options it exposes for each placement. Keep the other mod's assets
+in that mod so your export refers to its content through the dependency.
+
+## New maps
+
+:::caution[WIP]
+Independent-world gameplay remains refused while its save and travel lifecycle is unqualified.
+The configuration below describes intended authoring and does not establish export admission.
+:::
+
+Follow [Create a map](/guides/create-a-map/) for the intended setup and its current limits.
+
+To make a new area, create its levels and scene data in your mod's content folder, then set the
+area's name and its preview and radar textures. Keep the scene's placement counts consistent with
+the objects in the map, and build the map's
+[lighting and navigation](/guides/create-a-map/#lighting-and-navigation) from Unreal's **Build**
+menu.
+
+The intended layout provides builds for one to four free area slots, with matching Tsuchi
+registration and a first base. Slot assignment, saved progress, and appearance in the story's
+area list still need lifecycle qualification before Kadan can admit independent-world exports.
+
+## Lighting and navigation
+
+:::caution[WIP]
+A baked cube and an unbaked movable cube have both loaded and drawn in Eden. The difference
+between them is subtle. A rebake of the game's lighting hasn't been seen in the game yet.
+:::
+
+When you export changes to a game map, Kadan builds the map's lighting and navigation for you.
+You don't need to build them from Unreal's **Build** menu first.
+
+Kadan bakes the static meshes that you add to a game map with the game's lights and Lightmass
+settings. The bake runs inside the open map, so your meshes get the map's shadows and bounce
+light. If you move or remove one of the game's lit objects, Kadan also rebakes the map with the
+game's lights, so the object's old shadow doesn't stay behind. Moving or removing a gameplay
+object, such as a pot or an enemy, doesn't change the map's lighting.
+
+Kadan rebuilds the lighting of one edited map per export. If your mod changes the lighting of
+another map too, export that map's changes in another mod.
+
+Some added actors stay unbaked. Kadan doesn't bake an actor whose mesh can move, an actor that's
+attached to another actor, or an actor that isn't a static mesh actor. The export result names
+each actor that stays unbaked and says why. If the map that you added actors to isn't open in the
+editor, they're all exported without baked lighting. Open the map and export again to bake them.
+
+If your changes affect where Pikmin can walk, Kadan builds the map's navigation again and turns
+it into the game's navigation file, so Pikmin's routes go around your collision.
+
+After you install your mod, check the lighting and Pikmin's routes in the game.
+
+## What ships
+
+**What ships** lists your mod's own assets and the game maps you changed, with a count of the
+game assets it uses, which stay the game's. Anything that can't ship comes first, with the
+reason, **Locate** to find it in the Content Browser, and **Remove** for the item you added that
+brought it in. **Export mod** stops while anything is listed that way. The Output Log has the full
+reasons.
+
+## Output
+
+After an export, the line under **Export mod** says when and where it went, and **Open folder**
+opens it. In the folder you export to, Kadan creates a folder named after your mod's ID, with a
+`romfs` folder inside of it. Your mod's `mod.json` declares its maps, content, table and text
+changes, and dependencies. Map-change files, navigation, creature AI settings, and compiled
+shader files go beside it in `romfs/tsuchi/mods/<your-mod-id>`.
+
+Your assets, placement lists, sublevels, and lighting build data ship in `.pak`, `.ucas`, and
+`.utoc` files in that same folder, beside `mod.json`. Tsuchi loads them only while your mod is
+on. Supported original actor Blueprints ship whole at their game paths. Other unchanged game
+assets stay references.
+
+If you export the same mod again, then Kadan replaces your last export of it.
+
+## Without Tsuchi
+
+Check **Cook for the game without Tsuchi** before you click **Export mod** to cook your mod as
+plain game files. Players don't need Tsuchi to play it. They copy the mod's `romfs` folder over
+the game's, the way they'd install any other file replacement mod.
+
+Kadan puts the whole mod into one container in the game's `Carrot4/Content/Paks` folder, and the
+game loads it when it starts. Your assets ship at their paths. Each game map or table that you
+edited ships whole at the game's path, so another mod that edits the same map or table replaces
+yours.
+
+Some parts of a mod need Tsuchi. With this option on, What ships lists them as things that can't ship:
+
+- New treasure and creature kinds. Tsuchi gives them their IDs and keeps them in the save.
+- Your own sounds. They play through the sound bank that Tsuchi loads.
+- Directional light functions. Tsuchi keeps a shadow channel for them.
+
+Maps that you edit keep the game's Pikmin paths, so Pikmin don't walk around the collision that
+you add. Your materials' shaders go into a shader library that the game opens when it starts.
+The game opens only one such library, so only one mod cooked this way can have its own materials
+at a time.
+
+## Installing
+
+With Eden installed, **Export to** starts on Eden's Pikmin 4 mod folder, so an export is already
+in place. Exporting again replaces that mod's earlier export. Export doesn't turn the mod on or
+start the game.
+
+Check rendering, collision, Pikmin paths, and placement saves in the game. Revisit the area
+after saving when testing placement changes.
+
+You can install your mod the same way as any other Tsuchi mod. Check out
+[Install a mod](https://tsuchi.jpasqui.dev/players/install-a-mod/) in the Tsuchi guides.
+
+If you want to make more than one mod in the same project, check out
+[Work on several mods](/guides/several-mods/).

@@ -1,0 +1,145 @@
+{
+ "classes": 1943,
+ "files": {
+  "P4Stubs.uplugin": "868cff13fbbd9b946e98a10349706399cbf1ab9923307261af1710feefa6ab9a",
+  "Source/AkAudio/AkAudio.Build.cs": "43e6c812832b04be6d2c82cad9310c08a89f96f56878247dcdd471f145406446",
+  "Source/AkAudio/Private/AkAudioModule.cpp": "131630ba3046d402f4d1e8ef6a38e55b07db91e3e711ac30f657a49016e4eec6",
+  "Source/AkAudio/Public/AkAudioStubClasses.h": "2060db9145fb3c83ed7932b16e74e01249c3fcf3c630da70bf150ed1ecc720ec",
+  "Source/AkAudio/Public/AkAudioStubEnums.h": "bcc429f86582b27a4cca9e7bc5612729e7668f592dd9261ad7af4dca36593741",
+  "Source/AkAudio/Public/AkAudioStubStructs.h": "d13eb0ebab66af7ee0731cc096b562e66518a00487aff30f2522c869c4f4f417",
+  "Source/Carrot4/Carrot4.Build.cs": "0d5ba38d7c227bf51887240aed24e7a7a6bc84c318911f1cff3ff353e016191c",
+  "Source/Carrot4/Private/Carrot4Module.cpp": "0a4f22820857a4e6c17324a4b3e12ef07998b43012e18de7cad852c1416ddd1e",
+  "Source/Carrot4/Private/P4FixedEngineDeclarations.cpp": "273fd91d7d64392eba4bfaf1cf548de0aa18bd7b7185d459c423ed8b03617093",
+  "Source/Carrot4/Public/Carrot4StubClasses.h": "a96609fc5446224f3c841dfde719f783f1a61482c6057e33351e8b5768ab2c86",
+  "Source/Carrot4/Public/Carrot4StubEnums.h": "278deb9b6579517baff73285bb87741ddb222a331ed06a44923cf789985ce691",
+  "Source/Carrot4/Public/Carrot4StubStructs.h": "ce27bfa7821b6b2c517a5a1be610c60800938697da9b91eddbd8a4d52b276c75",
+  "Source/Carrot4/Public/P4FixedEngineDeclarations.h": "bab787014b33eb45bb4da0a741959adbbcd5420a5eb892c977a90bbbdb815fba",
+  "Source/Carrot4/Public/P4FixedEngineRegistrationMode.h": "919bc50127fab7f263be0182e29a97887ad8bbd9c06854acb2c3eea6aad93989",
+  "Source/Carrot4/Public/P4FixedTerrainStorage.h": "91be6a5526d54de8cabc2a1b4af2725462e5d3e509c40ee54aef64cd62adc606",
+  "Source/EasyParticle/EasyParticle.Build.cs": "00654d93de487f29204dfafd5e0dab859eddaa4da68d78d60346c1f97b4afbe4",
+  "Source/EasyParticle/Private/EasyParticleModule.cpp": "83699a32fdf9c2525bc5d52324507aa3ed09bdf25b3dbc7e87414bf6b4eea51a",
+  "Source/EasyParticle/Public/EasyParticleStubClasses.h": "ed12407ef3945a9026283a1b61063091c0766969337fe5bc577f5709dd482e39",
+  "Source/EasyParticle/Public/EasyParticleStubEnums.h": "70908edb5455301113014a10e320895fe654b12abfefaebf359832e885d6a8c9",
+  "Source/EasyParticle/Public/EasyParticleStubStructs.h": "f751245dc559bf492c3581c9afbe7d4dfce6a521d13eaf3669d0b7c9d371d619",
+  "Source/P4StubsCore/P4StubsCore.Build.cs": "b9674fdc5392974be0f8fc327fc03fcadaf56180adddfdfb946fb8e522f3a202",
+  "Source/P4StubsCore/Private/P4EngineDefaults.cpp": "08170a080c33a138928c85790b653721260050c40565d1424b3998c119a78bd9",
+  "Source/P4StubsCore/Private/P4RecoveredDirectionalLightComponent.cpp": "e7b38f1e418de54ee845de05c8d975cb66bfe389fcf5709b33ed6aea4bbe916b",
+  "Source/P4StubsCore/Private/P4RecoveredPostProcessComponent.cpp": "d4b49c5bf0ac01cb64c126c74edfa7e2b8e70b97b9096a21539258258aafe3fb",
+  "Source/P4StubsCore/Private/P4StubDefaults.cpp": "4f62001e4d0bd8dcd47b9b360ae51f22b5512a69d397660f3ef6af0bfbe1f075",
+  "Source/P4StubsCore/Public/P4RecoveredDirectionalLightComponent.h": "0605968d198ae6b610d6ccee292339c6954cab910c8dca1efece45c76fc176d1",
+  "Source/P4StubsCore/Public/P4RecoveredPostProcessComponent.h": "2ac1d11d8f12381ed63d53c2ef3f9da92d27f43619dfbc59be564933c24251c0",
+  "Source/P4StubsCore/Public/P4RecoveredPostProcessSettings.h": "35bdd05ef49d6399da508d67e9cbdf006f8147b2c37529a93c0c9c400fecad18",
+  "Source/P4StubsCore/Public/P4StubDefaults.h": "1bd6cd71a25f904e26843da10e474cffc392a7f1453123a5985e5a98e545ae33",
+  "Source/SwitchRuntimeSettings/Private/SwitchRuntimeSettingsModule.cpp": "b729cea27a3f20fb7982672f54c0324da24bc368640e50c75f69c0c75cb5ec27",
+  "Source/SwitchRuntimeSettings/Public/SwitchRuntimeSettingsStubClasses.h": "9c222e70aa3ce2c7ba85280ada2c60ecee2a05b72de631fba59e4a0e0769267f",
+  "Source/SwitchRuntimeSettings/Public/SwitchRuntimeSettingsStubEnums.h": "58a334cd904cfe3d595214342fc2812a880d97efa72a451659f4fa9bc30dac93",
+  "Source/SwitchRuntimeSettings/Public/SwitchRuntimeSettingsStubStructs.h": "45b94cf5944a2cd7f57f3100f36344dcd5a50c9aa294580fbb5622b61b5b7e87",
+  "Source/SwitchRuntimeSettings/SwitchRuntimeSettings.Build.cs": "afe0a2738f22482568f99d4573414e5216a84f7adc5623c030a76c849e70ebee",
+  "Source/UIParticle/Private/UIParticleModule.cpp": "4b0a0f5dd4536424eba23d5e2481cd713587dd08106ecf680fb4c94a0b2569d8",
+  "Source/UIParticle/Public/UIParticleStubClasses.h": "227eed7fc85f24fe220a7163cd508b929f42d32ff242708db95fab19c4a5a4ae",
+  "Source/UIParticle/Public/UIParticleStubEnums.h": "688e603dcd02d90b34feb04756b74301208816d659f2381ca3404104332b7047",
+  "Source/UIParticle/Public/UIParticleStubStructs.h": "9613d4d6177737cf1bd351fee268f1fdd741923f65bd4ba66664cff461d9bd24",
+  "Source/UIParticle/UIParticle.Build.cs": "60a74a189d2f6dea9b77d2c6c2c353e73da1c80d030f8fa266155250fad75cab",
+  "default-config.ini": "fbb154ae82d702fc78ecaba1dfaf54a60f0107d23cda4e717779e584f5dbb277",
+  "default-rows.json": "393809e78e94ad34f6d632c3dc972c81d7718413bcb48ba03c6e37853d854b0b"
+ },
+ "format": "p4-unified-stubs",
+ "functions": true,
+ "identity_refusals": [],
+ "inputs": {
+  "defaults": "e6d4f8235e81f260c61d40435a0a6a4ed5d7510720f51f8262e5eeeda2a38555",
+  "engine_declared": "a05504d5b61ac9c4b9c850bc195214ad5fd65d8f29099028b61ae7dfd200320d",
+  "engine_index": "2f9a4a2e93440b31ea5b5f512600892bb657fc46d2241aceec67746f46c645c5",
+  "reflection": "4477e0eef5aa12f8c997dbc6d1aa7e3b3019c3fb1b931ec7ad047cb50c51be8d",
+  "zero_constructor": "46dcf8b09c4642b753adbcc52a29ae90184572f0adebcfa11ccbce1a604e112c"
+ },
+ "modules": [
+  "AkAudio",
+  "Carrot4",
+  "EasyParticle",
+  "P4StubsCore",
+  "SwitchRuntimeSettings",
+  "UIParticle"
+ ],
+ "native_engine_registration": {
+  "class_flag_plan": {
+   "class_params_config_name": null,
+   "dependency_order": [
+    "CoreUObject.Object",
+    "/Script/Engine"
+   ],
+   "is_abstract": false,
+   "observed_class_params": "0x1000a0",
+   "observed_final": "0x305000a0",
+   "observed_initial": "0x10000000",
+   "original_class_params_receipt_sha256": "5ea51527ed55d7259fe8bbb4d07484a83d60d4b92413580fe66fc671e84317dc",
+   "original_class_params_status": "source-bound-receipt",
+   "runtime_qualified": false,
+   "stock_definition": "UE4.26 ObjectMacros.h EClassFlags",
+   "stock_state_bits": {
+    "CLASS_Constructed": "0x20000000",
+    "CLASS_Parsed": "0x10",
+    "CLASS_TokenStreamAssembled": "0x400000"
+   }
+  },
+  "refusals": [],
+  "runtime_qualified": false,
+  "terrain_evidence": {
+   "facts": {
+    "/Script/Engine.C4TerrainTag": {
+     "alignment": 8,
+     "computed_property_flags": 0,
+     "copy": true,
+     "custom_references": false,
+     "custom_serialization": false,
+     "destructor": true,
+     "noop_constructor": false,
+     "object_flags": 69,
+     "plain_old_data": false,
+     "size": 16,
+     "uncomputed_struct_flags": 513,
+     "zero_constructor": false
+    },
+    "/Script/Engine.C4TerrainTagContainer": {
+     "alignment": 8,
+     "computed_property_flags": 0,
+     "copy": true,
+     "custom_references": false,
+     "custom_serialization": false,
+     "destructor": true,
+     "noop_constructor": false,
+     "object_flags": 69,
+     "plain_old_data": false,
+     "size": 16,
+     "uncomputed_struct_flags": 513,
+     "zero_constructor": false
+    }
+   },
+   "particle_class_params": {
+    "class_flags": 1048736,
+    "config_name": null,
+    "dependencies": 2,
+    "dependency_order": [
+     "CoreUObject.Object",
+     "/Script/Engine"
+    ],
+    "functions": 0,
+    "interfaces": 0,
+    "is_abstract": false,
+    "properties": 0,
+    "raw_sha256": "f91f5ae8519d8d6bfe36afe1ab383bcd1de9ab3e608677b59a757c3724d8b648"
+   },
+   "sha256": "5ea51527ed55d7259fe8bbb4d07484a83d60d4b92413580fe66fc671e84317dc",
+   "source_sha256": "fe616565ecfd35868fdd9a43525931a3bd46c383151e2a244cdf8e199a974190"
+  },
+  "types": [
+   "/Script/Engine.EC4ExpontentialHeightFogBlend",
+   "/Script/Engine.EC4Primitive",
+   "/Script/Engine.EC4Stencil",
+   "/Script/Engine.ParticleLightManager",
+   "/Script/Engine.C4TerrainTag",
+   "/Script/Engine.C4TerrainTagContainer"
+  ]
+ },
+ "version": 1
+}

@@ -1,0 +1,247 @@
+diff --git a/retoc/src/zen_asset_conversion.rs b/retoc/src/zen_asset_conversion.rs
+index 6f56942..2d8a66b 100644
+--- a/retoc/src/zen_asset_conversion.rs
++++ b/retoc/src/zen_asset_conversion.rs
+@@ -24,6 +24,19 @@ use std::sync::{Arc, RwLock};
+ pub fn get_public_export_hash(package_relative_export_path: &str) -> u64 {
+     cityhasher::hash(package_relative_export_path.encode_utf16().flat_map(u16::to_le_bytes).collect::<Vec<u8>>())
+ }
++// The export bundle of a legacy zen package (UE 4.26/4.27) that holds the given command of the export with the given
++// global import index, or None.
++pub fn legacy_export_bundle_of(header: &FZenPackageHeader, export: FPackageObjectIndex, command: EExportCommandType) -> Option<i32> {
++    let local = header.export_map.iter().position(|entry| entry.legacy_global_import_index() == export)? as u32;
++    for (index, bundle) in header.export_bundle_headers.iter().enumerate() {
++        let first = bundle.first_entry_index as usize;
++        let entries = header.export_bundle_entries.get(first..first + bundle.entry_count as usize)?;
++        if entries.iter().any(|entry| entry.local_export_index == local && entry.command_type == command) {
++            return Some(index as i32);
++        }
++    }
++    None
++}
+ pub fn get_cell_export_hash(verse_path: &str) -> u64 {
+     cityhasher::hash(verse_path.as_bytes())
+ }
+@@ -65,6 +78,8 @@ struct ZenPackageBuilder<'a> {
+     legacy_external_arc_fixup_data: Vec<ZenLegacyPackageExternalArcFixupData>,
+     legacy_external_arc_counter: i32,
+     legacy_export_bundle_mapping: Vec<ZenLegacyPackageExportBundleMapping>,
++    // UE 4.26: a package converted on its own is one export bundle (see build_zen_dependency_bundles_legacy)
++    single_export_bundle: bool,
+     // full names of package objects by their index, useful for debugging
+     debug_full_package_object_names: HashMap<FPackageIndex, String>,
+     log: &'a Log,
+@@ -99,6 +114,7 @@ fn create_asset_builder<'a>(
+         legacy_external_arc_fixup_data: Vec::new(),
+         legacy_external_arc_counter: 0,
+         legacy_export_bundle_mapping: Vec::new(),
++        single_export_bundle: false,
+         debug_full_package_object_names: HashMap::new(),
+         script_objects,
+         script_cells,
+@@ -542,8 +558,10 @@ fn build_zen_dependency_bundles_legacy(builder: &mut ZenPackageBuilder, export_l
+             });
+         }
+ 
+-        // Export bundles end at a public export with an export hash. So if this is a public export, close the current bundle
+-        if is_public_export {
++        // Export bundles end at a public export with an export hash. So if this is a public export, close the current bundle.
++        // UE 4.26 (no container header version) does not: its IoStore utility starts a bundle only where the load order
++        // moves to another package (BuildBundles), so a package converted on its own is one bundle.
++        if is_public_export && !builder.single_export_bundle {
+             current_export_bundle_header_index = -1;
+         }
+     }
+@@ -1166,7 +1184,12 @@ impl ConvertedZenAssetBundle {
+     pub fn package_data_size(&self) -> usize {
+         self.package_buffer.len()
+     }
+-    pub fn fixup_legacy_external_arcs(&mut self, global_package_lookup: &HashMap<FPackageId, Arc<RwLock<ConvertedZenAssetBundle>>>, log: &Log) -> anyhow::Result<()> {
++    pub fn fixup_legacy_external_arcs(
++        &mut self,
++        global_package_lookup: &HashMap<FPackageId, Arc<RwLock<ConvertedZenAssetBundle>>>,
++        reference: Option<&(dyn Fn(FPackageId, FPackageObjectIndex, EExportCommandType) -> Option<i32> + Sync)>,
++        log: &Log,
++    ) -> anyhow::Result<()> {
+         for legacy_serialized_offset in &self.legacy_external_arc_serialized_offsets {
+             // Seek to the relevant position and read the ID of the placeholder from bundle index
+             let placeholder_from_bundle_index: i32 = {
+@@ -1217,6 +1240,10 @@ impl ConvertedZenAssetBundle {
+ 
+                 // We found the export bundle this dependency maps to
+                 export_bundle_mapping.export_bundle_index
++            } else if let Some(bundle) = reference.and_then(|find| find(fixup_data.from_package_id, fixup_data.from_import_index, fixup_data.from_command_type)) {
++                // A package outside this container that the reference containers hold: the bundle its own header gives the
++                // export, as the arc says when both packages are packed together.
++                bundle
+             } else {
+                 // This import is not found in the global package lookup, so assume it is external and use -1 as a value meaning "last export bundle in the package"
+                 -1
+@@ -1227,6 +1254,61 @@ impl ConvertedZenAssetBundle {
+             package_buffer_writer.seek(SeekFrom::Start(*legacy_serialized_offset))?;
+             package_buffer_writer.ser(&result_from_bundle_index)?;
+         }
++        if !self.legacy_external_arc_serialized_offsets.is_empty() {
++            self.dedup_legacy_external_arcs()?;
++        }
++        Ok(())
++    }
++
++    // Arcs that were told apart by their placeholders before the fix-up can be the same arc after it. UE 4.26 keeps each
++    // arc once per imported package (AddUniqueExternalBundleArc), in the order it first came, and writes the imported
++    // packages in the order of their ids (every graph of the game's containers is). The legacy summary holds
++    // the graph's offset at byte 52 and its size at byte 56, and the graph ends the header: the exports follow it, at
++    // offsets counted from the header's end, so taking bytes out of the graph moves nothing else.
++    fn dedup_legacy_external_arcs(&mut self) -> anyhow::Result<()> {
++        let buffer = &self.package_buffer;
++        let read_i32 = |at: usize| -> anyhow::Result<i32> {
++            Ok(i32::from_le_bytes(buffer.get(at..at + 4).ok_or_else(|| anyhow!("graph data out of bounds"))?.try_into()?))
++        };
++        let graph_offset = read_i32(52)? as usize;
++        let graph_size = read_i32(56)? as usize;
++        let mut at = graph_offset;
++        let packages = read_i32(at)?;
++        at += 4;
++        let mut entries: Vec<(u64, Vec<u8>)> = Vec::new();
++        for _ in 0..packages {
++            let package_id = buffer.get(at..at + 8).ok_or_else(|| anyhow!("graph data out of bounds"))?.to_vec();
++            let count = read_i32(at + 8)?;
++            at += 12;
++            let mut seen: Vec<(i32, i32)> = Vec::new();
++            for _ in 0..count {
++                let arc = (read_i32(at)?, read_i32(at + 4)?);
++                at += 8;
++                if !seen.contains(&arc) {
++                    seen.push(arc);
++                }
++            }
++            let mut entry = package_id.clone();
++            entry.extend_from_slice(&(seen.len() as i32).to_le_bytes());
++            for (from, to) in seen {
++                entry.extend_from_slice(&from.to_le_bytes());
++                entry.extend_from_slice(&to.to_le_bytes());
++            }
++            entries.push((u64::from_le_bytes(package_id[..].try_into()?), entry));
++        }
++        entries.sort_by_key(|(id, _)| *id);
++        let mut rebuilt: Vec<u8> = Vec::with_capacity(graph_size);
++        rebuilt.extend_from_slice(&packages.to_le_bytes());
++        for (_, entry) in &entries {
++            rebuilt.extend_from_slice(entry);
++        }
++        if at != graph_offset + graph_size {
++            bail!("legacy graph data of {} does not end where its summary says", self.package_name);
++        }
++        if rebuilt != self.package_buffer[graph_offset..graph_offset + graph_size] {
++            self.package_buffer.splice(graph_offset..graph_offset + graph_size, rebuilt.iter().cloned());
++            self.package_buffer[56..60].copy_from_slice(&(rebuilt.len() as i32).to_le_bytes());
++        }
+         Ok(())
+     }
+ 
+@@ -1289,6 +1371,7 @@ fn build_zen_asset_internal<'a>(
+     source_package_name: Option<String>,
+     script_objects: Option<Arc<ZenScriptObjects>>,
+     script_cells: Option<Arc<ZenScriptCellsStore>>,
++    single_export_bundle: bool,
+     log: &'a Log,
+ ) -> anyhow::Result<ZenPackageBuilder<'a>> {
+     // Read legacy package header
+@@ -1297,6 +1380,7 @@ fn build_zen_asset_internal<'a>(
+ 
+     // Construct zen asset from the package header
+     let mut builder = create_asset_builder(legacy_package_header, container_header_version, fixup_legacy_external_arcs, source_package_name, script_objects, script_cells, log);
++    builder.single_export_bundle = single_export_bundle;
+ 
+     // Build zen asset data
+     setup_zen_package_summary(&mut builder)?;
+@@ -1324,6 +1408,7 @@ pub fn build_zen_asset(
+     allow_fixup: bool,
+     script_objects: Option<Arc<ZenScriptObjects>>,
+     script_cells: Option<Arc<ZenScriptCellsStore>>,
++    single_export_bundle: bool,
+     log: &Log,
+ ) -> anyhow::Result<ConvertedZenAssetBundle> {
+     let source_package_name = if container_header_version <= EIoContainerHeaderVersion::Initial {
+@@ -1337,7 +1422,7 @@ pub fn build_zen_asset(
+ 
+     // We want to fixup this asset once we have converted all the packages
+     let final_allow_fixup = container_header_version <= EIoContainerHeaderVersion::Initial && allow_fixup;
+-    let builder = build_zen_asset_internal(&legacy_asset, container_header_version, package_version_fallback, final_allow_fixup, source_package_name, script_objects, script_cells, log)?;
++    let builder = build_zen_asset_internal(&legacy_asset, container_header_version, package_version_fallback, final_allow_fixup, source_package_name, script_objects, script_cells, single_export_bundle, log)?;
+ 
+     // Serialize the resulting asset into the container writer
+     build_converted_zen_asset(&builder, legacy_asset, path, package_name_to_referenced_shader_maps)
+@@ -1354,7 +1439,7 @@ mod test {
+     pub fn build_serialize_zen_asset(legacy_asset: &FSerializedAssetBundle, container_header_version: EIoContainerHeaderVersion, package_version_fallback: Option<FPackageFileVersion>, source_package_name: Option<String>) -> anyhow::Result<(FPackageId, StoreEntry, Vec<u8>)> {
+         // Do not allow legacy external arc fixup, just emit the asset that does not require fixup immediately using only the information available from this asset
+         let logger = Log::no_log();
+-        let builder = build_zen_asset_internal(legacy_asset, container_header_version, package_version_fallback, false, source_package_name, None, None, &logger)?;
++        let builder = build_zen_asset_internal(legacy_asset, container_header_version, package_version_fallback, false, source_package_name, None, None, false, &logger)?;
+ 
+         let (store_entry, package_data, _) = serialize_zen_asset(&builder, legacy_asset)?;
+         Ok((builder.package_id, store_entry, package_data))
+diff --git a/retoc_cli/src/main.rs b/retoc_cli/src/main.rs
+index df93f46..f4488c6 100644
+--- a/retoc_cli/src/main.rs
++++ b/retoc_cli/src/main.rs
+@@ -172,6 +172,11 @@ struct ActionToZen {
+     #[arg(long)]
+     script_cell: Vec<VerseScriptCell>,
+ 
++    /// .utoc or directory of the containers that hold the packages this one depends on (the game's, for a mod). A UE4
++    /// dependency arc to one of their packages names the export bundle that package's own header gives, instead of -1
++    #[arg(long)]
++    reference: Option<PathBuf>,
++
+     /// Verbose logging
+     #[arg(short, long)]
+     verbose: bool,
+@@ -866,6 +871,7 @@ fn action_to_zen(args: ActionToZen, config: Arc<Config>) -> Result<()> {
+                 needs_asset_import_fixup,
+                 script_objects.clone(),
+                 Some(script_cell_store.clone()),
++                args.version == EngineVersion::UE4_26,
+                 &log,
+             )?;
+ 
+@@ -906,9 +912,38 @@ fn action_to_zen(args: ActionToZen, config: Arc<Config>) -> Result<()> {
+             info!(log, "Applying import fix-ups to the converted assets. Package data in memory: {}MB", total_package_data_size / 1024 / 1024);
+             prog_ref.inspect(|x| x.set_position(0));
+ 
++            // Packages outside this container, read from the reference containers once each.
++            let reference_store = match &args.reference {
++                Some(path) => Some(iostore::open(path, config.clone())?),
++                None => None,
++            };
++            let reference_headers: std::sync::Mutex<HashMap<FPackageId, Option<FZenPackageHeader>>> = Default::default();
++            let find_reference = |package: FPackageId, export: FPackageObjectIndex, command: retoc::zen::EExportCommandType| -> Option<i32> {
++                let store = reference_store.as_ref()?;
++                let mut cache = reference_headers.lock().unwrap();
++                let header = cache.entry(package).or_insert_with(|| {
++                    let chunk = FIoChunkId::from_package_id(package, 0, EIoChunkType::ExportBundleData);
++                    if !store.has_chunk_id(chunk) {
++                        return None;
++                    }
++                    let data = store.read(chunk).ok()?;
++                    FZenPackageHeader::deserialize(
++                        &mut Cursor::new(data),
++                        store.package_store_entry(package),
++                        store.container_file_version()?,
++                        store.container_header_version()?,
++                        Some(args.version.package_file_version()),
++                    )
++                    .ok()
++                });
++                header.as_ref().and_then(|header| zen_asset_conversion::legacy_export_bundle_of(header, export, command))
++            };
++            let reference: Option<&(dyn Fn(FPackageId, FPackageObjectIndex, retoc::zen::EExportCommandType) -> Option<i32> + Sync)> =
++                if args.reference.is_some() { Some(&find_reference) } else { None };
++
+             // Process fixups on all the assets in their original processing order
+             for converted in &all_converted {
+-                converted.write().unwrap().fixup_legacy_external_arcs(&converted_lookup, &log)?;
++                converted.write().unwrap().fixup_legacy_external_arcs(&converted_lookup, reference, &log)?;
+                 prog_ref.inspect(|x| x.inc(1));
+             }
+             info!(log, "Writing converted assets");

@@ -1,0 +1,226 @@
+{
+  "format": 1,
+  "generated": {
+    "core/own_shader_payloads.h": {
+      "bytes": 328356,
+      "hash_mode": "utf8-lf",
+      "sha256": "044a5ee1b43459c9b960fbda0c20de6253bcca244f49cc4751f3c5031afce708"
+    }
+  },
+  "generation": {
+    "external_prerequisites": [
+      "Compatible NVIDIA OpenGL driver and GLSL-to-NV_gpu_program5 frontend",
+      "Renderer assembly-binding adaptation tools",
+      "NVN payload serializer for the declared program interface"
+    ],
+    "gpu_rebuild_equivalence": "unverified",
+    "maxwell_backend": "compiler/"
+  },
+  "generators": {
+    "own_shaders/make_payload_header.py": {
+      "bytes": 2526,
+      "hash_mode": "utf8-lf",
+      "sha256": "6a8059b31531935235241f748f908997d8bc377261fec8363c02fcce86bf1364"
+    }
+  },
+  "license_scope": "Project-authored sources and payloads; see LICENSE. External tools retain their own licenses.",
+  "origin": "project-authored",
+  "payloads": {
+    "own_shaders/depth_only_vs.payload": {
+      "bytes": 6401,
+      "defines": [
+        "DEPTH_ONLY=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "4a1b029387fda215f36b08df6a99c4f412e2b66c881c4d42620d75f539db8b07",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/instanced_vs_1uv.payload": {
+      "bytes": 21902,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "INSTANCED=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "60db7ce4b8a9e067f0724031e077c5469e818c49c3270a86b10f0e5898206c2d",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/instanced_vs_lightmap_1uv.payload": {
+      "bytes": 22228,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "INSTANCED=1",
+        "LIGHTMAP_HQ=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "529b110584be45a451aae3864fd10c880f1e896786c96a90c9f8813b39680f8c",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/instanced_vs_lightmap_df_1uv.payload": {
+      "bytes": 22260,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "INSTANCED=1",
+        "LIGHTMAP_HQ=1",
+        "DF_SHADOWS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "01b8e5b3985c768a4aaf78a58dbef183da2c50878e6d947f4a64ec57eb5f39d7",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/onepass_point_shadow_gs.payload": {
+      "bytes": 37168,
+      "defines": [],
+      "hash_mode": "raw",
+      "sha256": "2f747b560bdc9520f9934b30657b6ff50a1cf2cfa900b9e0be88469a7a2d45b7",
+      "source": "own_shaders/source/onepass_point_shadow.geom"
+    },
+    "own_shaders/shadow_for_gs_onepass_vs.payload": {
+      "bytes": 6085,
+      "defines": [
+        "SHADOW_FOR_GS=1",
+        "SHADOW_FOR_GS_NO_POSITION=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "17263d07ed657148a092399e3d9b334142fbf317cafb3f52ae264e7644fcac69",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/shadow_for_gs_vs.payload": {
+      "bytes": 6109,
+      "defines": [
+        "SHADOW_FOR_GS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "7ae69cf97893b861c75d7915f810acb5ca91ecd4442f9539a47698b93c26e3c7",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/shadow_loose_vs.payload": {
+      "bytes": 7988,
+      "defines": [
+        "SHADOW=1",
+        "SHADOW_LOOSE_BIAS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "cddb068f350362f34af7c3add0a0c3e439db761a9a536371293b648dd54cd8ad",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/shadow_perspective_loose_vs.payload": {
+      "bytes": 7914,
+      "defines": [
+        "SHADOW_PERSPECTIVE=1",
+        "SHADOW_LOOSE_BIAS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "2560f060a4eca21f255ca614bfcfc9c79eebf8f7c563e3da1a6b84d165425f9e",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/shadow_perspective_vs.payload": {
+      "bytes": 7849,
+      "defines": [
+        "SHADOW_PERSPECTIVE=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "3cdfe99873fc9b7449ac511af8d31c8b10f97a85a698732d9690afd3794ce796",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/shadow_vs.payload": {
+      "bytes": 7891,
+      "defines": [
+        "SHADOW=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "f1d04275204d20db491c6b25eac64d6aaee1d48a33c80189123c43b608fae00c",
+      "source": "own_shaders/source/depth_passes.vert"
+    },
+    "own_shaders/static_mesh_vs_1uv.payload": {
+      "bytes": 17237,
+      "defines": [
+        "NUM_TEXCOORDS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "3de87d056e2b10314339a012664d92abaaf456eeb286567800b6631e48f2d5b1",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/static_mesh_vs_lightmap_1uv.payload": {
+      "bytes": 17731,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "LIGHTMAP_HQ=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "40f601ea5bcbb519b9b4027ee69be780d93f096cf65eeb446e0cc8f5b7082b22",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/static_mesh_vs_lightmap_df_1uv.payload": {
+      "bytes": 17763,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "LIGHTMAP_HQ=1",
+        "DF_SHADOWS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "3ebdc6ce68e6926bf7e4eff9a13ef734528f738b9108de3e6b664f60fc8d93fd",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/translucent_fog_vs_1uv.payload": {
+      "bytes": 17237,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "TRANSLUCENT_VERTEX_FOG=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "4072eba8288819de7737d8802287f31e4b564f88e78d9e3d30693352e8616150",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/translucent_vs_1uv.payload": {
+      "bytes": 6083,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "TRANSLUCENT=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "76b704ccde4616fa1cd55e705da379565dd9e6661ded12b8b59c262a2a13a104",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/translucent_vs_lightmap_1uv.payload": {
+      "bytes": 6553,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "TRANSLUCENT=1",
+        "LIGHTMAP_HQ=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "68f3ae3991d718f1296a3fc39bf488ed43d63283b5590b5230a0a263e52a1878",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    },
+    "own_shaders/translucent_vs_lightmap_df_1uv.payload": {
+      "bytes": 6585,
+      "defines": [
+        "NUM_TEXCOORDS=1",
+        "TRANSLUCENT=1",
+        "LIGHTMAP_HQ=1",
+        "DF_SHADOWS=1"
+      ],
+      "hash_mode": "raw",
+      "sha256": "9be1510eefc10e9cb95a0d946667310e0728538512b0d1e9e6d36fc05f5233ba",
+      "source": "own_shaders/source/static_mesh_base_pass.vert"
+    }
+  },
+  "sources": {
+    "own_shaders/source/depth_passes.vert": {
+      "bytes": 6610,
+      "hash_mode": "utf8-lf",
+      "sha256": "247816e1e7701bd7df5829d922ac842370a4fd210caff278c8e3006044db6cd9"
+    },
+    "own_shaders/source/onepass_point_shadow.geom": {
+      "bytes": 2630,
+      "hash_mode": "utf8-lf",
+      "sha256": "ecac9f4e92a55e246f67539ef9e55e1eea5e6382bcaf219366f755c210a16786"
+    },
+    "own_shaders/source/static_mesh_base_pass.vert": {
+      "bytes": 20565,
+      "hash_mode": "utf8-lf",
+      "sha256": "24b23070d4b0f21fb77991c5138c378d5f22b6c7cd9e2ed8b4588cf7c3e92e99"
+    }
+  }
+}

@@ -1,0 +1,3631 @@
+{
+  "format": 1,
+  "scope": "Historical K6 individual review of the 212 pending mapkit files. This audit does not admit research into production.",
+  "inventory_sha256": "7c744add144d5bdeeca153cb9ac2221399612c02f69cb16cb211ddced1c96ca7",
+  "evidence_groups": {
+    "graph": [
+      "retained validation receipt",
+      "modding/mapkit/tests/native_material_source_shadow_graph.cpp",
+      "modding/mapkit/tests/native_material_boundary.cpp"
+    ],
+    "vm": [
+      "retained validation receipt",
+      "tools/navigation/test_native_material_vm.py"
+    ],
+    "forward": [
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt"
+    ],
+    "owner": [
+      "retained validation receipt",
+      "retained validation receipt",
+      "docs/INTEGRATION_STATUS.md"
+    ],
+    "import": [
+      "retained validation receipt",
+      "retained validation receipt"
+    ],
+    "particle": [
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt"
+    ],
+    "unlit": [
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt"
+    ],
+    "auxiliary": [
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt",
+      "retained validation receipt",
+      "docs/INTEGRATION_STATUS.md"
+    ]
+  },
+  "files": [
+    {
+      "path": "modding/mapkit/core/creator_lighting_recipe.h",
+      "sha256": "bb431525e0a6174ed7f868eca40a638637f7c93472c1af95e12f98710e9d7cfa",
+      "bytes": 3825,
+      "lines": 64,
+      "includes": [],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Finite typed creator input and exact-bit versioned encoding; no current recipe execution receipt"
+    },
+    {
+      "path": "modding/mapkit/core/creator_lighting_recipe.md",
+      "sha256": "0c7883997818bd926b8db0cb7075bfac997c9766fd84f7612c00e63ddde03b6e",
+      "bytes": 3412,
+      "lines": 51,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/creator_mesh_geometry.h",
+      "sha256": "08f43dcd009c20851c39e4af426c5b94f3400cfdcfea3e405a17dca85664e8a2",
+      "bytes": 6619,
+      "lines": 79,
+      "includes": [
+        "package_reader.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Strict bounded OBJ triangle decoder; focused current rerun required"
+    },
+    {
+      "path": "modding/mapkit/core/creator_mesh_package.h",
+      "sha256": "84db4be66eaa2565f7aa5379af317524878eb4dd8f1db3759dc0e58c4538a093",
+      "bytes": 5129,
+      "lines": 65,
+      "includes": [
+        "physics_body.h",
+        "export_package.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Explicit stock custom-version dispatch and names-only PhysX relabel; retained stock fixture required"
+    },
+    {
+      "path": "modding/mapkit/core/creator_mesh_readback.md",
+      "sha256": "fe6628043d31203034dabb3741870f52d97ca8e774b4ef74d27f4416b2bfcfb0",
+      "bytes": 5811,
+      "lines": 94,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_baked_shadow.h",
+      "sha256": "2e4edee4426c51c4e2a024a9db872718e2c7203c47577cfedc0f5b7cfb4652ed",
+      "bytes": 1380,
+      "lines": 20,
+      "includes": [
+        "custom_material_lightmap.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_c4_controls.h",
+      "sha256": "de6337c8649bde99391e241f3c3c5867426256d9de6a0258ef2b3e6491f62a93",
+      "bytes": 2406,
+      "lines": 32,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_contract.md",
+      "sha256": "5a9892aad8819053fc75c2b225f4e12fbb787e3882c25758a6228e8f9169425e",
+      "bytes": 9565,
+      "lines": 151,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_dbuffer.h",
+      "sha256": "882b13de6d0a3ea97eccab2d6f6af3e6c7337d23b1f3561d34af50f16e67c12e",
+      "bytes": 8822,
+      "lines": 67,
+      "includes": [
+        "material_forward_geometry.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_directional.h",
+      "sha256": "c67ba9400c17a23c7b2f48b3658977567a8f5c806f9108059f6cffbd0b480b86",
+      "bytes": 2561,
+      "lines": 28,
+      "includes": [
+        "custom_material_directional_shadow.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_directional_shadow.h",
+      "sha256": "bcf287162ceecfaba5eff25696d61abba412e03924d1a826b682bb741adecbb0",
+      "bytes": 6140,
+      "lines": 67,
+      "includes": [
+        "custom_material_shadow.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_final_composition.h",
+      "sha256": "6c9b589c7dd8f357e1eeee49123962658b1d51c1efc86f14792bbca7bbaf9a39",
+      "bytes": 5250,
+      "lines": 70,
+      "includes": [
+        "custom_material_c4_controls.h",
+        "custom_material_reflection_policy.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_final_composition.md",
+      "sha256": "2acbf7c34920c0d1cb0d2a37d45ce175d1dd7f2546b421e839c512df81eaf49c",
+      "bytes": 3110,
+      "lines": 57,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_lighting.h",
+      "sha256": "545ac178bcfbff0c36986953668f49896530c052aa396a647df99c3286dbc6c5",
+      "bytes": 13881,
+      "lines": 204,
+      "includes": [
+        "custom_material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_lightmap.h",
+      "sha256": "db827be58ea2333b98a0ea93454521bcf15ad2260f9dcdd0c393e8644d6bf41c",
+      "bytes": 3872,
+      "lines": 45,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_opaque_policy.h",
+      "sha256": "271d105afaa3be3f00b374bd0e4093d3004d872018c0a4cf033274885786ff4f",
+      "bytes": 14740,
+      "lines": 126,
+      "includes": [
+        "custom_material_dbuffer.h",
+        "custom_material_indirect.h",
+        "custom_material_baked_shadow.h",
+        "custom_material_directional.h",
+        "custom_material_c4_controls.h",
+        "custom_material_reflection_policy.h",
+        "custom_material_final_composition.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_opaque_policy.md",
+      "sha256": "2e86ea2b2051a939c9a057e926c28d3a39322e96ab20181c698718e6f70bb454",
+      "bytes": 5589,
+      "lines": 99,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_policy_emitter.h",
+      "sha256": "78f55a9a2a8364b391ec1bed4ae602485ddede89369db688dcb41442088c4185",
+      "bytes": 4279,
+      "lines": 69,
+      "includes": [
+        "custom_material_lighting.h",
+        "custom_material_policy_bindings.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_reflection.h",
+      "sha256": "c92d3863cfa47cbcc0a189dc2e41067d533242318bf18127bbf780fcbe184944",
+      "bytes": 4270,
+      "lines": 64,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_reflection_policy.h",
+      "sha256": "06b13f15c4582fdfa70c5f4e207fee325579cadaed16c12cb4c1661a2ec3a576",
+      "bytes": 3536,
+      "lines": 43,
+      "includes": [
+        "custom_material_reflection.h",
+        "custom_material_skylight.h",
+        "custom_material_reflection_response.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_reflection_response.h",
+      "sha256": "ec4443b90a30f20b7dd5383c22341f1bf7652ca07e5bb1d50e8f6a043cbc8b35",
+      "bytes": 1891,
+      "lines": 23,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_shadow.h",
+      "sha256": "3edb3fac0c73579a9b8e0331e3d9f9dd1377144571c21005f71fe18821d39fa6",
+      "bytes": 2528,
+      "lines": 35,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/custom_material_skylight.h",
+      "sha256": "6dbd92b6655fed418e74f40115464407c0ef343c2e9e37d6c8ad7561034e5851",
+      "bytes": 3791,
+      "lines": 53,
+      "includes": [
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research only",
+      "review_reason": "Isolated policy math/resource emitters; full rendered native creator admission withheld",
+      "evidence": [
+        "tools/navigation/NATIVE_CUSTOM_BACKEND.md",
+        "modding/mapkit/core/custom_material_contract.md",
+        "modding/mapkit/core/custom_material_opaque_policy.md"
+      ]
+    },
+    {
+      "path": "modding/mapkit/core/export_package.h",
+      "sha256": "424f60950a628e9fef69d51cde51d330dda98f890915c7cad8b902baedb31090",
+      "bytes": 8328,
+      "lines": 145,
+      "includes": [
+        "package_reader.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Bounded name-table relocation with unchanged body; fresh/packed preservation separate"
+    },
+    {
+      "path": "modding/mapkit/core/material_anchor.h",
+      "sha256": "0e57921cde53cdf41b8f1dcd0f1f1859bf78f8fa738e503560421de9e36df5bb",
+      "bytes": 14350,
+      "lines": 145,
+      "includes": [
+        "material_numeric.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_anchor_lighting.h",
+      "sha256": "6981f86e5d01653a1b4f47da29f8592fc4e4e7d6b1b883dbf0fdfe06dcd53f57",
+      "bytes": 4378,
+      "lines": 48,
+      "includes": [
+        "material_anchor.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_bind.h",
+      "sha256": "50912acb865b85fae649d8007db8cd6056867d43d043c6869d57b32da9aea0e4",
+      "bytes": 31340,
+      "lines": 349,
+      "includes": [
+        "material_symbolic.h",
+        "material_shader_map.h",
+        "material_preshader_symbolic.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_coat.h",
+      "sha256": "e467d5c3127f448c14cc0ca6e8db6febb6bd8412702a03c010c113c17bed2ef4",
+      "bytes": 5062,
+      "lines": 52,
+      "includes": [
+        "material_decompile.h",
+        "material_normal.h",
+        "material_rewrite.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_coat_pipeline.h",
+      "sha256": "fb8b98324d1347a8971c61561dad6df422e79cfe9808c9f4480c123e10740222",
+      "bytes": 3638,
+      "lines": 30,
+      "includes": [
+        "material_coat.h",
+        "material_depth.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_cooked.h",
+      "sha256": "c0e75a622147f555038f951f7d8541edbd2af8518d6abb8a8546b8396d95373f",
+      "bytes": 12295,
+      "lines": 138,
+      "includes": [
+        "property_decoder.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_decals.h",
+      "sha256": "72164904faed06ce3eac5fe239d835a77ce2345fe79ea3e0be3e40e521b5d07a",
+      "bytes": 3651,
+      "lines": 32,
+      "includes": [
+        "material_surface.h",
+        "material_emission_pipeline.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_decompile.h",
+      "sha256": "16a3cb974bf68cc25c116ba7fc936c618a665053936c2d4ec7d3d5c1f839d373",
+      "bytes": 10644,
+      "lines": 124,
+      "includes": [
+        "material_bind.h",
+        "material_lifter.h",
+        "material_anchor.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_depth.h",
+      "sha256": "6b4a34cb383994c942bb2a9439df691bbbc9c4d002353fd08a866051b8adfa11",
+      "bytes": 4038,
+      "lines": 40,
+      "includes": [
+        "material_decompile.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_domain_fields.h",
+      "sha256": "4a09781aaa6a53a7d2ef3376593053cf7f3a91361a7cc64ecd9b866a12769ae1",
+      "bytes": 5720,
+      "lines": 47,
+      "includes": [
+        "material_prepare.h",
+        "material_post_bindings.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_domain_prepare.h",
+      "sha256": "abce8fe45d06c82ae380225964f0bba2dd862fd842c3d01e28e2c352b9a50dce",
+      "bytes": 3154,
+      "lines": 35,
+      "includes": [
+        "material_domain_fields.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_emission.h",
+      "sha256": "a62b2a07ddd10a34dc400c367ce3c918a334cb0cd1325924f043f6adb33f4110",
+      "bytes": 3074,
+      "lines": 33,
+      "includes": [
+        "material_schedule.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_emission_pipeline.h",
+      "sha256": "a5eea7e812463607f93eeaa6b4f19d57ac1462ce4a5918912120ddf0fc9714e7",
+      "bytes": 3929,
+      "lines": 35,
+      "includes": [
+        "material_emission.h",
+        "material_coat_pipeline.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_facing.h",
+      "sha256": "747f0ce060009a11d78ba5339e76a5bf86a66280dfa23f84e68273b36e57c253",
+      "bytes": 4142,
+      "lines": 63,
+      "includes": [
+        "material_symbolic.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_factory.h",
+      "sha256": "b48e82bf460cfdb25c26a2c00a53dad95a2cf35eb714494c7a1247888afdc20b",
+      "bytes": 4192,
+      "lines": 53,
+      "includes": [
+        "material_bind.h",
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_fixed_source.h",
+      "sha256": "c05f29501819c2f6dc53dc482ab154f5a7c7304369bba0246756a0a219f12f47",
+      "bytes": 7962,
+      "lines": 113,
+      "includes": [
+        "material_source_data.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_forward_geometry.h",
+      "sha256": "b589071267396c5ecac66502d8a11343a04234256b1122662fa762a3387e0b7c",
+      "bytes": 9388,
+      "lines": 114,
+      "includes": [
+        "material_forward_lighting.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "forward",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_forward_lighting.h",
+      "sha256": "042328997b1a8fd0a1988bd45121b299086c63e8a2c62c7e5c4e9a601200bff2",
+      "bytes": 31965,
+      "lines": 379,
+      "includes": [
+        "custom_material_lighting.h",
+        "custom_material_policy_emitter.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "forward",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_fully_rough.h",
+      "sha256": "db1873fa609aa6abdebce07c4505e3d425568ce9891c192903aee91f0d08a260",
+      "bytes": 5597,
+      "lines": 72,
+      "includes": [
+        "material_anchor.h",
+        "material_json.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_graph.h",
+      "sha256": "49b2cbca160849cf6f6d89cbb0a3af9b6f12d07913df2403f9a3e9ae97bd08f5",
+      "bytes": 10385,
+      "lines": 87,
+      "includes": [
+        "material_json.h"
+      ],
+      "classification": "qualified-host-only-source",
+      "publish_scope": "Reusable host schema validation only",
+      "evidence": [
+        "retained validation receipt",
+        "modding/mapkit/tests/native_material_source_shadow_graph.cpp",
+        "modding/mapkit/tests/native_material_boundary.cpp"
+      ],
+      "review_family": "graph",
+      "review_reason": "Current source-pinned fatal-sanitizer graph file-schema guard evidence only"
+    },
+    {
+      "path": "modding/mapkit/core/material_infinite_equality.h",
+      "sha256": "27e31742a7617ca5cfc7a2c9ad139f2426ded61acb4150ee0464dd51147587b1",
+      "bytes": 2076,
+      "lines": 28,
+      "includes": [
+        "material_graph.h",
+        "material_symbolic.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_infinite_equality_plan.h",
+      "sha256": "e9692e482f5bdd8c9086f8443df22c7f4daee1251baf2f023756ca658005ff9a",
+      "bytes": 5070,
+      "lines": 62,
+      "includes": [
+        "material_decompile.h",
+        "material_rewrite.h",
+        "material_infinite_equality.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_lifter.h",
+      "sha256": "946c077a01c4294b108ff2390403034b3acd0b99400f88568c98f2242e3bd5df",
+      "bytes": 54084,
+      "lines": 465,
+      "includes": [
+        "material_graph.h",
+        "material_symbolic.h",
+        "material_facing.h",
+        "material_post_nodes.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_light_function.h",
+      "sha256": "e910b4ef261844a1758d22281e209622294d8e79d9f9931e6190f81186e2aae4",
+      "bytes": 9893,
+      "lines": 77,
+      "includes": [
+        "material_source_plan.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_masked_unlit.h",
+      "sha256": "3aafc6008b3691291ea804fe3135e89f229d1f4c8d5f1f5e146247a6dc34bc56",
+      "bytes": 10136,
+      "lines": 122,
+      "includes": [
+        "material_unlit.h",
+        "material_depth.h",
+        "material_scene_native_registry.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_normal.h",
+      "sha256": "3b0ddc0e6d9c434fb9503310aad24e186d55c27ce402e15c129ba5ae4127872e",
+      "bytes": 9521,
+      "lines": 98,
+      "includes": [
+        "material_anchor.h",
+        "material_bind.h",
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_numeric.h",
+      "sha256": "86e8ffb2010038294fac907466b880edb5fc0f1083c0940b41028702a1cea2e3",
+      "bytes": 32111,
+      "lines": 182,
+      "includes": [],
+      "classification": "incomplete-research",
+      "review_family": "vm",
+      "evidence": [
+        "retained validation receipt",
+        "tools/navigation/test_native_material_vm.py"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_post.h",
+      "sha256": "7c6d45b0208b48bf69039e0901d12723c7627be468ff9aa102dab0bf000e9151",
+      "bytes": 2359,
+      "lines": 29,
+      "includes": [
+        "material_decompile.h",
+        "material_post_bind.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_post_bind.h",
+      "sha256": "c8f87771569f9de062bb0b9740dc33d09a6c8646bc54915c9e669ba4b749bb46",
+      "bytes": 9316,
+      "lines": 82,
+      "includes": [
+        "material_bind.h",
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_post_bindings.h",
+      "sha256": "7ba101cc8392bc7f887c1164b9959ae24adff4376a0e08dc51bfd3ce05b1bb98",
+      "bytes": 8338,
+      "lines": 91,
+      "includes": [
+        "material_shader_map.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_post_nodes.h",
+      "sha256": "bbc0a7990ab1e8ddb84d05a3afcebe899d5ca68e054435e7882ee82c87ff927d",
+      "bytes": 4140,
+      "lines": 48,
+      "includes": [
+        "material_graph.h",
+        "material_symbolic.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_post_source.h",
+      "sha256": "1e71d7a13f53cd3307d541c0a2b1d00308a73ea94b3de29626889e9ac02e6315",
+      "bytes": 5833,
+      "lines": 27,
+      "includes": [
+        "material_source_data.h",
+        "material_domain_prepare.h",
+        "material_scene.h",
+        "material_post_bind.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_prepare.h",
+      "sha256": "e95ed11fe9e9575ca83371da8acde50f41cf1803fc8963afe3f9bd0883a2b872",
+      "bytes": 10772,
+      "lines": 109,
+      "includes": [
+        "material_bind.h",
+        "material_graph.h",
+        "material_shader_parameters.h",
+        "custom_material_bindings.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_preshader_eval.h",
+      "sha256": "f053d00ce77c529215be4b5ea90c29ad62127e1ba0ff4862f739b71c99af0d4d",
+      "bytes": 7094,
+      "lines": 103,
+      "includes": [
+        "material_preshader.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "vm",
+      "evidence": [
+        "retained validation receipt",
+        "tools/navigation/test_native_material_vm.py"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_preshader_symbolic.h",
+      "sha256": "c9186b1a92e887c2a568d1ea8a0c824dc48b07cf5d5bccef0c05f6df8f21f16d",
+      "bytes": 2954,
+      "lines": 45,
+      "includes": [
+        "material_preshader_eval.h",
+        "material_symbolic.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "vm",
+      "evidence": [
+        "retained validation receipt",
+        "tools/navigation/test_native_material_vm.py"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_program.h",
+      "sha256": "903bd97bafb6165842b997df6430362cccd5d49115d436757e36e5e1853fa1ce",
+      "bytes": 2684,
+      "lines": 27,
+      "includes": [
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_rewrite.h",
+      "sha256": "493ec687dca538c4c8307ac382efad5791b3877d511db0aef58f6eec40af297b",
+      "bytes": 7230,
+      "lines": 110,
+      "includes": [
+        "material_bind.h",
+        "material_lifter.h",
+        "material_facing.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_sampler_prepare.h",
+      "sha256": "040e81f286ebdd6ca719a57602b58a5e4b20d36d3521b1b83d85d61d4d788c41",
+      "bytes": 3386,
+      "lines": 31,
+      "includes": [
+        "material_prepare.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_scene.h",
+      "sha256": "8acc6d1ca2c8912db551ab282a73da5885527633761b813f8cbdf5fc9a313ea4",
+      "bytes": 11796,
+      "lines": 115,
+      "includes": [
+        "material_rewrite.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_scene_native_registry.h",
+      "sha256": "6f0a7f26486045c048049c22c45a0821c8c6bfbd892d1c4505745edbc5e5e815",
+      "bytes": 21680,
+      "lines": 269,
+      "includes": [
+        "material_scene_original_layout.h",
+        "material_program.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_scene_original_layout.h",
+      "sha256": "c4d96ccee5f29f16f8984660000c18fc372419f3c6d1a2828aeb8ca21d10d1a6",
+      "bytes": 6719,
+      "lines": 78,
+      "includes": [
+        "material_scene_policy.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_scene_policy.h",
+      "sha256": "b681d42344a5e3cf8ba1673f83a519e69089632a8ba9ad5cb335dda1eb751381",
+      "bytes": 6329,
+      "lines": 51,
+      "includes": [
+        "material_prepare.h",
+        "material_post_bindings.h",
+        "material_scene.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_schedule.h",
+      "sha256": "829a8f450f39b0d18a2a8b7fdf01b9db35db61c2a2691b5c79141a72888bf7ef",
+      "bytes": 7019,
+      "lines": 75,
+      "includes": [
+        "material_anchor.h",
+        "material_symbolic.h",
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_shader_parameters.h",
+      "sha256": "7117960ee852760e2114ce8bb49aa641f8c7a3ee6948aae05201dafad66cf1b2",
+      "bytes": 3492,
+      "lines": 64,
+      "includes": [
+        "material_shader_map.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_skin_source.h",
+      "sha256": "9ff9eae1256c655b94f3eae27ed3f7fb497b5b03348f2285b5d590338d9fc0c7",
+      "bytes": 3547,
+      "lines": 42,
+      "includes": [
+        "material_anchor.h",
+        "material_graph.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_anchors.h",
+      "sha256": "fa223d99e998714e38338f6e5d12141d5da72e222171398bba6d6c034ccb0a9a",
+      "bytes": 5716,
+      "lines": 79,
+      "includes": [
+        "material_prepare.h",
+        "material_program.h",
+        "material_anchor_lighting.h",
+        "material_normal.h",
+        "material_skin_source.h",
+        "material_schedule.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_black.h",
+      "sha256": "0d862964c40149656fae178367f37aadd0630b031d28f90b5d7f8d0a4745f31e",
+      "bytes": 8385,
+      "lines": 82,
+      "includes": [
+        "material_source_owner.h",
+        "material_source_particle_subuv.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_canonical_shadow.h",
+      "sha256": "7f7a985159bf369d8ce525d39fc7154ec889958b6745781c0d9a93c3dcb35885",
+      "bytes": 13378,
+      "lines": 65,
+      "includes": [
+        "material_source_owner.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_complements.h",
+      "sha256": "6cf31e9140b110cdb3be34be98c14492f84776a3eff9e3e0f4db8c55b3085fef",
+      "bytes": 17979,
+      "lines": 127,
+      "includes": [
+        "material_source_owner.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_data.h",
+      "sha256": "2d6ac0b929f99df7381c41934812208cf9a57df629acc73fda0e2263fdb1f973",
+      "bytes": 12451,
+      "lines": 80,
+      "includes": [
+        "material_cooked.h",
+        "material_prepare.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_emission.h",
+      "sha256": "b329f5526e26757176fd626fddcf338662ba5bd0860cd2beba66112fe6d18cc3",
+      "bytes": 5599,
+      "lines": 66,
+      "includes": [
+        "material_emission_pipeline.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_import.h",
+      "sha256": "2afaf4cf9578d80386812a267364fa03934a116ae3811a3cb2893137c3a1a2e7",
+      "bytes": 20712,
+      "lines": 145,
+      "includes": [
+        "material_source_pipeline.h",
+        "custom_material_hash.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "import",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_import_compare.h",
+      "sha256": "85e24d26e719bf34229137e63dccb0ddcc4af8cc6a35c0099a25bdc203a06d4d",
+      "bytes": 14444,
+      "lines": 82,
+      "includes": [
+        "material_source_import.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "import",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_infinite_equality.h",
+      "sha256": "374dcdb5123027bc53eb148de0cb643bd23b1b66b18b2b335f96cc5cfdbf7f4d",
+      "bytes": 1954,
+      "lines": 17,
+      "includes": [
+        "material_source_complements.h",
+        "material_infinite_equality_plan.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_owner.h",
+      "sha256": "fcc52bb8c4158047e1820e988fa71216bf17e6d1dc84c663f28a81f9247519c3",
+      "bytes": 6220,
+      "lines": 52,
+      "includes": [
+        "material_source_types.h",
+        "material_masked_unlit.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle.h",
+      "sha256": "6855e6e1e15fdd6045d18ca9e938aad5ce0e72a1c3b039e8c1ccaa210187782b",
+      "bytes": 6588,
+      "lines": 50,
+      "includes": [
+        "material_prepare.h",
+        "material_factory.h",
+        "material_program.h",
+        "material_decompile.h",
+        "material_schedule.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_defaults.h",
+      "sha256": "3134de6e81e87f3aba4ece7d4fa407410dbf50ed9bdb510a99bb81e8d0de35b7",
+      "bytes": 16654,
+      "lines": 58,
+      "includes": [
+        "material_source_particle_subuv.h",
+        "material_rewrite.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_ambient.h",
+      "sha256": "8b818b3e301a000f2b6c49763d8ecbd162bbee2edb5081684566df925bec64f4",
+      "bytes": 9785,
+      "lines": 20,
+      "includes": [
+        "material_source_particle_folded_kernel.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_clip.h",
+      "sha256": "0fca0e93e4f77190c9d048368af9a82c030defe6663afc053a861db5fc1fa5b9",
+      "bytes": 11599,
+      "lines": 75,
+      "includes": [
+        "material_source_particle_folded_trace.h",
+        "material_source_particle_folded_varyings.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_contract.h",
+      "sha256": "b961371471e7d7e2afcf85eb8b1dd56fe76b136430586cc0df40befc05495e33",
+      "bytes": 11981,
+      "lines": 40,
+      "includes": [
+        "material_source_particle_lit_plan.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_defaults.h",
+      "sha256": "9fa10b0826284770ac3c6320224e971c85abfc4cecfd97623ce38e231d3ba547",
+      "bytes": 5200,
+      "lines": 12,
+      "includes": [
+        "material_source_particle_lit_defaults.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_hq.h",
+      "sha256": "25e45a710359d318a9492ced9c19a0e722a9c15538f4ddb303a1e133ab652d6b",
+      "bytes": 32843,
+      "lines": 77,
+      "includes": [
+        "material_source_particle_folded_kernel.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_interface.h",
+      "sha256": "7b1d50836e6aff33d5fd6be690caea32fdb8faffc6dec69adb868a08e30b6da6",
+      "bytes": 12711,
+      "lines": 26,
+      "includes": [
+        "material_source_particle_folded_trace.h",
+        "material_source_particle_folded_varyings.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_kernel.h",
+      "sha256": "82e19a3a2909603df75bbacf259d1423ec740bec187de1e922c8f6b84d713e6a",
+      "bytes": 23288,
+      "lines": 45,
+      "includes": [
+        "material_source_particle_folded_interface.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_owner.h",
+      "sha256": "f54c52d9c6a057d393f8ba9c25c2ba969456307795faee6c8d28ba31140aa036",
+      "bytes": 9362,
+      "lines": 19,
+      "includes": [
+        "material_source_particle_folded_qualification.h",
+        "material_source_particle_folded_values.h",
+        "material_source_particle_reflection_owner.h",
+        "material_source_complements.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_qualification.h",
+      "sha256": "22a500be91fca3ed553dc5230c0acd7b62d978b03d74f8a2cd55ba63e54b3665",
+      "bytes": 10173,
+      "lines": 24,
+      "includes": [
+        "material_source_particle_folded_ambient.h",
+        "material_source_particle_folded_hq.h",
+        "material_source_particle_folded_clip.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_trace.h",
+      "sha256": "31bad80fb657a919e394aa8e6d4398ba08bc98305acdf3a8f35e41796e77dd61",
+      "bytes": 8825,
+      "lines": 25,
+      "includes": [
+        "material_source_particle_folded_contract.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_values.h",
+      "sha256": "c8a4fb20cf626f70bbe656c7cdfef0065e337d12ac9eb46719c9f3e9eb585f60",
+      "bytes": 3684,
+      "lines": 13,
+      "includes": [
+        "material_source_particle_folded_trace.h",
+        "material_source_particle_folded_defaults.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_varying_identities.h",
+      "sha256": "916fc737706baba336547f8795e59b821e112957d742f56fde47cb46664581ea",
+      "bytes": 24110,
+      "lines": 90,
+      "includes": [
+        "material_source_particle_subuv.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_folded_varyings.h",
+      "sha256": "5d9409354f331b2f8155475316152544ac5aa871504867f5efe7ed3709a976ec",
+      "bytes": 5351,
+      "lines": 18,
+      "includes": [
+        "material_source_particle_folded_varying_identities.h",
+        "material_source_types.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_additive.h",
+      "sha256": "ea2b98640f8fccdc56c4cd3f10bc7f3ba83ef65f6fb4aa09b8461b0bace0225a",
+      "bytes": 4816,
+      "lines": 21,
+      "includes": [
+        "material_source_water_anchors.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_anchors.h",
+      "sha256": "f3b94906b1dc00024bf40b3d75b422d5128facbd232a156f85302c472e30ab52",
+      "bytes": 6002,
+      "lines": 27,
+      "includes": [
+        "material_source_particle_plan.h",
+        "material_source_water_anchors.h",
+        "material_source_particle_lit_capture.h",
+        "material_source_particle_lit_additive.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_bind.h",
+      "sha256": "c6b450bf811b40ad1680db29a4673d6de64831a9556a8bedde296493596b57d7",
+      "bytes": 6166,
+      "lines": 68,
+      "includes": [
+        "material_source_particle_plan.h",
+        "material_source_unlit_scene.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_capture.h",
+      "sha256": "91d9a801206dfb2912a542c071610302a6a40e039773285f98101f15ca69f626",
+      "bytes": 6242,
+      "lines": 45,
+      "includes": [
+        "material_source_water_anchors.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_defaults.h",
+      "sha256": "e77c56b847bda9ce4576cc906b56060390357b15e5c5e16950a56263896b350f",
+      "bytes": 10172,
+      "lines": 37,
+      "includes": [
+        "material_source_particle_defaults.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_depth.h",
+      "sha256": "b95e8f94afd5a283483cfbe8588904aee012fe6e858d355898bfbd53cb925c4e",
+      "bytes": 4456,
+      "lines": 21,
+      "includes": [
+        "material_source_particle_owner.h",
+        "material_source_particle_lit_bind.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_owner.h",
+      "sha256": "e061d4c3878f9b2941f6a87379aa104c89122bb8f793ce67826fd1df25e0c42c",
+      "bytes": 9915,
+      "lines": 33,
+      "includes": [
+        "material_source_particle_lit_plan.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_plan.h",
+      "sha256": "c3ea4cc3e30dd046416e2dd4805269c6477683579ab1d5afc4177f1171730032",
+      "bytes": 9178,
+      "lines": 37,
+      "includes": [
+        "material_source_particle_lit_anchors.h",
+        "material_source_particle_lit_defaults.h",
+        "material_source_particle_owner.h",
+        "material_source_particle_lit_bind.h",
+        "material_source_particle_lit_trace.h",
+        "material_source_particle_lit_reflection.h",
+        "material_source_particle_lit_depth.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_reflection.h",
+      "sha256": "8dc4deac0f19e222f3a7fac15265f597473eb42586492540cd08ba3985bf2d90",
+      "bytes": 4273,
+      "lines": 30,
+      "includes": [
+        "material_source_particle_lit_bind.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_lit_trace.h",
+      "sha256": "61187debf25b9efd602a83f9ac6c678e1fc0600d1807907338f8a06051841bdb",
+      "bytes": 7269,
+      "lines": 48,
+      "includes": [
+        "material_source_emission.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_owner.h",
+      "sha256": "fa9a1edfb84894f362ad073d3657aa613cef1c9654a46c62478050471d398d30",
+      "bytes": 12707,
+      "lines": 65,
+      "includes": [
+        "material_source_owner.h",
+        "material_source_particle_plan.h",
+        "material_source_unlit_scene.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_plan.h",
+      "sha256": "060b647d7fdb78fcb08112554a5196dd2ae0549530fdbf7dd3a9f11f170b2e7d",
+      "bytes": 4108,
+      "lines": 28,
+      "includes": [
+        "material_source_particle_defaults.h",
+        "material_source_plan.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_reflection_owner.h",
+      "sha256": "0f2d7b134cb1919266cb3158df41fbec29c1d4e0d9503312e8c75a5329e2f8c0",
+      "bytes": 6244,
+      "lines": 12,
+      "includes": [
+        "material_source_particle_lit_owner.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_particle_subuv.h",
+      "sha256": "83a8cbf00d4b5c831396b99a8d6941f99957e544f54c2339b2602f3991aa59d9",
+      "bytes": 11495,
+      "lines": 68,
+      "includes": [
+        "material_source_particle.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "particle",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_pipeline.h",
+      "sha256": "7e1420b432b7b249e16b1fc16d285b02480b9549d2092b7c0fbfdcf0f0200c3d",
+      "bytes": 5957,
+      "lines": 65,
+      "includes": [
+        "material_source_subsurface.h",
+        "material_source_complements.h",
+        "material_source_particle_owner.h",
+        "material_source_particle_lit_owner.h",
+        "material_source_black.h",
+        "material_source_particle_reflection_owner.h",
+        "material_source_shadow_dispatch.h",
+        "material_source_anisotropy.h",
+        "material_source_sky_contract.h",
+        "material_source_post_settings.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_plan.h",
+      "sha256": "5418813a09acf57c4991e50918136fe919bbe9048330a4b65df147c3f24a84cb",
+      "bytes": 3242,
+      "lines": 43,
+      "includes": [
+        "material_prepare.h",
+        "material_factory.h",
+        "material_program.h",
+        "material_decompile.h",
+        "material_sampler_prepare.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_post_settings.h",
+      "sha256": "229492d05b7b366aa921968b363ba5b56e4192c92b93aaf09598b1293d184ba1",
+      "bytes": 1895,
+      "lines": 27,
+      "includes": [
+        "material_cooked.h",
+        "material_json.h",
+        "material_lifter.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "import",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_precomputed_ao.h",
+      "sha256": "9de07ae7da4cd6d89d0b064fe2d0437d287d82ca1fe119077bec6b081c861b24",
+      "bytes": 5025,
+      "lines": 49,
+      "includes": [
+        "material_prepare.h",
+        "material_scene_original_layout.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_recovery.h",
+      "sha256": "4bb39207728ba48562042d47452e6a9d89f50e1c50ed8a71e4fa1f95b93d1e7d",
+      "bytes": 12722,
+      "lines": 108,
+      "includes": [
+        "material_source_unlit_scene.h",
+        "material_source_unlit_remaining.h",
+        "material_source_unlit_remaining_capture.h",
+        "material_source_data.h",
+        "material_fixed_source.h",
+        "material_source_runtime_textures.h",
+        "material_source_vector_anchors.h",
+        "material_source_scene.h",
+        "material_domain_prepare.h",
+        "material_light_function.h",
+        "material_decals.h",
+        "material_post.h",
+        "material_post_source.h",
+        "material_unlit.h",
+        "material_resource_boundary.h",
+        "material_source_view_tail.h",
+        "material_source_precomputed_ao.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_runtime_textures.h",
+      "sha256": "e018c90831733e47722980674f3dfdbbc2e6aa594246f088ab16eb509fa9f7de",
+      "bytes": 13791,
+      "lines": 135,
+      "includes": [
+        "material_fixed_source.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_scene.h",
+      "sha256": "09fa0ccac801373c775d214792a4fd4e142c7f58c4a895df0ec1e7cbd69b9488",
+      "bytes": 1175,
+      "lines": 22,
+      "includes": [
+        "material_surface.h",
+        "material_scene_native_registry.h",
+        "material_source_scene_cache.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_scene_cache.h",
+      "sha256": "e27ad3b9b48c6b3d1495e3fc670a9c5b52fd14b39c53e25cbdda5774001c8297",
+      "bytes": 8050,
+      "lines": 71,
+      "includes": [
+        "material_prepare.h",
+        "material_scene_native_registry.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_schedule_pipeline.h",
+      "sha256": "8fa5fb444dca720a893c0a75dcc81312f6673449b508c5222a9bf03c848303d5",
+      "bytes": 4257,
+      "lines": 40,
+      "includes": [
+        "material_source_anchors.h",
+        "material_decompile.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_shadow_dispatch.h",
+      "sha256": "1b87a5a81b2cc6e515dd63abb4675297ea5eb426d1f67785cb5e34e339c0af85",
+      "bytes": 4287,
+      "lines": 44,
+      "includes": [
+        "material_source_shadow_span.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_shadow_factor.h",
+      "sha256": "3ea02469d4384e40e3a8312f520e685d526f3f3f1f3df3d7c4d2cf28cbc1d1c6",
+      "bytes": 10152,
+      "lines": 72,
+      "includes": [
+        "material_source_complements.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_shadow_span.h",
+      "sha256": "b53885a06c5f271e14c268a2646f89729704b683b07ec46654f9eb3f5d0f51a6",
+      "bytes": 4545,
+      "lines": 38,
+      "includes": [
+        "material_source_shadow_factor.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "auxiliary",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_subsurface.h",
+      "sha256": "81633093d7d4ca2cc03f6ff14434a02b3c4862ef84cf87e1aee9191020a59547",
+      "bytes": 3460,
+      "lines": 42,
+      "includes": [
+        "material_source_owner.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_types.h",
+      "sha256": "768ad32694d0281143bdec68cbc0eea52d157cf91042dc96cd8069fbbef24aea",
+      "bytes": 9223,
+      "lines": 94,
+      "includes": [
+        "material_source_recovery.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_unlit_remaining.h",
+      "sha256": "ce36e8c5a6a49609ed4affd692fb6de0a9dd4b4a2e82da2bcec823b0d81a6fce",
+      "bytes": 4881,
+      "lines": 51,
+      "includes": [
+        "material_source_unlit_scene.h",
+        "material_source_scene_cache.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_unlit_remaining_capture.h",
+      "sha256": "675ced1e26fe07b9f44ea6b6b331eb55cd0acde185c439b68a37d6c9f2e4e89e",
+      "bytes": 4065,
+      "lines": 43,
+      "includes": [
+        "material_source_unlit_remaining_view.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_unlit_remaining_view.h",
+      "sha256": "b27d86763fdea035f0d053df73ff2e619a8700f4209a5dacc93c6195f90a2ca9",
+      "bytes": 3238,
+      "lines": 37,
+      "includes": [
+        "material_source_unlit_scene.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_unlit_scene.h",
+      "sha256": "d9e51fe314d8419973819a74a0556052597677f5e52fda83847ea72ca4f050a5",
+      "bytes": 8238,
+      "lines": 103,
+      "includes": [
+        "material_unlit_projection.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_vector_anchors.h",
+      "sha256": "a86769de77c4730ca459f601ecc7e8c3db51a084029db9fe6aad534a0cf0dc8b",
+      "bytes": 1632,
+      "lines": 25,
+      "includes": [
+        "material_source_water_anchors.h",
+        "material_emission.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_view_tail.h",
+      "sha256": "e6f6fed672b9be606ca7f9d6d2976277a9adf8cfd470c6018466f79c7caffd4d",
+      "bytes": 5685,
+      "lines": 61,
+      "includes": [
+        "material_source_unlit_remaining_view.h",
+        "material_rewrite.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_source_water_anchors.h",
+      "sha256": "84c362ec308b3a4545ce1d40ea5474c70317608a7bf1a680cb633303772c8609",
+      "bytes": 4538,
+      "lines": 37,
+      "includes": [
+        "material_source_anchors.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_stage.h",
+      "sha256": "e1315c1fb0b9825cdfaf5bb076513773b3c42f217ed535bbf64c69a78f5f1a4f",
+      "bytes": 5444,
+      "lines": 42,
+      "includes": [
+        "material_lifter.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_surface.h",
+      "sha256": "240b037155e370579d723c6b0f5b0b0ae2bc2fcef64f8e6873b1bdf263ec908a",
+      "bytes": 8448,
+      "lines": 86,
+      "includes": [
+        "material_decompile.h",
+        "material_normal.h",
+        "material_anchor_lighting.h",
+        "material_rewrite.h",
+        "material_depth.h",
+        "material_coat_pipeline.h",
+        "material_source_emission.h",
+        "material_source_schedule_pipeline.h",
+        "material_fully_rough.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "owner",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "docs/INTEGRATION_STATUS.md"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_symbolic.h",
+      "sha256": "dd03c66ab855f6973da9fddee5609324f7e150019db81011d53200ea99c6240f",
+      "bytes": 17197,
+      "lines": 182,
+      "includes": [
+        "material_numeric.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "vm",
+      "evidence": [
+        "retained validation receipt",
+        "tools/navigation/test_native_material_vm.py"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_uniform_eval.h",
+      "sha256": "2cd49b41d1c5aa0622d786a08e61907502a9a49eb356a8112f1bc39975692c92",
+      "bytes": 2402,
+      "lines": 34,
+      "includes": [
+        "material_shader_map.h",
+        "material_preshader_eval.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "vm",
+      "evidence": [
+        "retained validation receipt",
+        "tools/navigation/test_native_material_vm.py"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_unlit.h",
+      "sha256": "0ce3d469c7345faf71c761b24a5a2f4f040ffe6506a704758d5270e634b2f45b",
+      "bytes": 5911,
+      "lines": 42,
+      "includes": [
+        "material_decompile.h",
+        "material_rewrite.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/material_unlit_projection.h",
+      "sha256": "2289a243cc4b66613c1d89751f0a14826a9918e05a07b178e962cff67e606d3f",
+      "bytes": 3199,
+      "lines": 44,
+      "includes": [
+        "material_masked_unlit.h"
+      ],
+      "classification": "incomplete-research",
+      "review_family": "unlit",
+      "evidence": [
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt",
+        "retained validation receipt"
+      ],
+      "review_reason": "Retained narrow host/source/CPU comparisons; stale or incomplete broader current source execution and renderer/cook/game admission withheld",
+      "publish_scope": "Preserve research; explicit scoped requalification before promotion"
+    },
+    {
+      "path": "modding/mapkit/core/mesh_collision_fidelity.h",
+      "sha256": "437096770bdfc613ebd301f14dd86c5271f9ef0ce172b2bd6557f0c22ecf7bbd",
+      "bytes": 2135,
+      "lines": 30,
+      "includes": [
+        "physics_body.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Bitwise triangle/material multiset preserving winding; independently acquired facts required"
+    },
+    {
+      "path": "modding/mapkit/core/mesh_cooked_readback.h",
+      "sha256": "84c4567b78bfac8285c6f07c8fd2d468884027ce71bb891aee9f8125a82d2a16",
+      "bytes": 12070,
+      "lines": 130,
+      "includes": [
+        "creator_mesh_package.h",
+        "static_mesh_facts.h",
+        "mesh_nav_collision.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Complete mesh/body/nav census and canonical semantics; fresh cook/custody/platform distinct"
+    },
+    {
+      "path": "modding/mapkit/core/mesh_nav_collision.h",
+      "sha256": "ffc28f3b6db8f457e17137da159f9f25523611807439d0c5c1f662bff94d1374",
+      "bytes": 3227,
+      "lines": 31,
+      "includes": [
+        "physics_body.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Bounded v4 NavCollision reader with full exhaustion; geometry not navigation walkability"
+    },
+    {
+      "path": "modding/mapkit/core/native_custom_backend_opaque_template.h",
+      "sha256": "d2a28bd6daffaf850cdbe4dd3b21c6e224c8540f2eab72fae67174f7dca3f26d",
+      "bytes": 10372,
+      "lines": 120,
+      "includes": [
+        "native_custom_backend_policy.h",
+        "native_custom_backend_template.h",
+        "custom_material_opaque_policy.h",
+        "material_source_data.h",
+        "material_resource_boundary.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research outside production"
+    },
+    {
+      "path": "modding/mapkit/core/native_custom_material_instance_cook.h",
+      "sha256": "d11124cf62e063d01112f2db56c07c464ff94301c2ae1e114c6dc270ce007cc7",
+      "bytes": 7008,
+      "lines": 83,
+      "includes": [
+        "material_cooked.h",
+        "export_package.h",
+        "custom_material_hash.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research outside production"
+    },
+    {
+      "path": "modding/mapkit/core/native_custom_opaque_research_contract.md",
+      "sha256": "6d4ea13dae11f5954608a8a63e434f688bf9d718f93f3624d026526636c0e07f",
+      "bytes": 3288,
+      "lines": 54,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/navigation_boundary.h",
+      "sha256": "1be0f0e48191ddc5fb4c9e69221eac1b92b990d98c9938fbfbbc164a0ca315e7",
+      "bytes": 7687,
+      "lines": 151,
+      "includes": [
+        "package_reader.h"
+      ],
+      "classification": "qualified-host-only-source",
+      "publish_scope": "repository reusable host source, no current production admission",
+      "evidence": "retained validation receipt",
+      "review_reason": "Current header/test/driver source SHA256 matches recorded 8/9/9 tile comparisons; host reader only"
+    },
+    {
+      "path": "modding/mapkit/core/navigation_export.h",
+      "sha256": "5d8e6f3401515d103b8ad1f47853208565238672e56f5331cf15b9bac55fb2c8",
+      "bytes": 2992,
+      "lines": 54,
+      "includes": [
+        "navigation_boundary.h",
+        "export_contract.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "P4MNAVM1 writer roundtrip runtime compatibility; no source/engine rebuild/game proof"
+    },
+    {
+      "path": "modding/mapkit/core/original_declarations_engine.h",
+      "sha256": "42b42d01c427d76402f1d740d31994d0d4d02b4ef2f717cb220464c92414feae",
+      "bytes": 9264,
+      "lines": 151,
+      "includes": [
+        "original_declarations_manifest.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research outside production"
+    },
+    {
+      "path": "modding/mapkit/core/original_declarations_generate.h",
+      "sha256": "0ad8854dff3657407a7f76efa09f2e444f96b7f7ccb9b4f9261e1f19e7df6cfd",
+      "bytes": 37015,
+      "lines": 442,
+      "includes": [
+        "original_declarations_engine.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research outside production"
+    },
+    {
+      "path": "modding/mapkit/core/original_declarations_manifest.h",
+      "sha256": "104ada7a721dc0e937fe4c0a45ef661ce69b72cf0d02046593c8f44c872db6ff",
+      "bytes": 7824,
+      "lines": 122,
+      "includes": [
+        "blueprint_json.h",
+        "custom_material_hash.h"
+      ],
+      "classification": "incomplete-research",
+      "publish_scope": "retain standalone research outside production"
+    },
+    {
+      "path": "modding/mapkit/core/original_inventory.h",
+      "sha256": "24a8fe14bafd7f1fdae923fe9e1c5bd1a2b28cc31c81dea1e2145dc0b802a82b",
+      "bytes": 943,
+      "lines": 20,
+      "includes": [],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Supported registry/container/utoc identity constants; original provenance must bind constants"
+    },
+    {
+      "path": "modding/mapkit/core/original_lighting_source.h",
+      "sha256": "c0a9fcdda6be5f121620c7f1ca9ab0e989d6b1c6726df3a54e0837bd51ccc223",
+      "bytes": 12556,
+      "lines": 188,
+      "includes": [
+        "lighting_package.h",
+        "property_decoder.h",
+        "level_native.h",
+        "custom_material_hash.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Read-only stored-lighting census; missing defaults/template/runtime authority explicit"
+    },
+    {
+      "path": "modding/mapkit/core/original_lighting_source.md",
+      "sha256": "9f99a9ef819d734dd08393176afea07df50a3cd3b135b2ef70cb99c1bfb13281",
+      "bytes": 3131,
+      "lines": 47,
+      "includes": [],
+      "classification": "research-note",
+      "publish_scope": "retain outside plugin; current factual reconciliation before docs publication"
+    },
+    {
+      "path": "modding/mapkit/core/physics_body.h",
+      "sha256": "34c638e25d1799a20b4473ec6ec8b46b071bdb7d9a3e2c50a4e228c8fb18e190",
+      "bytes": 13396,
+      "lines": 204,
+      "includes": [
+        "bulk_data.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Bounded PhysX triangle/RTree/UV streams; convex/mirrored/BVH34 profiles held"
+    },
+    {
+      "path": "modding/mapkit/core/static_mesh_facts.h",
+      "sha256": "be3264704da28e6932f4b9678208d3b15c9dd5c10725a05662a8e8ce77022046",
+      "bytes": 13123,
+      "lines": 199,
+      "includes": [
+        "property_decoder.h",
+        "static_mesh_render.h"
+      ],
+      "classification": "reusable-host-source-candidate",
+      "publish_scope": "focused source-bound validation before commit; explicit lane admission before production",
+      "review_reason": "Typed export/render/material observation; historical receipt lacks current source pins",
+      "evidence": [
+        "retained validation receipt"
+      ]
+    },
+    {
+      "path": "modding/mapkit/tests/creator_lighting_recipe_test.cpp",
+      "sha256": "c4c256bc76aa8e3d52d76e07e1def27b955c17d8141a47f00c30c036d246e233",
+      "bytes": 2178,
+      "lines": 33,
+      "includes": [
+        "../core/creator_lighting_recipe.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/creator_mesh_geometry_test.cpp",
+      "sha256": "cd2ed22e800abde17dde21f36ccc59f48bfa3f1e55dc4c71608404cfdeeb8665",
+      "bytes": 1868,
+      "lines": 17,
+      "includes": [
+        "../core/creator_mesh_geometry.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/creator_mesh_package_test.cpp",
+      "sha256": "fb496640a62924337144fd551967e8c21b756228bb22b694b6e55fe17f929403",
+      "bytes": 2729,
+      "lines": 33,
+      "includes": [
+        "../core/creator_mesh_package.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/creator_mesh_probe.cpp",
+      "sha256": "9128197e279d6a23f25fa4db4c781d16df953d4b4c7eba4feafdbb11e5fc3520",
+      "bytes": 5282,
+      "lines": 58,
+      "includes": [
+        "../core/creator_mesh_package.h",
+        "../core/static_mesh_facts.h",
+        "../core/mesh_nav_collision.h",
+        "../core/mesh_cooked_readback.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/export_container_test.cpp",
+      "sha256": "443135708dee6c0573201a3cb3b258bb6629b118f8dc324e281a0869d3e7414f",
+      "bytes": 4950,
+      "lines": 76,
+      "includes": [
+        "core/export_container.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/export_package_test.cpp",
+      "sha256": "caa22b4e3330ee56bacc9c47ce903020dfcda08e9106a0ffcdb586f0e6c979f3",
+      "bytes": 6199,
+      "lines": 93,
+      "includes": [
+        "../core/export_package.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/export_registry_test.cpp",
+      "sha256": "04d56f8cb1564fe6f7a3a8a3c39227381fe3d9d8392b1904efd51e421133977f",
+      "bytes": 1747,
+      "lines": 30,
+      "includes": [
+        "../core/export_registry.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_infinite_equality_plan_test.cpp",
+      "sha256": "2171ad4bf2bc9fbcbb1775534a0b700341b5a35c2ed9bb76381705a1c1d8461c",
+      "bytes": 3417,
+      "lines": 22,
+      "includes": [
+        "../core/material_infinite_equality_plan.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_infinite_equality_test.cpp",
+      "sha256": "3c35fc4631140fa0b0dd59260adbe7b4bce857394b2eb1741bfb673193cc55ce",
+      "bytes": 2552,
+      "lines": 20,
+      "includes": [
+        "../core/material_lifter.h",
+        "../core/material_infinite_equality.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_complements_test.cpp",
+      "sha256": "8aaa2666d150c6c7264c2f6f55921e2bbfec7432e85663ce2e9ba29755a780de",
+      "bytes": 6266,
+      "lines": 44,
+      "includes": [
+        "../core/material_source_complements.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_particle_folded_clip_test.cpp",
+      "sha256": "8820644fb0140fdc5305e1b9ea87232c04684dda79aa521fc95ba387ab2f0633",
+      "bytes": 3372,
+      "lines": 23,
+      "includes": [
+        "../core/material_source_particle_folded_clip.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_runtime_textures_test.cpp",
+      "sha256": "27fb36d0f1f6ffc720ee140ea1ffbd7f5eb1f10598ff32f842c69d6be662b730",
+      "bytes": 6832,
+      "lines": 53,
+      "includes": [
+        "../core/material_source_runtime_textures.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_shadow_dispatch_test.cpp",
+      "sha256": "f53ca7c3ed71affd310b44523ef1558ac4b3c1d82c88a5f6828af62190738638",
+      "bytes": 2582,
+      "lines": 20,
+      "includes": [
+        "../core/material_source_shadow_dispatch.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_shadow_factor_test.cpp",
+      "sha256": "c997e2fc72e0ef77906bd6e5a7c42c3a2fcffd1dff20b2e7d419ac488c35a81e",
+      "bytes": 3171,
+      "lines": 22,
+      "includes": [
+        "../core/material_source_shadow_factor.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/material_source_shadow_span_test.cpp",
+      "sha256": "dc197cbff3b9dce8382fee8b234df31576496180e08023e8da3ea94d880f5772",
+      "bytes": 3100,
+      "lines": 22,
+      "includes": [
+        "../core/material_source_shadow_span.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/mesh_collision_fidelity_test.cpp",
+      "sha256": "047a899102f304fa7deeb6ddfd1c3378b0dfb675419dd2fe13abc61b8af0ad14",
+      "bytes": 1767,
+      "lines": 20,
+      "includes": [
+        "../core/mesh_collision_fidelity.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/mesh_cooked_readback_test.cpp",
+      "sha256": "ff22ab499db4fc07b15496b0be60b21378fd554abf163b6487655fca2650444f",
+      "bytes": 3111,
+      "lines": 33,
+      "includes": [
+        "../core/mesh_cooked_readback.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/mesh_nav_collision_test.cpp",
+      "sha256": "ac5b6454e8e9b9630cd57cbd74a3c16e86fbe29d9e8d498501fbf76ab6a41e0f",
+      "bytes": 3306,
+      "lines": 32,
+      "includes": [
+        "../core/mesh_nav_collision.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_custom_backend_archive_test.cpp",
+      "sha256": "e0fdd6c7b99dfb7c294091d74723a3d39d89da70c20a193e9dbaaff235b08f7d",
+      "bytes": 1506,
+      "lines": 22,
+      "includes": [
+        "native_custom_backend_archive.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_custom_backend_cli.cpp",
+      "sha256": "9e925db17d4ceebff71bf36386b0583fb085dabc23fb3da02f7f7908f61e255a",
+      "bytes": 27023,
+      "lines": 295,
+      "includes": [
+        "native_custom_backend.h",
+        "native_custom_backend_policy.h",
+        "native_custom_backend_opaque_template.h",
+        "native_custom_material_instance_cook.h",
+        "custom_material_bindings.h",
+        "native_custom_backend_template.h",
+        "custom_material_lighting.h",
+        "custom_material_policy_emitter.h",
+        "custom_material_reflection.h",
+        "custom_material_skylight.h",
+        "custom_material_lightmap.h",
+        "custom_material_reflection_response.h",
+        "custom_material_reflection_policy.h",
+        "custom_material_shadow.h",
+        "custom_material_directional_shadow.h",
+        "custom_material_baked_shadow.h",
+        "custom_material_directional.h",
+        "custom_material_c4_controls.h",
+        "custom_material_indirect.h",
+        "custom_material_dbuffer.h",
+        "custom_material_opaque_policy.h",
+        "custom_material_final_composition.h",
+        "material_forward_lighting.h",
+        "material_forward_geometry.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_bind.cpp",
+      "sha256": "d17f621088095621a182b51adeaaeae306fca1c6a96c5a7cc56daa8670468fc3",
+      "bytes": 15434,
+      "lines": 127,
+      "includes": [
+        "../core/material_bind.h",
+        "../core/material_json.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_boundary.cpp",
+      "sha256": "9988fd281a436648a68efdf9ab5f6ccae24d912988e0b4748d834496dbce6a26",
+      "bytes": 3467,
+      "lines": 26,
+      "includes": [
+        "../core/material_stage.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_decompile.cpp",
+      "sha256": "e563a32e918c32aaee4282f4cf2b0e9e504f9b4e6c3760aa17f91154de818a4f",
+      "bytes": 14081,
+      "lines": 37,
+      "includes": [
+        "../core/material_unlit.h",
+        "../core/material_surface.h",
+        "../core/material_post.h",
+        "../core/material_post_bindings.h",
+        "../core/material_coat.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_domain_fields.cpp",
+      "sha256": "842e896ceae5984ae0c3b167b84c06faf60ad98e69c17e2b41eaba5955347dbd",
+      "bytes": 5348,
+      "lines": 15,
+      "includes": [
+        "../core/material_domain_fields.h",
+        "../core/material_source_data.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_emission_pipeline.cpp",
+      "sha256": "c61d0bf04d8f6ff0aedffa06983350151509606edb54c2a73cbe6eddae6c7e81",
+      "bytes": 3230,
+      "lines": 5,
+      "includes": [
+        "../core/material_emission_pipeline.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_factory.cpp",
+      "sha256": "73ee6ba43d28f33e64667eda7e379c460367bd3c88440b233f8cb8578608ec83",
+      "bytes": 2516,
+      "lines": 7,
+      "includes": [
+        "../core/material_factory.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_factory_pipeline.cpp",
+      "sha256": "108366b166a656a4d78c29c4f23026fc365ee42b65e696b934c67df532e291cd",
+      "bytes": 1907,
+      "lines": 5,
+      "includes": [
+        "../core/material_factory.h",
+        "../core/material_unlit.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_fixed_source.cpp",
+      "sha256": "cd180bc9d09fd27fba611d23bcaa9dcacea66e3fe7dfb69b237333caa97f35f4",
+      "bytes": 14306,
+      "lines": 105,
+      "includes": [
+        "../core/material_fixed_source.h",
+        "../core/material_lifter.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_forward_initial.cpp",
+      "sha256": "4c6745711cfc64d24b65c143b1a2bd9d500179b38a6e2865c5790b9be00c6ad1",
+      "bytes": 2144,
+      "lines": 18,
+      "includes": [
+        "../core/material_forward_lighting.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_light_function.cpp",
+      "sha256": "f4aded6d24b5cac81c37f46f3feced35620ea3cca2d9a09b7cbafe30d281eef3",
+      "bytes": 4495,
+      "lines": 11,
+      "includes": [
+        "../core/material_light_function.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_normal.cpp",
+      "sha256": "8e7db1847e6ceaf6faf36caba71e004697d2002ad0d1f3c3ba9198d64a395495",
+      "bytes": 7085,
+      "lines": 56,
+      "includes": [
+        "../core/material_normal.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_post_source.cpp",
+      "sha256": "bd4ccd4e0abf112ac5f3b4136b0c8173dbec90a5f5a92406b64918ba504978da",
+      "bytes": 4831,
+      "lines": 9,
+      "includes": [
+        "../core/material_post_source.h",
+        "../core/material_decompile.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_prepare.cpp",
+      "sha256": "6c8697d6ca203f6f6d394e0b4ca07b07b0b17d3d0b0523a02c35e1c194299e93",
+      "bytes": 4200,
+      "lines": 19,
+      "includes": [
+        "../core/material_prepare.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_program.cpp",
+      "sha256": "452edcc30436e86314e4199af6900da2fdc68a58ebc3eaebd7c02e2453353a46",
+      "bytes": 1821,
+      "lines": 5,
+      "includes": [
+        "../core/material_program.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_rewrite.cpp",
+      "sha256": "9401b480dfaaf90cc6fb717441c1dcc5c7da1377ee98824bc0b6fc0ac646b3c7",
+      "bytes": 6745,
+      "lines": 72,
+      "includes": [
+        "../core/material_rewrite.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_sampler_prepare.cpp",
+      "sha256": "99a9966cd2107f2bb707a9040ee2f97ca76433e160bac25870dd4f7cdca8262e",
+      "bytes": 3442,
+      "lines": 5,
+      "includes": [
+        "../core/material_sampler_prepare.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_scene.cpp",
+      "sha256": "87d062408f0a41f169f19772ad21e8e58314ff35eb44aa6f3e09d7299dd55c56",
+      "bytes": 6586,
+      "lines": 67,
+      "includes": [
+        "../core/material_scene.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_schedule.cpp",
+      "sha256": "276168030d10bdb657ecf507481eb4d6dc65d9a3aa77ce6fea4b8f1fff40535a",
+      "bytes": 4703,
+      "lines": 22,
+      "includes": [
+        "../core/material_emission.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_skin_source.cpp",
+      "sha256": "085925985cdea87a2a90beebf5a29ae0832851687af604a91f510ed5e3bea645",
+      "bytes": 3405,
+      "lines": 23,
+      "includes": [
+        "../core/material_skin_source.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_anchors.cpp",
+      "sha256": "8eaaa562adf1a6e206a83b6dc6ab985bbd01369a24d34ad67292d6502ee82d5d",
+      "bytes": 3113,
+      "lines": 24,
+      "includes": [
+        "../core/material_source_anchors.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_emission.cpp",
+      "sha256": "e74dad056af65eec568c892a142814ea022d270684ea5d8e33c68767a50f131f",
+      "bytes": 4015,
+      "lines": 13,
+      "includes": [
+        "../core/material_source_emission.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle.cpp",
+      "sha256": "8bdb74cac351b032c82070685b914c0ed59fd3733bf36372a8743ffcb845d2db",
+      "bytes": 4482,
+      "lines": 20,
+      "includes": [
+        "../core/material_source_particle_plan.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle_folded.cpp",
+      "sha256": "3f6ba06e26c20a9b565cb1afce530dbf6b4fcae8c73865d88fe1c8c8fac4e14d",
+      "bytes": 5787,
+      "lines": 19,
+      "includes": [
+        "../core/material_source_particle_folded_trace.h",
+        "../core/material_source_particle_reflection_owner.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle_folded_ambient.cpp",
+      "sha256": "8063a860b3f6076722152da05092f505652244f5bd875dbcf42be4212a8a73e6",
+      "bytes": 4004,
+      "lines": 15,
+      "includes": [
+        "../core/material_source_particle_folded_ambient.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle_lit_bind.cpp",
+      "sha256": "f08ad9660abedaf7aae97a2557ba0f82eb13c028e2f3c3954e8a94a7cfeb78b6",
+      "bytes": 3664,
+      "lines": 33,
+      "includes": [
+        "../core/material_source_particle_lit_bind.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle_lit_passes.cpp",
+      "sha256": "24174fc6e195ab4175d96d78ee07a54664979a4beb8e58f5374becefa78e14ab",
+      "bytes": 4340,
+      "lines": 16,
+      "includes": [
+        "../core/material_source_particle_lit_additive.h",
+        "../core/material_source_particle_lit_owner.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_particle_lit_trace.cpp",
+      "sha256": "07863a97758f7ec8b8eab98fec53c9c29d00e62664eda5cfd1791fb6b43f5019",
+      "bytes": 4513,
+      "lines": 27,
+      "includes": [
+        "../core/material_source_particle_lit_trace.h",
+        "../core/material_source_particle_lit_reflection.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_plan.cpp",
+      "sha256": "e917bbdce38488d6ca849fa5bf7d1ec61a075163bd425503eb090e840d31201a",
+      "bytes": 3549,
+      "lines": 6,
+      "includes": [
+        "../core/material_source_plan.h",
+        "../core/material_unlit.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_scene.cpp",
+      "sha256": "dcdee2fdc04c60c8a52ca210aaa3614f315ff7b0375aa524356e9ab98d50edfa",
+      "bytes": 3698,
+      "lines": 32,
+      "includes": [
+        "../core/material_source_scene.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_schedule_pipeline.cpp",
+      "sha256": "72ffd63d80c8e1147b27adbb39604d9986601f0ffcbe753a74f75236fd481e93",
+      "bytes": 3359,
+      "lines": 22,
+      "includes": [
+        "../core/material_source_schedule_pipeline.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_shadow_graph.cpp",
+      "sha256": "f72c6377541b2a50bd62da934857bca1d89b56062f3b30db6a179e1d3173273a",
+      "bytes": 1869,
+      "lines": 15,
+      "includes": [
+        "../core/material_graph.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_types.cpp",
+      "sha256": "83c78bf5e5e68b2d68d77f47a4c69ea3b446dabd2b4d9628d0916c2a024ed112",
+      "bytes": 5171,
+      "lines": 14,
+      "includes": [
+        "../core/material_source_owner.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_vector_anchors.cpp",
+      "sha256": "fef8ae6a486e999f0966c8c6069878246816ba115da0f1c7684cc1e332ae4f89",
+      "bytes": 2738,
+      "lines": 13,
+      "includes": [
+        "../core/material_source_vector_anchors.h",
+        "../core/material_source_schedule_pipeline.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_source_water_anchors.cpp",
+      "sha256": "3fd71c8caed4ccc376c91a867769bbb13769d192c6f4d8f3b63a10d9911317a0",
+      "bytes": 2776,
+      "lines": 18,
+      "includes": [
+        "../core/material_source_water_anchors.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/native_material_vm.cpp",
+      "sha256": "25ff3092a331ccc43967707231f9b9e05700ed3dc1605657f9c9003f0b0b2bc8",
+      "bytes": 4423,
+      "lines": 38,
+      "includes": [
+        "../core/material_symbolic.h",
+        "../core/material_json.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/navigation_boundary_test.cpp",
+      "sha256": "f678b296271d7d88ddf9423692c10c03b4940a43a7ae70898b80d5aa3ac5e2ef",
+      "bytes": 6978,
+      "lines": 118,
+      "includes": [
+        "core/navigation_boundary.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/navigation_export_test.cpp",
+      "sha256": "8a67af56e34feeabe00668d440f63ebf38ab1c23b9a128ec48f012d811cdafce",
+      "bytes": 3185,
+      "lines": 60,
+      "includes": [
+        "core/navigation_export.h",
+        "../../navigation/nav_tiles.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/original_inventory_test.cpp",
+      "sha256": "b62f5e3f9077d0efc7eae993e14ba339ece3d1f7d8975841d91dbe6941e8c961",
+      "bytes": 722,
+      "lines": 18,
+      "includes": [
+        "../core/original_inventory.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/physics_body_test.cpp",
+      "sha256": "21b63aaa979f99e7d56a98b6ac654f912e8e7d08b35e88c10c79c67dbf9ab978",
+      "bytes": 5763,
+      "lines": 62,
+      "includes": [
+        "../core/physics_body.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/static_mesh_facts_test.cpp",
+      "sha256": "9017e9dadcf98dca5cf8b1be31f8c33abc92ed84b114d928e62bc2ed31590ca1",
+      "bytes": 11279,
+      "lines": 164,
+      "includes": [
+        "core/static_mesh_facts.h",
+        "package_reader_test.h",
+        "property_decoder_test.h",
+        "static_mesh_render_test.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    },
+    {
+      "path": "modding/mapkit/tests/table_edit_export_test.cpp",
+      "sha256": "dee598567724260f0bc78d7e3873fdf02eb57353a0dd423aab69e99d0360ed61",
+      "bytes": 5024,
+      "lines": 56,
+      "includes": [
+        "core/table_edit_export.h"
+      ],
+      "classification": "tests-probes",
+      "publish_scope": "host tests only",
+      "review_reason": "Offline executable boundary; never a production module or archive member",
+      "evidence": "Associated focused host driver or fixture; exact current rerun required before source publication"
+    }
+  ],
+  "evidence_visibility": "Private receipt locations are omitted from this publication inventory. Classifications reproduce the historical review and do not qualify new builds."
+}

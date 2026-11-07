@@ -1,0 +1,202 @@
+---
+title: Create a map
+description: Plan a new story area in Unreal Editor and review current export limits.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+:::caution[WIP]
+Independent new areas remain WIP. The producer refuses independent-world gameplay while
+its save and travel lifecycle is unqualified. The setup below describes intended authoring.
+What ships lists current refusals. Use Edit a map to work with an existing game level.
+:::
+
+For this guide, we'll make a new daytime story area, starting with an empty level. If you want
+to change one of the game's maps instead, follow [Edit a map](/guides/edit-a-map/).
+
+Before you start, [install Kadan](/guides/install/) and fill in the
+[export setup](/guides/install/#game-folder-and-project-setup). You'll also need the game classes and reference
+assets that your map uses, so [import those](/guides/import/) into your project.
+
+## Mod
+
+Open **Kadan > Mods and export**, click **New mod**, and give your mod a **Name**, an **ID**, and a
+**Version**, then click **Save**. For example, use `example.course` as the ID.
+
+Make a folder for the mod in the Content Browser, for example `/Game/Mods/ExampleCourse`, and keep
+the levels, scene, and assets that you create in it, so they stay together. Make a `Maps` folder
+inside it for the map.
+
+Give the area a short name, such as `course`. Its destination ID is your mod's ID and the short
+name, joined by a colon. For example, `example.course:course` identifies this area.
+
+## Levels
+
+The game has four free area slots, numbered 5, 7, 8, and 9. A *build* is your map's files made for
+one of those numbers. For the first build, choose an available slot. We'll use 5 in this example.
+
+<Steps>
+
+1. Choose **File > New Level**, then **Empty Level**. You should see an empty level in Unreal Editor.
+2. Save it as `Area005_P` in your mod's `Maps` folder. This is the persistent level for this build.
+3. Use Unreal's Levels window to add sublevels if you want to separate scenery, gameplay objects,
+   or lighting. Save them in your mod's folder and use the same area number in their names.
+4. Set the sublevels' streaming behavior for your map. Make sure the ground and first base are
+   loaded when the player arrives, and save the persistent level with those sublevels attached.
+
+</Steps>
+
+For example, you can organize the map's assets like this:
+
+```text
+Maps/
+  Area005_P
+  SD_Area005
+  Sublevels/
+    Area005_Ground
+    Area005_GameArea
+```
+
+The scene for this build will be named `SD_Area005`. The world, scene, sublevels, and placement
+references must all agree on the area number. To make another build, author its files and
+references for that number, such as `Area007_P` and `SD_Area007`.
+
+You can include one to four builds of the same area. Tsuchi chooses an available build when the
+mod starts. A map with all four builds can run beside three other added areas. Renaming a cooked
+file doesn't change the area references inside it.
+
+For more about creating levels and sublevels, see Epic's
+[level creation guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/level-designer-quick-start?application_version=4.27)
+and [Levels window guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/managing-multiple-levels?application_version=4.27).
+
+## Setup
+
+With the persistent level selected, configure its **World Settings** for the story map's
+gameplay and lighting. Use an imported stock story map as a reference for the game's startup
+actors and settings, then configure the required actors in your own level. Keep the gameplay
+classes and other unchanged game assets as references to their game paths.
+
+Place the map's first base on walkable ground and leave room for the captain, Oatchi, and the
+Pikmin to arrive. The game starts the player at that base. If you add a **Player Start** for an
+Unreal preview, the game's arrival still comes from the first base, rather than that preview
+start point.
+
+Create the map's `GameSceneData` and `ActorPlacedNumAsset` beside the saved level. For this build,
+name the scene `SD_Area005` and set its `OpenLevel` reference to `Area005_P`. Set its required
+scene references and counts for your map. Keep the counts asset consistent with your placements,
+as the game uses it for totals and completion.
+
+## Ground
+
+Add your ground and scenery by dragging meshes from the Content Browser into the level. You can
+use unchanged game meshes as references, or import meshes of your own into your mod's folder.
+Keep your own textures and materials there too. Check
+[Assets and replacements](/guides/export/#assets) for the source-content rules.
+
+Give the ground and obstacles the collision they need. Check that the player can stand on the
+ground and that ramps, doors, and routes have enough space for Pikmin. Cover the playable ground
+with navigation bounds and use the map's navigation-agent settings when you build paths.
+
+## Placements
+
+Drag the Blueprints for enemies, treasures, and gates into the level, then set their placement
+options in the **Details** panel. Kadan exports gameplay objects as native placement lists, while
+scenery stays in your map's levels. Use a content ID and dependency when you place something
+provided by another mod.
+
+Keep the placement counts in your scene up to date as you add or remove objects. The game keeps
+what happens to placed gameplay objects in the player's save, so defeated creatures and
+collected treasures stay recorded after a reload. Put additions for an already-applied map in
+a new placement list. See [Tables and placements](/guides/export/#tables-and-placements).
+
+## Lighting and navigation
+
+Place the lights your map needs and configure its lighting in the persistent level's
+**World Settings**. Rebuild lighting from Unreal's **Build** menu, then choose
+**Build > Build Paths** to rebuild navigation.
+
+Inspect the lighting and walkable routes, then save every level and its build data. Kadan exports
+the lighting build data and navigation with the map. After changing ground, collision, or
+lighting, rebuild the affected data before you export again.
+
+## Area
+
+Set the area's display name and include each world/scene pair as a build. You can also give the
+area a preview texture and a radar texture. The radar's size is the width of the pictured world
+in centimeters, and its offset and rotation align the picture with your level.
+
+Choose the Pikmin icons that the area list should show and set any declared treasure, castaway,
+and Flarlic totals. The supported area-list icons are red, blue, yellow, rock, winged, purple,
+white, and ice Pikmin. The declared totals help the area list display your area, while the
+scene's counts and the save determine placements and collected progress.
+
+Kadan writes the area under `new_maps` in your mod's `mod.json`. For example, a minimal declaration
+for one build is:
+
+```json
+{
+  "id": "example.course",
+  "name": "Terrain Course",
+  "version": "1.0.0",
+  "new_maps": {
+    "course": {
+      "name": "Terrain Course",
+      "builds": [{
+        "world": "/Game/Mods/example_course/Maps/Area005_P",
+        "scene": "/Game/Mods/example_course/Maps/SD_Area005.SD_Area005"
+      }]
+    }
+  }
+}
+```
+
+Use the paths from your own mod's content folder in place of `example_course`. `world` takes a
+package path, while `scene` takes an object path with the asset name after the dot. The game's
+first base and startup configuration belong in the level and scene, and the manifest names those
+built assets.
+
+## Export
+
+<Steps>
+
+1. Open **Kadan > Mods and export** and choose your mod.
+2. Add the map, scene, or their folder from the Content Browser to your mod's selection. Kadan
+   follows those roots and includes the assets they require.
+3. Read What ships. If the independent-world route is refused,
+   stop there. Changing IDs or renaming cooked files does not complete its missing lifecycle.
+   Keep the refusal when reporting the authoring gap.
+4. Click **Export mod**. Your output should contain the mod's `romfs` folder, its manifest and
+   supporting files, and the packed content for the new area.
+
+</Steps>
+
+See [Export a mod](/guides/export/) for What ships and where mods go.
+
+## Testing
+
+When an independent-world build is admitted, use the following checks.
+
+[Install Tsuchi](https://tsuchi.jpasqui.dev/players/install-tsuchi/) and
+[install your exported mod](https://tsuchi.jpasqui.dev/players/install-a-mod/), then start the
+game. The new area should appear in the story's area list with the name you gave it. Travel there
+and check that the player arrives at the first base.
+
+Walk around the map, send Pikmin over ramps and around obstacles, and check the lighting, radar,
+and placements. Save and reload, then leave and return to make sure the map and its progress
+load again. Try the mod beside another new-area mod to check its build assignments.
+
+If the area doesn't appear or load, check the mod list's reason and
+[Tsuchi's log](https://tsuchi.jpasqui.dev/develop/logs/). A missing world or scene, mismatched area
+names, or occupied build slots should give a reason. For editor problems, check
+[Troubleshooting](/guides/troubleshooting/) and [Report a problem](/guides/get-help/).
+
+## Progress
+
+Once Tsuchi reserves an area number for the player's story, that number stays with the map,
+including when its mod is removed. Preparing the area list can reserve it before the first
+visit. Keep a build for that assigned number in later releases, so reinstalling the mod restores
+the player's progress. The assignment covers the player's save slots.
+
+End the day before removing the map mod. If a save made inside your area loads without the mod,
+the game returns to the title screen and leaves the save untouched. Reinstalling the mod lets
+the player load the area again. A save made at the base after ending the day loads without it.

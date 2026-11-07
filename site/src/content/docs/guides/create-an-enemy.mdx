@@ -1,0 +1,63 @@
+---
+title: Create an enemy
+description: How to make a new enemy with your own model, materials and animations, the way the game's own enemies are made.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+:::caution[WIP]
+New enemies are new in Kadan 0.3.0. The steps below have been seen working in the game with one
+enemy built on the Dwarf Bulborb. Other game enemies have not been tried yet.
+:::
+
+An enemy in Pikmin 4 is a Blueprint with an animation Blueprint. Its class brings what it does:
+its AI, the spheres Pikmin hit and latch onto, its life and how it is carried. Its animation
+Blueprint brings how it moves: the AI asks for states such as `Wait`, `Attack` and `Die` by name,
+and waits for each one to finish. You make a new enemy the same way the game makes its variants.
+You take one of the game's enemy classes as the parent, give it your model, and give it a copy of
+that enemy's animation Blueprint that plays your clips.
+
+## Before you start
+
+- [Import](/guides/import/) the game enemy whose behavior you want, for example
+  `Placeables/Teki/GKochappy` for the Dwarf Bulborb. Kadan imports its Blueprints, its animation
+  Blueprint (`Characters/Teki/Kochappy/ABP_Kochappy`) and its clips.
+- Import your model and its clips from FBX, and make its materials. Any bone names work. If your
+  model's scale or facing is off, use Kadan's rebake for skeletal assets.
+
+## Steps
+
+<Steps>
+
+1. **Copy the animation Blueprint.** In the Content Browser, right-click the game enemy's
+   animation Blueprint (`ABP_Kochappy`) and choose **Retarget Anim Blueprints > Duplicate Anim
+   Blueprints and Retarget**. Pick your skeleton and a folder of your mod. Unreal makes a copy on
+   your skeleton, with copies of the clips it plays.
+2. **Put your clips in its states.** Open the copy. In its `Default` state machine, open each
+   state and change the clip in its sequence player to yours. Keep every state's name: the AI
+   asks for states by name. Keep one-shot states (`Die`, `Attack`, `Flick` and the like) from
+   looping, because the AI waits for them to end. Notifies on the copied clips, such as `DieEnd`
+   and the bite's `MouthStick` notifies, are what the AI listens for, so add the same notifies to
+   your clips where your animation needs them.
+3. **Make the enemy class.** Right-click the game enemy's base Blueprint
+   (`Placeables/Teki/Base/GKochappyBase`) and choose **Create Child Blueprint Class**, in your
+   mod's folder.
+4. **Give it your body.** In the child, select the inherited `CarrotSkeletalMesh` component. Set
+   **Skeletal Mesh** to your mesh, **Anim Class** to your animation Blueprint, and its materials
+   to yours. Set the `Carcass` component's mesh to your corpse mesh if you have one.
+5. **Add the AI.** If the base class has no AI component, add the one the game's enemy uses, for
+   example `KochappyAI`. Compile and save.
+6. **Declare it.** In your mod's folder, create **Miscellaneous > Treasure or creature**. Set
+   **Kind** to Creature, a short name, **Actor Class** to your enemy class, **From** to the game
+   enemy's row (for example `KOCHAPPY`), a display name, and its life.
+7. **Export.** Add the declaration to your mod and [export](/guides/export/). Kadan ships the
+   class, the animation Blueprint, your clips, model and materials.
+
+</Steps>
+
+## What happens in the game
+
+Tsuchi registers your enemy as a new kind with its own identity, taking every value you left
+unchanged from the game enemy's rows. It behaves like that enemy, using your model and your
+animations: Pikmin attack it, the game's life gauge shows over it, it bites, and when it is
+defeated it plays your `Die` state, turns into a carcass and Pikmin pick it up.

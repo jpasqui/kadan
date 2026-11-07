@@ -1,0 +1,26 @@
+{
+  "FileVersion": 3,
+  "Version": 3,
+  "VersionName": "0.3.0",
+  "FriendlyName": "Kadan",
+  "Category": "Pikmin 4",
+  "Description": "Native gameplay placement, original tables, scene/count assets and material export settings in Unreal Editor.",
+  "CanContainContent": false,
+  "Modules": [
+    {
+      "Name": "Kadan",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "KadanShaderFormat",
+      "Type": "UncookedOnly",
+      "LoadingPhase": "PostConfigInit"
+    },
+    {
+      "Name": "P4BlueprintImport",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

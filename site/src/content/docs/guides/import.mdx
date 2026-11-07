@@ -1,0 +1,78 @@
+---
+title: Import from the game
+description: How to import Pikmin 4's maps and assets into your project.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+:::caution[WIP]
+Map import remains WIP. Some maps have editor checks, while others retain missing classes,
+reference-only assets, or refusals. An imported map still needs testing in the game.
+:::
+
+If you haven't [installed Kadan](/guides/install/) yet, you'll need to do that first.
+
+Import the game's levels, meshes, textures, materials, sounds, animations, Blueprints, and data
+assets to their game paths. You can work with them in Unreal Editor, and Kadan keeps track of
+the imported content and your changes.
+
+## Steps
+
+<Steps>
+
+1. Open the Kadan menu and choose **Import from game**. The Kadan panel should open on its Import
+   page.
+2. Next to **Game**, click **Browse** and select your dump's `romfs` or `Paks` folder. If you type
+   the path, press Enter. Kadan reads the game's list of maps and assets.
+3. The first time, click **Set up project**. It replaces the project's collision and navigation
+   settings with the game's and restarts Unreal. The first start after setup may take a while:
+   Unreal compiles thousands of shaders, and the loading screen stays near 39% until they're done.
+4. Find what you want with the search box, the kind list and the folder tree, and tick it. The
+   list starts on Maps. Your ticks stay when you change the filters.
+5. Check the line beside **Import**. It counts what your selection needs, what's already in the
+   project, how much Kadan reads from the game, and the space free on the drive.
+6. Click **Import**.
+
+</Steps>
+
+## Reimporting
+
+After [updating Kadan](/guides/install/#updating-kadan), choose **In this project** in the kind
+list and tick **N shown** to select everything Kadan imported before. To repair only part of the
+project, tick those items instead. **Import** says **Reimport** when the selection is already in
+the project.
+
+Save your work, then click **Reimport**. Kadan lists the selected items, what they need and any
+open levels with unsaved changes, and asks before it replaces anything. It finds what the items
+need again, including anything an older version missed. Your own assets and saved map edits stay
+in the project, including actors you added, moved, or removed. The Output Log lists any assets
+Kadan refused to replace.
+
+## Canceling
+
+Use **Cancel** when the import's progress window offers it. Completed items stay in your project,
+and importing the same selection again continues from where it stopped.
+
+If reading the game folder fails or is canceled, choose the folder again to retry.
+
+## Day, night and Olimar
+
+A game map's day, night and Olimar versions are its sublevels, named with `_Day`, `_Night` and
+`_Hero`. Show and hide them in **Window > Levels** to see one version.
+
+## Asset status
+
+If an imported asset or one of its properties doesn't support an edit, Kadan marks it as
+read-only and gives the reason.
+
+Kadan gives every asset that it imports a game tag, and it keeps the game's asset identities when
+it exports supported changes. A copy of a game asset is yours, so you can edit it. Check
+[Asset ownership](/guides/export/#asset-ownership) for what Review accepts. To replace a game
+texture or static mesh, [use a file of your own](/guides/export/#replacements).
+
+You can inspect recovered game master-material graphs and use them as parents for material
+instances. To change a graph, make your own material from scratch. Check
+[Materials](/guides/export/#materials) for the authoring routes and
+[What ships](/guides/export/#what-ships) for what your mod includes.
+
+Now that you have a map in your project, you can [edit it](/guides/edit-a-map/).
