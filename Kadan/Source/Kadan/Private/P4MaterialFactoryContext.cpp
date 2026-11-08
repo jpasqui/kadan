@@ -86,6 +86,11 @@ void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uint64>& Fact
             Material->bUsedWithBeamTrails = true;
     }
 }
+void P4ApplyGameRenderLimits(UMaterial* Material)
+{
+    if (Material && Material->GetBlendMode() == BLEND_Modulate && Material->bEnableSeparateTranslucency)
+        Material->bEnableSeparateTranslucency = false;
+}
 bool P4MaterialUsageCovers(const UMaterial* Material, uint64 Factory)
 {
     if (!Material)

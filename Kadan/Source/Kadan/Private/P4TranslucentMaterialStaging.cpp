@@ -573,6 +573,7 @@ bool FP4TranslucentMaterialStaging::Prepare(const FString& Root, const TArray<UO
             Material->bUsedWithStaticLighting = true;
             Material->bUsedWithInstancedStaticMeshes = Plan.Instanced;
             P4ApplyMaterialFactoryUsage(Material, Plan.Factories);
+            P4ApplyGameRenderLimits(Material);
         }
         if (auto* Instance = Cast<UMaterialInstanceConstant>(Runtime))
         {

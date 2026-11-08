@@ -123,9 +123,15 @@ To change a game material's appearance, make a material instance and change its 
 and texture parameters. For static switches, choose one of the options that the game has shaders
 for. Parameters that the game controls, such as `C4SkyLightParam`, keep their inherited values.
 
-You can also make your own material from scratch. Kadan compiles your material for the game and
-shows unavailable nodes, blend modes, and mesh kinds while you work. Kadan ships the material
-and the textures it uses together.
+You can also make your own material from scratch. Kadan compiles it for the game with Unreal's
+own material compiler and shader code, so the material editor's domains, blend modes, shading
+models, and Details settings compile for the game. Kadan ships the material and the textures it
+uses together. Cube, volume, and array textures, render targets, and material parameter
+collections do not export yet.
+
+The [material coverage table](https://github.com/jpasqui/kadan/blob/main/docs/MATERIAL_COVERAGE.md)
+gives each material feature one status: seen in the game, compiles but not yet seen in the
+game, or refused.
 
 Choose a supported material and renderer combination. A material instance of a game parent
 can reuse that parent's supported shader route. A successful static mesh export does not

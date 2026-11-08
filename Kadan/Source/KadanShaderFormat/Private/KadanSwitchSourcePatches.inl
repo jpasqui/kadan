@@ -74,13 +74,19 @@ cbuffer View
 +++ replace
 	ImageBasedReflections.rgb *= View_C4IndirectLightingSpecularColorScale;
 	CompositedAverageBrightness.x *= Luminance( View_C4IndirectLightingSpecularColorScale );
-@@ C4 ambient: the game's ambient light, tinted by the base color, after the indirect diffuse requires DiffuseColor += (DiffuseIndirectLighting * DiffuseColorForIndirect
+@@ C4 ambient: the game's ambient light, tinted by the base color, after the indirect diffuse requires DiffuseColor += (DiffuseIndirectLighting * DiffuseColorForIndirect unless float3 DualBlendColorMul = 1.0f;
 --- find
 	Color += DiffuseColor;
 +++ replace
 	Color += DiffuseColor;
 	if (!C4Transmissive(GBuffer.ShadingModelID))   // none on the transmissive shading models
 		Color += BaseColor * (View_C4AmbientLightColor - Metallic * View_C4AmbientLightColor) * AOMultiBounce(BaseColor.g, MaterialAO);
+@@ C4 ambient, thin translucent: the same ambient light in the diffuse colour the thin translucent model adds (UE's thin translucent path keeps the diffuse colour apart and never adds it to Color) requires float3 DualBlendColorMul = 1.0f;
+--- find
+	float3 DualBlendColorMul = 1.0f;
++++ replace
+	float3 DualBlendColorMul = 1.0f;
+	DiffuseColor += BaseColor * (View_C4AmbientLightColor - Metallic * View_C4AmbientLightColor) * AOMultiBounce(BaseColor.g, MaterialAO);
 @@ decals: the mask is a float texture
 --- find
 Texture2D<uint> OpaqueBasePass_DBufferRenderMask;
@@ -152,11 +158,16 @@ TEXT(R"KSP(@@ decals: the game's mask, modes and buffers requires DBufferMask = 
 				C4LocalLightScale = pow(C4DirectionalScale, max(View_C4LightParam1.y, 0));
 				IndirectOcclusion = C4ReflectionOcclusion;
 			}
-@@ reflection: blended toward the directional shadow by the game's weight requires ReflectionColor = GetImageBasedReflectionLighting(
+@@ reflection: blended toward the directional shadow by the game's weight requires ReflectionColor = GetImageBasedReflectionLighting( unless ColorSeparateSpecular += ReflectionColor;
 --- find
 						Color += ReflectionColor;
 +++ replace
 						Color += ReflectionColor * (View_C4LightParam.x + (DirectionalLightShadow - View_C4LightParam.x * DirectionalLightShadow));
+@@ reflection, thin translucent: the same blend on the separate specular the thin translucent model keeps its reflection in requires ColorSeparateSpecular += ReflectionColor;
+--- find
+						ColorSeparateSpecular += ReflectionColor;
++++ replace
+						ColorSeparateSpecular += ReflectionColor * (View_C4LightParam.x + (DirectionalLightShadow - View_C4LightParam.x * DirectionalLightShadow));
 )KSP"),
 TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (DiffuseIndirectLighting
 --- find

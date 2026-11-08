@@ -59,12 +59,14 @@ const IKadanSwitchShaderCompiler* FindCompiler()
 
 // The game's changes to UE 4.26's shader source (KadanSwitchSourcePatches.inl), applied to each job's preprocessed
 // source. KADAN_SWITCH_PATCHES=<file> replaces them with a file's, for trying patches without a build.
-//   @@ <name> [requires <text>]     a patch; with requires, only for a source that holds <text>, which must hold the find text
+//   @@ <name> [requires <text>] [unless <text>]
+//                                    a patch; with requires, only for a source that holds <text>, which must hold the find
+//                                    text; with unless, never for a source that holds that <text>
 //   --- find                         the exact lines to find (every occurrence is replaced)
 //   +++ replace                      the lines that replace them, up to the next @@
 struct FSourcePatch
 {
-    FString Name, Requires, Find, Replace;
+    FString Name, Requires, Unless, Find, Replace;
 };
 
 const TCHAR* const BuiltInPatchParts[] = {
@@ -108,7 +110,13 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
             Finish();
             FSourcePatch Patch;
             FString Head = Line.Mid(3);
-            int32 At = Head.Find(TEXT(" requires "));
+            int32 At = Head.Find(TEXT(" unless "));
+            if (At != INDEX_NONE)
+            {
+                Patch.Unless = Head.Mid(At + 8);
+                Head = Head.Left(At);
+            }
+            At = Head.Find(TEXT(" requires "));
             if (At != INDEX_NONE)
             {
                 Patch.Requires = Head.Mid(At + 10);
@@ -157,6 +165,8 @@ bool ApplySourcePatches(FString& Source, FString& Error)
         if (Patch.Find.IsEmpty())
             continue;
         if (!Patch.Requires.IsEmpty() && !Source.Contains(Patch.Requires, ESearchCase::CaseSensitive))
+            continue;
+        if (!Patch.Unless.IsEmpty() && Source.Contains(Patch.Unless, ESearchCase::CaseSensitive))
             continue;
         if (Source.Contains(Patch.Find, ESearchCase::CaseSensitive))
             Source.ReplaceInline(*Patch.Find, *Patch.Replace, ESearchCase::CaseSensitive);

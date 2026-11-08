@@ -17,6 +17,12 @@ class UMaterial;
 // names P4ValidateMaterialFactoryConsumers reports): instanced, spline, skeletal and morph target meshes, mesh and
 // sprite particles, beams and trails.
 KADAN_API void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uint64>& Factories);
+// What the game's renderer cannot draw as set, changed to what it draws closest, on a copy compiled for the game and
+// on the runtime material that ships (both get the same settings). UE 4.26 draws a Modulate material after depth of
+// field only with dual-source blending, which its RHI never gives the Switch (RHISupportsDualSourceBlending), so the
+// game's own engine refuses that combination: such a material draws in the ordinary translucency pass, before depth of
+// field, as a Modulate material with Render After DOF off does.
+KADAN_API void P4ApplyGameRenderLimits(UMaterial* Material);
 // True when the material's usage flags cover this factory (as P4ApplyMaterialFactoryUsage sets them).
 KADAN_API bool P4MaterialUsageCovers(const UMaterial* Material, uint64 Factory);
 // True for a factory P4ApplyMaterialFactoryUsage gives a usage (or the plain static mesh's, which needs none).

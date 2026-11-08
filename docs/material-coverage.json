@@ -1,0 +1,1971 @@
+{
+ "rows": [
+  {
+   "family": "translucency",
+   "id": "ContactShadows",
+   "feature": "Contact Shadows (translucent)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "CustomDepthWrites",
+   "feature": "Allow Custom Depth Writes",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "DisableDepthTest",
+   "feature": "Disable Depth Test",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a cube 2 m under the floor draws over the floor and a ridge; the same cube with the depth test on stays hidden (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOffLit",
+   "feature": "Apply Fogging off, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOffUnlit",
+   "feature": "Apply Fogging off, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOnLit",
+   "feature": "Apply Fogging on, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOnUnlit",
+   "feature": "Apply Fogging on, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogPerPixelLit",
+   "feature": "Compute Fog Per Pixel, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogPerPixelUnlit",
+   "feature": "Compute Fog Per Pixel, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "Numbers",
+   "feature": "Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "OutputVelocity",
+   "feature": "Output Velocity",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "Refraction",
+   "feature": "Refraction input (index 1.33)",
+   "status": "compiles"
+  },
+  {
+   "family": "translucency",
+   "id": "ResponsiveAA",
+   "feature": "Responsive AA",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "ScreenSpaceReflections",
+   "feature": "Screen Space Reflections (translucent)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOffLit",
+   "feature": "Render After DOF off, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOffUnlit",
+   "feature": "Render After DOF off, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOnLit",
+   "feature": "Render After DOF on, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOnUnlit",
+   "feature": "Render After DOF on, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmSurface",
+   "feature": "Lighting Mode TlmSurface (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmSurfacePerPixelLighting",
+   "feature": "Lighting Mode TlmSurfacePerPixelLighting (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricDirectional",
+   "feature": "Lighting Mode TlmVolumetricDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricNonDirectional",
+   "feature": "Lighting Mode TlmVolumetricNonDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricPerVertexDirectional",
+   "feature": "Lighting Mode TlmVolumetricPerVertexDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricPerVertexNonDirectional",
+   "feature": "Lighting Mode TlmVolumetricPerVertexNonDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TwoSidedLit",
+   "feature": "Two Sided, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TwoSidedUnlit",
+   "feature": "Two Sided, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AdditiveLit",
+   "feature": "Additive, Default Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AdditiveUnlit",
+   "feature": "Additive, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaCompositeLit",
+   "feature": "AlphaComposite, Default Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaCompositeUnlit",
+   "feature": "AlphaComposite, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaHoldoutLit",
+   "feature": "AlphaHoldout, Default Lit",
+   "status": "ue4",
+   "error": "Alpha Holdout blend mode must use unlit shading model."
+  },
+  {
+   "family": "blend",
+   "id": "AlphaHoldoutUnlit",
+   "feature": "AlphaHoldout, Unlit",
+   "status": "compiles"
+  },
+  {
+   "family": "blend",
+   "id": "DitherOpacityMask",
+   "feature": "Masked with Dither Opacity Mask",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the cube draws as a fine dither pattern at mask 0.5, the cave behind showing through (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedLit",
+   "feature": "Masked, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedTwoSided",
+   "feature": "Masked, Default Lit, Two Sided",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: green slats with the far faces' slats showing through the gaps (two-sided), as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedUnlit",
+   "feature": "Masked, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "ModulateLit",
+   "feature": "Modulate, Default Lit",
+   "status": "ue4",
+   "error": "Dynamically lit translucency is not supported for BLEND_Modulate materials."
+  },
+  {
+   "family": "blend",
+   "id": "ModulateUnlit",
+   "feature": "Modulate, Unlit",
+   "status": "compiles"
+  },
+  {
+   "family": "blend",
+   "id": "OpaqueLit",
+   "feature": "Opaque, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "OpaqueUnlit",
+   "feature": "Opaque, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "TranslucentLit",
+   "feature": "Translucent, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a translucent blue cube with the mushrooms behind it showing through (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "TranslucentUnlit",
+   "feature": "Translucent, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a translucent blue cube with the mushrooms behind it showing through (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "ClearCoat",
+   "feature": "Shading model ClearCoat",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "Cloth",
+   "feature": "Shading model Cloth",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "DefaultLit",
+   "feature": "Shading model DefaultLit",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "Eye",
+   "feature": "Shading model Eye",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "FromMaterialExpression",
+   "feature": "Shading model From Material Expression",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "FullyRough",
+   "feature": "Fully Rough",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "Hair",
+   "feature": "Shading model Hair",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "PreintegratedSkin",
+   "feature": "Shading model PreintegratedSkin",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "SingleLayerWater",
+   "feature": "Shading model SingleLayerWater",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "Subsurface",
+   "feature": "Shading model Subsurface",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "SubsurfaceProfile",
+   "feature": "Shading model SubsurfaceProfile",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "ThinTranslucent",
+   "feature": "Shading model ThinTranslucent (translucent)",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "TwoSidedFoliage",
+   "feature": "Shading model TwoSidedFoliage",
+   "status": "compiles"
+  },
+  {
+   "family": "shading",
+   "id": "Unlit",
+   "feature": "Shading model Unlit",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "AmbientOcclusion",
+   "feature": "Ambient Occlusion",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Anisotropy",
+   "feature": "Anisotropy and Tangent",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "CustomizedUVs",
+   "feature": "Customized UVs",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "DitheredLOD",
+   "feature": "Dithered LOD Transition",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Emissive",
+   "feature": "Emissive Color (lit)",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "FullPrecision",
+   "feature": "Use Full Precision",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "HQForwardReflections",
+   "feature": "High Quality Forward Reflections, planar reflections",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "LightmapDirectionality",
+   "feature": "Use Lightmap Directionality off",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "MaterialAttributes",
+   "feature": "Use Material Attributes (Make Material Attributes)",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Metallic",
+   "feature": "Metallic",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "NegativeEmissive",
+   "feature": "Allow Negative Emissive Color",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Normal",
+   "feature": "Normal (tangent space)",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "NormalCurvatureToRoughness",
+   "feature": "Normal Curvature To Roughness",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "NormalWorld",
+   "feature": "Normal (world space, Tangent Space Normal off)",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "PixelDepthOffset",
+   "feature": "Pixel Depth Offset",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Specular",
+   "feature": "Specular",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "StencilTest",
+   "feature": "Post process stencil test",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Tessellation",
+   "feature": "Tessellation (PN triangles), World Displacement, multiplier",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "Wireframe",
+   "feature": "Wireframe",
+   "status": "compiles"
+  },
+  {
+   "family": "inputs",
+   "id": "WorldPositionOffset",
+   "feature": "World Position Offset",
+   "status": "compiles"
+  },
+  {
+   "family": "textures",
+   "id": "ParameterCollection",
+   "feature": "Material parameter collection",
+   "status": "refused",
+   "error": "Compiles; export refuses MPC_Coverage: Export is not available for this asset type yet."
+  },
+  {
+   "family": "textures",
+   "id": "RenderTarget",
+   "feature": "Render target sample",
+   "status": "refused",
+   "error": "Compiles; export refuses RT_Coverage: Export is not available for this asset type yet."
+  },
+  {
+   "family": "textures",
+   "id": "Texture2D",
+   "feature": "Texture 2D sample",
+   "status": "compiles"
+  },
+  {
+   "family": "textures",
+   "id": "Texture2DArray",
+   "feature": "Texture 2D array sample",
+   "status": "refused",
+   "error": "Compiles; export refuses T_CoverageArray: Export is not available for this asset type yet."
+  },
+  {
+   "family": "textures",
+   "id": "TextureCube",
+   "feature": "Texture cube sample",
+   "status": "refused",
+   "error": "Compiles; export refuses T_CoverageCube: Export is not available for this asset type yet."
+  },
+  {
+   "family": "textures",
+   "id": "VolumeTexture",
+   "feature": "Volume texture sample",
+   "status": "refused",
+   "error": "Compiles; export refuses T_CoverageVolume: Export is not available for this asset type yet."
+  },
+  {
+   "family": "domain",
+   "id": "DecalAlphaComposite",
+   "feature": "Decal blend mode DecalAlphaComposite",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalAmbientOcclusion",
+   "feature": "Decal blend mode DecalAmbientOcclusion",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferAlphaComposite",
+   "feature": "Decal blend mode DecalDBufferAlphaComposite",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColor",
+   "feature": "Decal blend mode DecalDBufferColor",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorNormal",
+   "feature": "Decal blend mode DecalDBufferColorNormal",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorNormalRoughness",
+   "feature": "Decal blend mode DecalDBufferColorNormalRoughness",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorRoughness",
+   "feature": "Decal blend mode DecalDBufferColorRoughness",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferEmissive",
+   "feature": "Decal blend mode DecalDBufferEmissive",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferEmissiveAlphaComposite",
+   "feature": "Decal blend mode DecalDBufferEmissiveAlphaComposite",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormal",
+   "feature": "Decal blend mode DecalDBufferNormal",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormalRoughness",
+   "feature": "Decal blend mode DecalDBufferNormalRoughness",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferRoughness",
+   "feature": "Decal blend mode DecalDBufferRoughness",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalEmissive",
+   "feature": "Decal blend mode DecalEmissive",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalNormal",
+   "feature": "Decal blend mode DecalNormal",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalStain",
+   "feature": "Decal blend mode DecalStain",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalTranslucent",
+   "feature": "Decal blend mode DecalTranslucent",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DecalVolumetricDistanceFunction",
+   "feature": "Decal blend mode DecalVolumetricDistanceFunction",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "DeferredDecal",
+   "feature": "Domain DeferredDecal",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "LightFunction",
+   "feature": "Domain LightFunction",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "PostProcess",
+   "feature": "Domain PostProcess",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "RuntimeVirtualTexture",
+   "feature": "Domain RuntimeVirtualTexture",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "UI",
+   "feature": "Domain UI",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "Volume",
+   "feature": "Domain Volume",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Abs",
+   "feature": "Abs node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ActorPositionWS",
+   "feature": "ActorPositionWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Add",
+   "feature": "Add node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "AntialiasedTextureMask",
+   "feature": "AntialiasedTextureMask node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "AppendVector",
+   "feature": "AppendVector node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Arccosine",
+   "feature": "Arccosine node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ArccosineFast",
+   "feature": "ArccosineFast node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Arcsine",
+   "feature": "Arcsine node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ArcsineFast",
+   "feature": "ArcsineFast node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent",
+   "feature": "Arctangent node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent2",
+   "feature": "Arctangent2 node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent2Fast",
+   "feature": "Arctangent2Fast node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ArctangentFast",
+   "feature": "ArctangentFast node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericFogColor",
+   "feature": "AtmosphericFogColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericLightColor",
+   "feature": "AtmosphericLightColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericLightVector",
+   "feature": "AtmosphericLightVector node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "BentNormalCustomOutput",
+   "feature": "BentNormalCustomOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "BlackBody",
+   "feature": "BlackBody node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "BlendMaterialAttributes",
+   "feature": "BlendMaterialAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "BreakMaterialAttributes",
+   "feature": "BreakMaterialAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "BumpOffset",
+   "feature": "BumpOffset node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CameraPositionWS",
+   "feature": "CameraPositionWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CameraVectorWS",
+   "feature": "CameraVectorWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Ceil",
+   "feature": "Ceil node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ChannelMaskParameter",
+   "feature": "ChannelMaskParameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Clamp",
+   "feature": "Clamp node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ClearCoatNormalCustomOutput",
+   "feature": "ClearCoatNormalCustomOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CloudSampleAttribute",
+   "feature": "CloudSampleAttribute node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CollectionParameter",
+   "feature": "CollectionParameter node",
+   "status": "ue4",
+   "error": "(Node CollectionParameter) CollectionParameter has invalid Collection!"
+  },
+  {
+   "family": "nodes",
+   "id": "ComponentMask",
+   "feature": "ComponentMask node",
+   "status": "ue4",
+   "error": "(Node ComponentMask) Couldn't determine result type of component mask 0000"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant",
+   "feature": "Constant node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant2Vector",
+   "feature": "Constant2Vector node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant3Vector",
+   "feature": "Constant3Vector node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant4Vector",
+   "feature": "Constant4Vector node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ConstantBiasScale",
+   "feature": "ConstantBiasScale node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Cosine",
+   "feature": "Cosine node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CrossProduct",
+   "feature": "CrossProduct node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "CurveAtlasRowParameter",
+   "feature": "CurveAtlasRowParameter node",
+   "status": "ue4",
+   "error": "(Node CurveAtlasRowParameter) > The curve and atlas are not currently set."
+  },
+  {
+   "family": "nodes",
+   "id": "Custom",
+   "feature": "Custom node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DDX",
+   "feature": "DDX node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DDY",
+   "feature": "DDY node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DecalDerivative",
+   "feature": "DecalDerivative node",
+   "status": "ue4",
+   "error": "(Node DecalDerivative) Decal derivatives only available in the decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DecalLifetimeOpacity",
+   "feature": "DecalLifetimeOpacity node",
+   "status": "ue4",
+   "error": "(Node DecalLifetimeOpacity) Decal Lifetime Opacity> Node only works for the deferred decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DecalMipmapLevel",
+   "feature": "DecalMipmapLevel node",
+   "status": "ue4",
+   "error": "(Node DecalMipmapLevel) Decal Mipmap Level> Node only works for the deferred decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DeltaTime",
+   "feature": "DeltaTime node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DepthFade",
+   "feature": "DepthFade node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "DepthOfFieldFunction",
+   "feature": "DepthOfFieldFunction node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DeriveNormalZ",
+   "feature": "DeriveNormalZ node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Desaturation",
+   "feature": "Desaturation node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Distance",
+   "feature": "Distance node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceCullFade",
+   "feature": "DistanceCullFade node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceFieldGradient",
+   "feature": "DistanceFieldGradient node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceToNearestSurface",
+   "feature": "DistanceToNearestSurface node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Divide",
+   "feature": "Divide node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DotProduct",
+   "feature": "DotProduct node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "DynamicParameter",
+   "feature": "DynamicParameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "EyeAdaptation",
+   "feature": "EyeAdaptation node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "FeatureLevelSwitch",
+   "feature": "FeatureLevelSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Floor",
+   "feature": "Floor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Fmod",
+   "feature": "Fmod node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "FontSample",
+   "feature": "FontSample node",
+   "status": "ue4",
+   "error": "(Node FontSample) Font Sample> Missing input Font"
+  },
+  {
+   "family": "nodes",
+   "id": "FontSampleParameter",
+   "feature": "FontSampleParameter node",
+   "status": "ue4",
+   "error": "(Node FontSampleParameter) Font Param> Missing input Font"
+  },
+  {
+   "family": "nodes",
+   "id": "Frac",
+   "feature": "Frac node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Fresnel",
+   "feature": "Fresnel node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "GIReplace",
+   "feature": "GIReplace node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "GetMaterialAttributes",
+   "feature": "GetMaterialAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "HairAttributes",
+   "feature": "HairAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "HairColor",
+   "feature": "HairColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "If",
+   "feature": "If node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "InverseLinearInterpolate",
+   "feature": "InverseLinearInterpolate node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanGameCustom",
+   "feature": "KadanGameCustom node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanGroundSoftAlpha",
+   "feature": "KadanGroundSoftAlpha node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanReflectionCustom",
+   "feature": "KadanReflectionCustom node",
+   "status": "ue4",
+   "error": "(Node KadanReflectionCustom) Original reflection Custom has no supported original reflection access."
+  },
+  {
+   "family": "nodes",
+   "id": "KadanSceneColor",
+   "feature": "KadanSceneColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanSceneDepth",
+   "feature": "KadanSceneDepth node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeGrassOutput",
+   "feature": "LandscapeGrassOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerBlend",
+   "feature": "LandscapeLayerBlend node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerCoords",
+   "feature": "LandscapeLayerCoords node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerSample",
+   "feature": "LandscapeLayerSample node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerSwitch",
+   "feature": "LandscapeLayerSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerWeight",
+   "feature": "LandscapeLayerWeight node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapePhysicalMaterialOutput",
+   "feature": "LandscapePhysicalMaterialOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeVisibilityMask",
+   "feature": "LandscapeVisibilityMask node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LightVector",
+   "feature": "LightVector node",
+   "status": "ue4",
+   "error": "(Node LightVector) LightVector can only be used in LightFunction or DeferredDecal materials"
+  },
+  {
+   "family": "nodes",
+   "id": "LightmapUVs",
+   "feature": "LightmapUVs node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LightmassReplace",
+   "feature": "LightmassReplace node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "LinearInterpolate",
+   "feature": "LinearInterpolate node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Logarithm10",
+   "feature": "Logarithm10 node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Logarithm2",
+   "feature": "Logarithm2 node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MakeMaterialAttributes",
+   "feature": "MakeMaterialAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MapARPassthroughCameraUV",
+   "feature": "MapARPassthroughCameraUV node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialAttributeLayers",
+   "feature": "MaterialAttributeLayers node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialFunctionCall",
+   "feature": "MaterialFunctionCall node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialLayerOutput",
+   "feature": "MaterialLayerOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialProxyReplace",
+   "feature": "MaterialProxyReplace node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Max",
+   "feature": "Max node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Min",
+   "feature": "Min node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Multiply",
+   "feature": "Multiply node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Noise",
+   "feature": "Noise node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Normalize",
+   "feature": "Normalize node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectBounds",
+   "feature": "ObjectBounds node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectOrientation",
+   "feature": "ObjectOrientation node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectPositionWS",
+   "feature": "ObjectPositionWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectRadius",
+   "feature": "ObjectRadius node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "OneMinus",
+   "feature": "OneMinus node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Panner",
+   "feature": "Panner node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Parameter",
+   "feature": "Parameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleColor",
+   "feature": "ParticleColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleDirection",
+   "feature": "ParticleDirection node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleMacroUV",
+   "feature": "ParticleMacroUV node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleMotionBlurFade",
+   "feature": "ParticleMotionBlurFade node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticlePositionWS",
+   "feature": "ParticlePositionWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRadius",
+   "feature": "ParticleRadius node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRandom",
+   "feature": "ParticleRandom node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRelativeTime",
+   "feature": "ParticleRelativeTime node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSize",
+   "feature": "ParticleSize node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSpeed",
+   "feature": "ParticleSpeed node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSubUV",
+   "feature": "ParticleSubUV node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSubUVProperties",
+   "feature": "ParticleSubUVProperties node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceCustomData",
+   "feature": "PerInstanceCustomData node",
+   "status": "ue4",
+   "error": "(Node PerInstanceCustomData) Invalid node used in pixel/hull/domain shader input!"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceFadeAmount",
+   "feature": "PerInstanceFadeAmount node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceRandom",
+   "feature": "PerInstanceRandom node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PixelDepth",
+   "feature": "PixelDepth node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PixelNormalWS",
+   "feature": "PixelNormalWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Power",
+   "feature": "Power node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedLocalBounds",
+   "feature": "PreSkinnedLocalBounds node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedNormal",
+   "feature": "PreSkinnedNormal node",
+   "status": "ue4",
+   "error": "(Node PreSkinnedNormal) Pre-skinned normal is only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedPosition",
+   "feature": "PreSkinnedPosition node",
+   "status": "ue4",
+   "error": "(Node PreSkinnedPosition) Pre-skinned position is only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "PrecomputedAOMask",
+   "feature": "PrecomputedAOMask node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "PreviousFrameSwitch",
+   "feature": "PreviousFrameSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "QualitySwitch",
+   "feature": "QualitySwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "RayTracingQualitySwitch",
+   "feature": "RayTracingQualitySwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ReflectionCapturePassSwitch",
+   "feature": "ReflectionCapturePassSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ReflectionVectorWS",
+   "feature": "ReflectionVectorWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Reroute",
+   "feature": "Reroute node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "RotateAboutAxis",
+   "feature": "RotateAboutAxis node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Rotator",
+   "feature": "Rotator node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Round",
+   "feature": "Round node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureOutput",
+   "feature": "RuntimeVirtualTextureOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureReplace",
+   "feature": "RuntimeVirtualTextureReplace node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureSample",
+   "feature": "RuntimeVirtualTextureSample node",
+   "status": "ue4",
+   "error": "(Node RuntimeVirtualTextureSample) Missing input Virtual Texture"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureSampleParameter",
+   "feature": "RuntimeVirtualTextureSampleParameter node",
+   "status": "ue4",
+   "error": "(Node RuntimeVirtualTextureSampleParameter) Missing input Virtual Texture"
+  },
+  {
+   "family": "nodes",
+   "id": "Saturate",
+   "feature": "Saturate node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ScalarParameter",
+   "feature": "ScalarParameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SceneColor",
+   "feature": "SceneColor node",
+   "status": "ue4",
+   "error": "Only translucent materials can use the scene color node."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneDepth",
+   "feature": "SceneDepth node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneDepthWithoutWater",
+   "feature": "SceneDepthWithoutWater node",
+   "status": "ue4",
+   "error": "(Node SceneDepthWithoutWater) Can only read scene depth below water when material Shading Model is Single Layer Water."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneTexelSize",
+   "feature": "SceneTexelSize node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SceneTexture",
+   "feature": "SceneTexture node",
+   "status": "ue4",
+   "error": "Only translucent materials can use the scene color node. | SceneTexture expressions cannot be used in opaque materials"
+  },
+  {
+   "family": "nodes",
+   "id": "ScreenPosition",
+   "feature": "ScreenPosition node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SetMaterialAttributes",
+   "feature": "SetMaterialAttributes node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ShaderStageSwitch",
+   "feature": "ShaderStageSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ShadingModel",
+   "feature": "ShadingModel node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "ShadingPathSwitch",
+   "feature": "ShadingPathSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ShadowReplace",
+   "feature": "ShadowReplace node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Sign",
+   "feature": "Sign node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Sine",
+   "feature": "Sine node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SingleLayerWaterMaterialOutput",
+   "feature": "SingleLayerWaterMaterialOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkinningVertexOffsets",
+   "feature": "SkinningVertexOffsets node",
+   "status": "ue4",
+   "error": "(Node SkinningVertexOffsets) Pre Skin Offset only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereAerialPerspective",
+   "feature": "SkyAtmosphereAerialPerspective node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereDistantLightScatteredLuminance",
+   "feature": "SkyAtmosphereDistantLightScatteredLuminance node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightDirection",
+   "feature": "SkyAtmosphereLightDirection node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightDiskLuminance",
+   "feature": "SkyAtmosphereLightDiskLuminance node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightIlluminance",
+   "feature": "SkyAtmosphereLightIlluminance node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereViewLuminance",
+   "feature": "SkyAtmosphereViewLuminance node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SmoothStep",
+   "feature": "SmoothStep node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Sobol",
+   "feature": "Sobol node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SpeedTree",
+   "feature": "SpeedTree node",
+   "status": "ue4",
+   "error": "(Node SpeedTree) Invalid node used in pixel/hull/domain shader input!"
+  },
+  {
+   "family": "nodes",
+   "id": "SphereMask",
+   "feature": "SphereMask node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SphericalParticleOpacity",
+   "feature": "SphericalParticleOpacity node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "SpriteTextureSampler",
+   "feature": "SpriteTextureSampler node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "SquareRoot",
+   "feature": "SquareRoot node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticBool",
+   "feature": "StaticBool node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "StaticBoolParameter",
+   "feature": "StaticBoolParameter node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "StaticComponentMaskParameter",
+   "feature": "StaticComponentMaskParameter node",
+   "status": "ue4",
+   "error": "(Node StaticComponentMaskParameter) Couldn't determine result type of component mask 0000"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticSwitch",
+   "feature": "StaticSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticSwitchParameter",
+   "feature": "StaticSwitchParameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Step",
+   "feature": "Step node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Subtract",
+   "feature": "Subtract node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Tangent",
+   "feature": "Tangent node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TangentOutput",
+   "feature": "TangentOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TemporalSobol",
+   "feature": "TemporalSobol node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureCoordinate",
+   "feature": "TextureCoordinate node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureObject",
+   "feature": "TextureObject node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "TextureObjectParameter",
+   "feature": "TextureObjectParameter node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "TextureProperty",
+   "feature": "TextureProperty node",
+   "status": "ue4",
+   "error": "(Node TextureProperty) Texture size only available for Texture2D, TextureVirtual, and VolumeTexture, not float2"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSample",
+   "feature": "TextureSample node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameter2D",
+   "feature": "TextureSampleParameter2D node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameter2DArray",
+   "feature": "TextureSampleParameter2DArray node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameter2DArray) Param2DArray> 2D array sample needs UVW input"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterCube",
+   "feature": "TextureSampleParameterCube node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameterCube) ParamCube> Cube sample needs UV input"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterSubUV",
+   "feature": "TextureSampleParameterSubUV node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterVolume",
+   "feature": "TextureSampleParameterVolume node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameterVolume) ParamVolume> Volume sample needs UVW input"
+  },
+  {
+   "family": "nodes",
+   "id": "ThinTranslucentMaterialOutput",
+   "feature": "ThinTranslucentMaterialOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Time",
+   "feature": "Time node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Transform",
+   "feature": "Transform node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TransformPosition",
+   "feature": "TransformPosition node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Truncate",
+   "feature": "Truncate node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "TwoSidedSign",
+   "feature": "TwoSidedSign node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VectorNoise",
+   "feature": "VectorNoise node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VectorParameter",
+   "feature": "VectorParameter node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexColor",
+   "feature": "VertexColor node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexInterpolator",
+   "feature": "VertexInterpolator node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexNormalWS",
+   "feature": "VertexNormalWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexTangentWS",
+   "feature": "VertexTangentWS node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ViewProperty",
+   "feature": "ViewProperty node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "ViewSize",
+   "feature": "ViewSize node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VirtualTextureFeatureSwitch",
+   "feature": "VirtualTextureFeatureSwitch node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VolumetricAdvancedMaterialInput",
+   "feature": "VolumetricAdvancedMaterialInput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "VolumetricAdvancedMaterialOutput",
+   "feature": "VolumetricAdvancedMaterialOutput node",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "WorldPosition",
+   "feature": "WorldPosition node",
+   "status": "compiles"
+  }
+ ]
+}
