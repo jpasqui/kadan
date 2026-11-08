@@ -14,7 +14,7 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 209 |
+| seen in the game | 210 |
 | draws in the game, its effect not checked yet | 69 |
 | draws wrong in the game | 0 |
 | compiles, not seen in the game yet | 6 |
@@ -37,6 +37,7 @@ right. **Refused** rows name the message the export gives.
 | Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Output Velocity | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Refraction input (index 1.33) | seen in the game | Eden, Area500, cube turned 45 degrees in front of the wall and pots: the scene behind is bent (correlation with it 0.01 unshifted, best at about 30 by 16 pixels; a plain translucent cube beside it 0.69 unshifted), as the editor's cube bends the floor behind it. Kadan draws it in the material's own translucent pass: the game keeps its distortion pass off (r.RefractionQuality 0). Other translucent things behind it are not bent (2026-11-08) |
+| Refraction through Use Material Attributes (index 1.5, unlit, nearly clear) | seen in the game | Eden, Area500, cubes turned 45 degrees: the Material Attributes refraction cube (index 1.5, opacity 0.1) bends the rocks and grass behind it; edge correlation with the empty scene 0.33, the plain refraction cube 0.25, a plain translucent cube 0.61. Fixed in this PR (the scene colour mark goes through Set Material Attributes) (2026-11-08) |
 | Refraction input (index 1.5, unlit, nearly clear) | seen in the game | Eden, Area500, cube turned 45 degrees in front of the wall and pots: the wall and pots behind are visibly displaced, differently on each face (correlation 0.00 unshifted), as the editor's cube (2026-11-08) |
 | Responsive AA | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Screen Space Reflections (translucent) | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |

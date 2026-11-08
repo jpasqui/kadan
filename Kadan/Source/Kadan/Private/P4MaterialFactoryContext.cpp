@@ -14,7 +14,9 @@
 #include "Materials/MaterialInstance.h"
 #include "Materials/MaterialExpressionAdd.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionGetMaterialAttributes.h"
 #include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionSetMaterialAttributes.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleEmitter.h"
 #include "Particles/ParticleLODLevel.h"
@@ -131,8 +133,9 @@ void P4ApplyGameRenderLimits(UMaterial* Material)
 }
 void P4ApplyGameRefraction(UMaterial* Material)
 {
-    if (!Material || !Material->bUsesDistortion || !IsTranslucentBlendMode(Material->GetBlendMode()) ||
-        Material->bUseMaterialAttributes)
+    if (!Material || !Material->bUsesDistortion || !IsTranslucentBlendMode(Material->GetBlendMode()))
+        return;
+    if (Material->bUseMaterialAttributes && !Material->MaterialAttributes.Expression)
         return;
     // Scene Color x 0 in the emissive: compiles to nothing, but marks the material as reading the scene colour, so
     // the game copies the scene before its translucency for it (the copy the refraction patch samples).
@@ -146,6 +149,34 @@ void P4ApplyGameRefraction(UMaterial* Material)
     Zero->ConstB = 0.f;
     Material->Expressions.Add(Scene);
     Material->Expressions.Add(Zero);
+    if (Material->bUseMaterialAttributes)
+    {
+        // The attributes, with their emissive plus the marker: Set Material Attributes over them, its emissive the
+        // attributes' own (Get Material Attributes) plus Scene Color x 0.
+        const FGuid Emissive = FMaterialAttributeDefinitionMap::GetID(MP_EmissiveColor);
+        auto* Get = NewObject<UMaterialExpressionGetMaterialAttributes>(Material);
+        Get->MaterialAttributes.Expression = Material->MaterialAttributes.Expression;
+        Get->MaterialAttributes.OutputIndex = Material->MaterialAttributes.OutputIndex;
+        Get->AttributeGetTypes.Add(Emissive);
+        Get->Outputs.Add(FExpressionOutput(TEXT("Emissive")));
+        auto* Sum = NewObject<UMaterialExpressionAdd>(Material);
+        Sum->A.Expression = Get;
+        Sum->A.OutputIndex = 1;
+        Sum->B.Expression = Zero;
+        auto* Set = NewObject<UMaterialExpressionSetMaterialAttributes>(Material);
+        if (Set->Inputs.Num() == 0)
+            Set->Inputs.Add(FMaterialAttributesInput());
+        Set->Inputs[0].Expression = Material->MaterialAttributes.Expression;
+        Set->Inputs[0].OutputIndex = Material->MaterialAttributes.OutputIndex;
+        Set->AttributeSetTypes.Add(Emissive);
+        FExpressionInput Value;
+        Value.Expression = Sum;
+        Set->Inputs.Add(Value);
+        Material->Expressions.Append({Get, Sum, Set});
+        Material->MaterialAttributes.Expression = Set;
+        Material->MaterialAttributes.OutputIndex = 0;
+        return;
+    }
     UMaterialExpression* Result = Zero;
     if (Material->EmissiveColor.Expression)
     {

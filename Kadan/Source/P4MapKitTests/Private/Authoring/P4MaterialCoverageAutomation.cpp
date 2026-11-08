@@ -316,6 +316,21 @@ TArray<FCoverageCase> SettingCases()
             G->Refraction.Expression = Scalar(G, 1.5f);
             return true;
         });
+    Add(TEXT("translucency"), TEXT("RefractionAttributes"),
+        TEXT("Refraction through Use Material Attributes (index 1.5, unlit, nearly clear)"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            G->MaterialDomain = MD_Surface;
+            G->BlendMode = BLEND_Translucent;
+            G->SetShadingModel(MSM_Unlit);
+            G->bUseMaterialAttributes = true;
+            auto* Make = Node<UMaterialExpressionMakeMaterialAttributes>(G);
+            Make->EmissiveColor.Expression = Color(G, 0.2f, 0.6f, 1.f);
+            Make->Opacity.Expression = Scalar(G, 0.1f);
+            Make->Refraction.Expression = Scalar(G, 1.5f);
+            G->MaterialAttributes.Expression = Make;
+            return true;
+        });
 
     // Blend modes, lit and unlit.
     const struct

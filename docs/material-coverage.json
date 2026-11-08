@@ -86,6 +86,13 @@
   },
   {
    "family": "translucency",
+   "id": "RefractionAttributes",
+   "feature": "Refraction through Use Material Attributes (index 1.5, unlit, nearly clear)",
+   "status": "game",
+   "seen": "Eden, Area500, cubes turned 45 degrees: the Material Attributes refraction cube (index 1.5, opacity 0.1) bends the rocks and grass behind it; edge correlation with the empty scene 0.33, the plain refraction cube 0.25, a plain translucent cube 0.61. Fixed in this PR (the scene colour mark goes through Set Material Attributes) (2026-11-08)"
+  },
+  {
+   "family": "translucency",
    "id": "RefractionUnlit",
    "feature": "Refraction input (index 1.5, unlit, nearly clear)",
    "status": "game",
