@@ -6,6 +6,7 @@
 #include "P4MapKitCore/export_contract.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -147,6 +148,18 @@ bool P4IsModContentPath(const FString& PackageRoot, const FString& Package)
     if (!PackageRoot.IsEmpty() && Package.StartsWith(PackageRoot + TEXT("/"), ESearchCase::CaseSensitive))
         return true;
     return !P4IsModFolderPackage(Package);
+}
+
+FString P4ModContentPathIssue(const FString& PackageRoot, const FString& Package)
+{
+    if (P4IsModContentPath(PackageRoot, Package))
+        return FString();
+    if (!P4IsContentPackage(Package))
+        return Package + TEXT(" is outside the project's content folder.");
+    return FString::Printf(
+        TEXT(
+            "%s is in another mod's folder: each folder in /Game/Mods belongs to the mod it is named after. Keep this mod's assets in %s, or in a folder of your own outside /Game/Mods. Renaming the folder in the Content Browser moves them and keeps their references."),
+        *FPackageName::GetLongPackagePath(Package), PackageRoot.IsEmpty() ? TEXT("its own folder") : *PackageRoot);
 }
 
 bool P4ReadModDescriptor(const FString& Directory, const FString& Id, FP4ModDescriptor& Out, FString& Error)

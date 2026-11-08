@@ -11,6 +11,7 @@
 #include "P4AuthoringRows.h"
 #include "P4PlacementExport.h"
 #include "P4ExportNavigation.h"
+#include "P4GameLighting.h"
 #include "P4TableExport.h"
 #include "Engine/DataTable.h"
 #include "Engine/Level.h"
@@ -183,6 +184,17 @@ FP4KadanCreatorReview P4ReviewCreatorSelection(const FP4ModDescriptor& Mod, cons
                         Why = TEXT("Open the original map in the editor before exporting its lighting changes.");
                     }
                 }
+                // The rebuild bakes every game level the open map shows, so a light added to any of them counts.
+                if (Why.IsEmpty() && Relight && OpenMap)
+                    for (ULevel* Shown : OpenMap->GetLevels())
+                    {
+                        UWorld* ShownWorld = Shown && Shown->bIsVisible ? Cast<UWorld>(Shown->GetOuter()) : nullptr;
+                        if (!ShownWorld || (Inventory && !Inventory->Contains(FName(*ShownWorld->GetOutermost()->GetName()))))
+                            continue;
+                        Why = P4AddedBakedLightIssue(ShownWorld);
+                        if (!Why.IsEmpty())
+                            break;
+                    }
                 // An edit that changes where Pikmin walk has its navigation built during export. What would
                 // stop that build is shown here, before export.
                 FString NavigationWhy;
@@ -296,4 +308,24 @@ FP4KadanCreatorReview P4ReviewCreatorSelection(const FP4ModDescriptor& Mod, cons
                         "This original level is unchanged. Export writes the mod's manifest and includes no game packages.");
     }
     return Result;
+}
+
+TArray<FString> P4ChangedLevelsOutsideSelection(
+    UWorld* OpenMap, const FP4ExportGameInventory& Inventory, const FP4KadanCreatorReview& Review)
+{
+    TArray<FString> Out;
+    if (!OpenMap)
+        return Out;
+    for (ULevel* Level : OpenMap->GetLevels())
+    {
+        UWorld* World = Level ? Cast<UWorld>(Level->GetOuter()) : nullptr;
+        const FString Package = World ? World->GetOutermost()->GetName() : FString();
+        if (!World || !Inventory.Contains(FName(*Package)) ||
+            Review.Rows.ContainsByPredicate([&](const FP4ExportSelectionRow& Row) { return Row.Package == Package; }))
+            continue;
+        const FP4LevelChangesResult Changes = P4AnalyzeOriginalLevelChanges(World);
+        if (Changes.IsValid() && !Changes.Unchanged)
+            Out.Add(Package);
+    }
+    return Out;
 }

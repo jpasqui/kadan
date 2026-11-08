@@ -60,7 +60,8 @@ FP4KadanDraftSaveResult FKadanModsPage::SaveModIdentity()
         Host.NoticeError = true;
         return Result;
     }
-    if (ActiveMod)
+    const bool New = !ActiveMod;
+    if (!New)
     {
         *ActiveMod = Value;
     }
@@ -84,6 +85,9 @@ FP4KadanDraftSaveResult FKadanModsPage::SaveModIdentity()
     ExportReceipt->Select(ActiveMod->Id);
     ExportDetails.Empty();
     Host.Message = TEXT("Saved the mod's identity.");
+    // A new mod's own folder is made and shown, so its assets start in the right place.
+    if (New && FApp::CanEverRender() && !FApp::IsUnattended())
+        OpenContentFolder();
     Result.Saved = true;
     return Result;
 }

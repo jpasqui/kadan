@@ -29,6 +29,9 @@ class FKadanModsPage
 
     bool CreatorPackageRoot(FString &Root, FString &Error) const;
 
+    // Makes the mod's own content folder if it is not there yet and shows it in the Content Browser.
+    bool OpenContentFolder();
+
     TSharedPtr<FP4ModDescriptor> CurrentMod() const;
 
     bool ReviewOutOfDate() const;

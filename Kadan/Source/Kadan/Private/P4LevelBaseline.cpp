@@ -29,7 +29,10 @@ FString State(UWorld* World)
     WithoutAddedNativeTransformTracking(World, Content);
     TArray<FString> ImportedVisibility;
     if (ReadVisibilityBaseline(World, ImportedVisibility))
+    {
         P4WithDroppedVisibilityIds(World, ImportedVisibility, Content);
+        P4WithImportedStreamingTextureData(ImportedVisibility, Content);
+    }
     return Digest(Content, Out) ? Out : FString();
 }
 
@@ -401,6 +404,7 @@ FP4LevelChangesResult AnalyzeChanges(UWorld* World)
     WithInheritedRuleTableDefaults(World, After);
     WithoutAddedNativeTransformTracking(World, After);
     P4WithDroppedVisibilityIds(World, Before, After);
+    P4WithImportedStreamingTextureData(Before, After);
     FString CurrentState;
     if (!Digest(After, CurrentState))
         return Fail(EP4LevelChangesError::StateUnreadable);

@@ -79,7 +79,7 @@ TSharedRef<SWidget> FKadanModsPage::Build()
                 SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center)[Host.Heading(TEXT("Content"))] +
                 SHorizontalBox::Slot().AutoWidth()[Host.Action(TEXT("Add selected"), [this]() { AddSelected(); }, false,
                     nullptr, TEXT("Add the maps, assets or folders selected in the Content Browser. What they need comes "
-                                  "along by itself."))]] +
+                                  "along by itself, but the levels you changed don't: add each one, a map's sublevels too."))]] +
             SVerticalBox::Slot().AutoHeight().Padding(0, 4, 0, 8)[RootList()] +
             SVerticalBox::Slot().AutoHeight()[SNew(SHorizontalBox) +
                 SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center)[Host.Heading(TEXT("What ships"))] +
@@ -153,6 +153,11 @@ TSharedRef<SWidget> FKadanModsPage::ModRow()
                 .Visibility_Lambda([this]() { return ActiveMod ? EVisibility::Visible : EVisibility::Collapsed; })
                     [Host.Action(TEXT("Edit"), [this]() { EditIdentity(false); }, false, nullptr,
                         TEXT("Change the mod's name and version."))]] +
+        SHorizontalBox::Slot().AutoWidth().Padding(6, 0, 0, 0)[SNew(SBox)
+                .Visibility_Lambda([this]() { return ActiveMod ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [Host.Action(TEXT("Content folder"), [this]() { OpenContentFolder(); }, false, nullptr,
+                        TEXT("Show the mod's own folder in the Content Browser, making it first if needed. A folder in "
+                             "/Game/Mods belongs to the mod it is named after."))]] +
         SHorizontalBox::Slot().AutoWidth().Padding(6, 0, 0, 0)[Host.Action(TEXT("New mod"), [this]() { EditIdentity(true); })];
 }
 

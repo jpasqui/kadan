@@ -38,6 +38,9 @@ class FKadanImportPage
     FString Search, PackageFolder, ImportSummary, ImportDetails;
     bool ReviewWanted = false;
     double SelectionChangedAt = 0;
+    // The project's disk was almost full when the selection was last counted, and when that was looked at.
+    bool ProjectDiskFull = false;
+    double DiskCheckedAt = 0;
     TMap<FString, bool> InProjectCache;
     TArray<TSharedPtr<FP4KadanSourceAsset>> ExtractedAssets;
     TArray<TSharedPtr<FSourceRow>> Assets, Visible;

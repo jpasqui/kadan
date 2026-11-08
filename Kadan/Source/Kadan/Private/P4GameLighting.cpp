@@ -4,7 +4,9 @@
 #include "P4AddedLightingAttachment.h"
 #include "P4ExportContainer.h"
 #include "P4OriginalRecord.h"
+#include "P4LevelContent.h"
 #include "Editor.h"
+#include "Misc/PackageName.h"
 #include "Editor/TransBuffer.h"
 #include "Engine/World.h"
 #include "Engine/Level.h"
@@ -48,6 +50,37 @@ bool P4IsRetainedLightingObject(ULevel* Level, UObject* Object)
         return false;
     return !Component ||
         (!Component->IsBeingDestroyed() && Component->IsInOuter(Actor) && Actor->GetComponents().Contains(Component));
+}
+
+FString P4AddedBakedLightIssue(UWorld* Level)
+{
+    if (!IsInGameThread() || !IsValid(Level) || !Level->PersistentLevel)
+        return FString();
+    // Without the import's list of the level's actors an added light cannot be told from the game's.
+    const TSet<FName> Imported = P4ImportedLevelActors(Level);
+    if (!Imported.Num())
+        return FString();
+    for (AActor* Actor : Level->PersistentLevel->Actors)
+    {
+        if (!P4IsRetainedLightingObject(Level->PersistentLevel, Actor) || Imported.Contains(Actor->GetFName()))
+            continue;
+        TInlineComponentArray<UActorComponent*> Parts(Actor);
+        for (UActorComponent* Part : Parts)
+        {
+            // A sky light's build data is not kept under its own identity, as for the game's own sky lights.
+            const ULightComponentBase* Light = Cast<ULightComponentBase>(Part);
+            if (!Light || Light->IsA<USkyLightComponent>() || (!Light->HasStaticLighting() && !Light->HasStaticShadowing()))
+                continue;
+            // The light ships as an added actor, which the game does not give baked lighting, while the
+            // rebuilt lighting of the game's level would have it baked in as well.
+            return FString::Printf(
+                TEXT(
+                    "%s, which you added to %s, is a %s light. Kadan can't bake the lighting of a light you add to a game level yet. Set its Mobility to Movable."),
+                *Actor->GetActorLabel(), *FPackageName::GetShortName(Level->GetOutermost()->GetName()),
+                Light->Mobility == EComponentMobility::Static ? TEXT("Static") : TEXT("Stationary"));
+        }
+    }
+    return FString();
 }
 
 bool P4ValidateRebuiltMeshLighting(
@@ -126,6 +159,10 @@ bool PrepareGameLevels(UWorld* PersistentMap, const FP4ExportGameInventory& Game
             continue; // Creator levels participate in the build without claiming game paths.
         }
         if (!P4ReadOriginalLevelLighting(World, Lighting, Error))
+            return false;
+        // The lights left without an identity below are then the game's own.
+        Error = P4AddedBakedLightIssue(World);
+        if (!Error.IsEmpty())
             return false;
         if (Level->ModelComponents.Num())
         {

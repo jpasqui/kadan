@@ -43,6 +43,9 @@ struct FP4GamePlacementRow
 KADAN_API bool P4ReadGamePlacementLists(const FString& Folder, TArray<FP4GamePlacementRow>& Rows, FString& Error);
 // The folder of the game's files that holds the placement lists of the map a level belongs to, or empty.
 KADAN_API FString P4GamePlacementFolder(const FString& GameRoot, const FString& LevelPackage);
+// The same in the game folder of the import settings, or else in the copy the import converted from the game's
+// containers into this project, as export reads them. Empty when neither has them.
+KADAN_API FString P4MapPlacementFolder(const FString& GameFolder, const FString& LevelPackage);
 
 // What a level's gameplay objects took from the game's placement lists.
 struct FP4PlacementOptionsReport

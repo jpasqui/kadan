@@ -313,11 +313,8 @@ void FP4KadanImportRun::PlanBlueprints(TArray<TSharedPtr<FP4KadanSourceAsset>>& 
             PlanFailed = true;
             break;
         }
-        if (BlueprintPlans.ModulesNotLoaded.Num())
-            Warnings.AddUnique(
-                TEXT(
-                    "The Blueprints name native modules this editor has not loaded, so their declarations were not read (") +
-                FString::Join(BlueprintPlans.ModulesNotLoaded, TEXT(", ")) + TEXT(")."));
+        for (const FString& Module : BlueprintPlans.ModulesNotLoaded)
+            Warnings.AddUnique(P4KadanUnloadedModuleNote(Module, BlueprintPlans.ModuleUsers.FindRef(Module)));
         for (const auto& Refusal : BlueprintPlans.Refused)
             if (!BlueprintPackages.Contains(Refusal.Key))
                 Warnings.AddUnique(Refusal.Key + TEXT(" was not planned. ") + Refusal.Value);

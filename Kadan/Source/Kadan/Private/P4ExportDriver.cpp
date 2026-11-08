@@ -169,13 +169,9 @@ bool FP4ExportRun::ReadLevelEdits()
                 Edits.Add(MoveTemp(Edit));
                 continue;
             }
-            FString ListFolder = Request.ExtractedGameDirectory.IsEmpty()
-                ? FString()
-                : P4GamePlacementFolder(Request.ExtractedGameDirectory, Package);
             // A game folder without the map's lists (one imported from the game's containers): the lists the import
             // converted from them into this project.
-            if (ListFolder.IsEmpty())
-                ListFolder = P4GamePlacementFolder(P4KadanCatalogGameFolder(), Package);
+            const FString ListFolder = P4MapPlacementFolder(Request.ExtractedGameDirectory, Package);
             if (!ListFolder.IsEmpty() && !GameRows.Contains(ListFolder))
             {
                 TArray<FP4GamePlacementRow> Rows;
