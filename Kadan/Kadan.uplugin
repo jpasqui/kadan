@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
-  "Version": 3,
-  "VersionName": "0.3.0",
+  "Version": 4,
+  "VersionName": "0.3.1",
   "FriendlyName": "Kadan",
   "Category": "Pikmin 4",
   "Description": "Native gameplay placement, original tables, scene/count assets and material export settings in Unreal Editor.",
