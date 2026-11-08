@@ -723,7 +723,8 @@
    "family": "domain",
    "id": "PostProcess",
    "feature": "Domain PostProcess",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500: as the blendable of an unbound PostProcessComponent (its Settings.WeightedBlendables list; Tsuchi's reflection cannot pass AddOrUpdateBlendable's interface) the whole picture under the HUD turns (51,229,76), the emissive (0.2,0.9,0.3) written after tonemapping as UE does (2026-11-08)"
   },
   {
    "family": "domain",

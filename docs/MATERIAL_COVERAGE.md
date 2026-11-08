@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 43 |
+| seen in the game | 44 |
 | draws in the game, its effect not checked yet | 45 |
 | draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 190 |
+| compiles, not seen in the game yet | 189 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -154,7 +154,7 @@ right. **Refused** rows name the message the export gives.
 | Decal blend mode DecalVolumetricDistanceFunction | compiles, not seen in the game yet |  |
 | Domain DeferredDecal | seen in the game | Eden, Area500: a decal projected onto the dirt tints the ground green (mean shift +17,+59,+59 over the decal) and the captain standing in it, as UE projects a decal onto what it covers (2026-11-08) |
 | Domain LightFunction | seen in the game | Eden, Area500: as the sun's light function it dims the sunlit ground to about 80% (176,130,87 to 142,100,71) without tinting it: UE's light functions use the grey level of the emissive (here 0.47) (2026-11-08) |
-| Domain PostProcess | compiles, not seen in the game yet |  |
+| Domain PostProcess | seen in the game | Eden, Area500: as the blendable of an unbound PostProcessComponent (its Settings.WeightedBlendables list; Tsuchi's reflection cannot pass AddOrUpdateBlendable's interface) the whole picture under the HUD turns (51,229,76), the emissive (0.2,0.9,0.3) written after tonemapping as UE does (2026-11-08) |
 | Domain RuntimeVirtualTexture | compiles, not seen in the game yet |  |
 | Domain UI | compiles, not seen in the game yet |  |
 | Domain Volume | compiles, not seen in the game yet |  |
