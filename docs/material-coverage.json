@@ -736,7 +736,8 @@
    "family": "domain",
    "id": "UI",
    "feature": "Domain UI",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500: as the brush of an Image in a CarrotBaseWidget held on the viewport (modding/examples/kadan-material-panel's route) it draws a green panel over the game: (103,203,128) over a (17,44,46) background, which is 0.8 x the emissive (0.2,0.9,0.3) as display colour (124,243,149) plus 0.2 x the background, as UE converts a UI material's linear colour (2026-11-08)"
   },
   {
    "family": "domain",

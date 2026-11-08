@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 44 |
+| seen in the game | 45 |
 | draws in the game, its effect not checked yet | 45 |
 | draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 189 |
+| compiles, not seen in the game yet | 188 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -156,7 +156,7 @@ right. **Refused** rows name the message the export gives.
 | Domain LightFunction | seen in the game | Eden, Area500: as the sun's light function it dims the sunlit ground to about 80% (176,130,87 to 142,100,71) without tinting it: UE's light functions use the grey level of the emissive (here 0.47) (2026-11-08) |
 | Domain PostProcess | seen in the game | Eden, Area500: as the blendable of an unbound PostProcessComponent (its Settings.WeightedBlendables list; Tsuchi's reflection cannot pass AddOrUpdateBlendable's interface) the whole picture under the HUD turns (51,229,76), the emissive (0.2,0.9,0.3) written after tonemapping as UE does (2026-11-08) |
 | Domain RuntimeVirtualTexture | compiles, not seen in the game yet |  |
-| Domain UI | compiles, not seen in the game yet |  |
+| Domain UI | seen in the game | Eden, Area500: as the brush of an Image in a CarrotBaseWidget held on the viewport (modding/examples/kadan-material-panel's route) it draws a green panel over the game: (103,203,128) over a (17,44,46) background, which is 0.8 x the emissive (0.2,0.9,0.3) as display colour (124,243,149) plus 0.2 x the background, as UE converts a UI material's linear colour (2026-11-08) |
 | Domain Volume | compiles, not seen in the game yet |  |
 
 ## Expression nodes
