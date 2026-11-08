@@ -156,8 +156,7 @@ TSharedRef<SWidget> FKadanModsPage::ModRow()
         SHorizontalBox::Slot().AutoWidth().Padding(6, 0, 0, 0)[SNew(SBox)
                 .Visibility_Lambda([this]() { return ActiveMod ? EVisibility::Visible : EVisibility::Collapsed; })
                     [Host.Action(TEXT("Content folder"), [this]() { OpenContentFolder(); }, false, nullptr,
-                        TEXT("Show the mod's own folder in the Content Browser, making it first if needed. A folder in "
-                             "/Game/Mods belongs to the mod it is named after."))]] +
+                        TEXT("Show the mod's own folder in the Content Browser, making it first if needed."))]] +
         SHorizontalBox::Slot().AutoWidth().Padding(6, 0, 0, 0)[Host.Action(TEXT("New mod"), [this]() { EditIdentity(true); })];
 }
 

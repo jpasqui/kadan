@@ -27,15 +27,16 @@ bool FP4ModContentPathTest::RunTest(const FString&)
     TestTrue(TEXT("The mod's own folder"), P4IsModContentPath(Root, Root + TEXT("/Maps/L_Room")));
     TestTrue(TEXT("A folder next to the game's"),
         P4IsModContentPath(Root, TEXT("/Game/Carrot4/Characters/Teki/Dirigibug/dirigibug")));
-    TestFalse(TEXT("Another mod's folder"), P4IsModContentPath(Root, TEXT("/Game/Mods/other_0123456789abcdef/T_Leaf")));
-    TestFalse(
-        TEXT("Another mod's folder in other letter case"), P4IsModContentPath(Root, TEXT("/Game/mods/other/T_Leaf")));
+    TestEqual(TEXT("The mod's folder is its ID with underscores for dots"), Root, FString(TEXT("/Game/Mods/content_path_test")));
+    TestTrue(TEXT("A folder of the creator's in /Game/Mods"), P4IsModContentPath(Root, TEXT("/Game/Mods/MyStuff/T_Leaf")));
+    TestFalse(TEXT("Kadan's live preview folder"), P4IsModContentPath(Root, TEXT("/Game/KadanPreview/kadan-preview-x/T_Leaf")));
     TestFalse(TEXT("Engine content"), P4IsModContentPath(Root, TEXT("/Engine/EngineMaterials/DefaultMaterial")));
-    // A readable folder made by hand in /Game/Mods is another mod's. The reason names the mod's own folder.
-    const FString HandMade = P4ModContentPathIssue(Root, TEXT("/Game/Mods/content_path/Creature_Test"));
-    AddInfo(TEXT("hand-made folder: ") + HandMade);
-    TestTrue(TEXT("A hand-made folder in /Game/Mods is told with the mod's own folder"),
-        HandMade.Contains(TEXT("/Game/Mods/content_path ")) && HandMade.Contains(Root));
+    // Kadan's live preview folder is told with the mod's own folder.
+    const FString Preview = P4ModContentPathIssue(Root, TEXT("/Game/KadanPreview/kadan-preview-x/Creature_Test"));
+    AddInfo(TEXT("preview folder: ") + Preview);
+    TestTrue(TEXT("The live preview folder is told with the mod's own folder"), Preview.Contains(Root));
+    TestTrue(TEXT("A hand-made folder in /Game/Mods has no issue"),
+        P4ModContentPathIssue(Root, TEXT("/Game/Mods/content_path/Creature_Test")).IsEmpty());
     TestTrue(TEXT("The mod's own folder has no issue"), P4ModContentPathIssue(Root, Root + TEXT("/Creature_Test")).IsEmpty());
     TestTrue(TEXT("A folder of its own outside /Game/Mods has no issue"),
         P4ModContentPathIssue(Root, TEXT("/Game/ContentPath/Creature_Test")).IsEmpty());

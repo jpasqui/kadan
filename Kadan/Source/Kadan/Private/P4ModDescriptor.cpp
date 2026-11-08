@@ -147,7 +147,8 @@ bool P4IsModContentPath(const FString& PackageRoot, const FString& Package)
         return false;
     if (!PackageRoot.IsEmpty() && Package.StartsWith(PackageRoot + TEXT("/"), ESearchCase::CaseSensitive))
         return true;
-    return !P4IsModFolderPackage(Package);
+    // Kadan's live preview packages are its own and never ship. Any other folder, in /Game/Mods too, is the mod's.
+    return !Package.StartsWith(TEXT(P4_PREVIEW_FOLDER "/"), ESearchCase::IgnoreCase);
 }
 
 FString P4ModContentPathIssue(const FString& PackageRoot, const FString& Package)
@@ -156,9 +157,7 @@ FString P4ModContentPathIssue(const FString& PackageRoot, const FString& Package
         return FString();
     if (!P4IsContentPackage(Package))
         return Package + TEXT(" is outside the project's content folder.");
-    return FString::Printf(
-        TEXT(
-            "%s is in another mod's folder: each folder in /Game/Mods belongs to the mod it is named after. Keep this mod's assets in %s, or in a folder of your own outside /Game/Mods. Renaming the folder in the Content Browser moves them and keeps their references."),
+    return FString::Printf(TEXT("%s is in Kadan's live preview folder, which no mod ships. Keep this mod's assets in %s."),
         *FPackageName::GetLongPackagePath(Package), PackageRoot.IsEmpty() ? TEXT("its own folder") : *PackageRoot);
 }
 

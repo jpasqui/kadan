@@ -37,6 +37,25 @@ FP4KadanDraftSaveResult FKadanModsPage::SaveModIdentity()
     Value.Name = ModName;
     Value.Version = ModVersion;
     Host.NoticeError = false;
+    // Each mod has one folder, named after its ID. A new mod whose folder another mod of the project has is refused.
+    FP4ModNames NewNames;
+    FString Ignored;
+    if (!ActiveMod && P4ModDerivedNames(Value, NewNames, Ignored))
+        for (const TSharedPtr<FP4ModDescriptor>& Other : Mods)
+        {
+            FP4ModNames OtherNames;
+            if (Other && P4ModDerivedNames(*Other, OtherNames, Ignored) &&
+                OtherNames.PackageRoot.Equals(NewNames.PackageRoot, ESearchCase::IgnoreCase))
+            {
+                Result.Message = FString::Printf(
+                    TEXT("The mod %s already has the folder %s. Choose an ID that differs by more than dots and underscores."),
+                    *Other->Id, *NewNames.PackageRoot);
+                Result.Detail = Result.Message;
+                Host.Message = Result.Message;
+                Host.NoticeError = true;
+                return Result;
+            }
+        }
     if (!P4WriteModDescriptor(FPaths::ProjectDir(), Value, ActiveMod.Get(), Result.Detail))
     {
         if (Result.Detail == TEXT("Invalid mod version"))

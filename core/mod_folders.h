@@ -25,6 +25,13 @@ inline bool PreviewModId(const std::string& Id)
     return true;
 }
 
+// Whether Path is a package in Kadan's live preview folder, which no mod ships.
+inline bool PreviewFolderPackage(const std::string& Path)
+{
+    const std::string Preview = P4_PREVIEW_FOLDER "/";
+    return Path.compare(0, Preview.size(), Preview) == 0;
+}
+
 // Whether Path is a package in a mod's folder or in the live preview's folder.
 inline bool ModFolderPackage(const std::string& Path)
 {

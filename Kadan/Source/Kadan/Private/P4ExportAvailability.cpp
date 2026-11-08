@@ -81,7 +81,7 @@ FP4ExportAvailability AssetAvailability(
                     return Result;
                 }
     // The creator's file in place of the game's asset stays at the game's path (K9). Every other asset of the
-    // creator's ships at the path it has, in another mod's folder too.
+    // creator's ships at the path it has, in any folder.
     const bool Replacement = P4IsGameReplacement(Asset);
     if (P4IsGamePreviewSceneAsset(Asset))
     {
