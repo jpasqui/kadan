@@ -14,11 +14,11 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 210 |
+| seen in the game | 218 |
 | draws in the game, its effect not checked yet | 69 |
 | draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 6 |
-| refused | 5 |
+| compiles, not seen in the game yet | 2 |
+| refused | 1 |
 | UE4 refuses this setup too | 35 |
 
 ## Translucency settings
@@ -63,13 +63,13 @@ right. **Refused** rows name the message the export gives.
 | AlphaComposite, Default Lit | draws in the game, its effect not checked yet | Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08) |
 | AlphaComposite, Unlit | draws in the game, its effect not checked yet | Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08) |
 | AlphaHoldout, Default Lit | UE4 refuses this setup too | Alpha Holdout blend mode must use unlit shading model. |
-| AlphaHoldout, Unlit | compiles, not seen in the game yet |  |
+| AlphaHoldout, Unlit | seen in the game | Eden, Area500: nothing changes on screen (ratio 0.99), as in UE4: Alpha Holdout writes only alpha, which the game's frame does not show (2026-11-08) |
 | Masked with Dither Opacity Mask | seen in the game | Eden, Cave000_F00: the cube draws as a fine dither pattern at mask 0.5, the cave behind showing through (2026-11-08) |
 | Masked, Default Lit | seen in the game | Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08) |
 | Masked, Default Lit, Two Sided | seen in the game | Eden, Cave000_F00: green slats with the far faces' slats showing through the gaps (two-sided), as in the editor (2026-11-08) |
 | Masked, Unlit | seen in the game | Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08) |
 | Modulate, Default Lit | UE4 refuses this setup too | Dynamically lit translucency is not supported for BLEND_Modulate materials. |
-| Modulate, Unlit | compiles, not seen in the game yet |  |
+| Modulate, Unlit | seen in the game | Eden, Area500: a Modulate (0.2, 0.6, 1.0) cube multiplies the scene behind it by its colour: measured ratios 0.22, 0.70, 1.00 against the same view without it (2026-11-08) |
 | Opaque, Default Lit | seen in the game | Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08) |
 | Opaque, Unlit | seen in the game | Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08) |
 | Translucent, Default Lit | seen in the game | Eden, Cave000_F00: a translucent blue cube with the mushrooms behind it showing through (2026-11-08) |
@@ -82,14 +82,14 @@ right. **Refused** rows name the message the export gives.
 | Shading model ClearCoat | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun whiter than Default Lit's (236,222,221 against 221,194,194): the coat's sky reflection (2026-11-08) |
 | Shading model Cloth | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun reddened by the red fuzz colour (247,202,204 against Default Lit's 221,194,194) (2026-11-08) |
 | Shading model DefaultLit | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face toward the sun near white, the face away pale pink (221,194,194) (2026-11-08) |
-| Shading model Eye | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (219,194,193), while the editor's eye cube is darker: not matched yet (2026-11-08) |
+| Shading model Eye | draws in the game, its effect not checked yet | Eden: lighter than the editor's eye cube. The editor's darkening comes from stock 4.26's screen-space subsurface pass of its deferred renderer (POST_PROCESS_SUBSURFACE for Eye); forward shading, the game's, draws Eye with EyeBxDF and no such pass. Not compared with a forward-shaded editor picture (2026-11-08) |
 | Shading model From Material Expression | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the Shading Model node's Clear Coat applies: the lavender cube draws blue-white with faint reflections, as the editor's coated top (2026-11-08) |
 | Fully Rough | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the green cube shades with the sun angle; the missing specular was not checked (2026-11-08) |
 | Shading model Hair | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: much darker than Default Lit (165,134,127 away from the sun, 123,90,90 toward it), as the editor's dark hair cube (2026-11-08) |
 | Shading model PreintegratedSkin | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
 | Shading model SingleLayerWater | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lavender-pink (189,162,188 away from the sun); the water look was not compared (2026-11-08) |
 | Shading model Subsurface | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
-| Shading model SubsurfaceProfile | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (220,195,193); the profile's scattering was not seen (2026-11-08) |
+| Shading model SubsurfaceProfile | draws in the game, its effect not checked yet | Eden: draws like Default Lit. Stock 4.26 applies a subsurface profile's base colour in a screen-space pass of its deferred renderer only (POST_PROCESS_SUBSURFACE needs USES_GBUFFER); in forward shading, the game's, it lights as Default Lit with the profile's specular. The editor's deferred picture differs for that reason; not compared with a forward-shaded editor picture (2026-11-08) |
 | Shading model ThinTranslucent (translucent) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a blue cube with its far faces showing through; transmittance colour not compared (2026-11-08) |
 | Shading model TwoSidedFoliage | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
 | Shading model Unlit | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: both faces the same salmon whatever their angle to the sun (2026-11-08) |
@@ -116,7 +116,7 @@ right. **Refused** rows name the message the export gives.
 | Pixel Depth Offset on a masked material | draws in the game, its effect not checked yet | Eden, Area500 in sunlight: the masked cube with a 15 cm offset draws; its depth was not compared (2026-11-08) |
 | Pixel Depth Offset (0.75 cm) | seen in the game | Eden, Area500 in sunlight: draws, and a cube 2.5 cm inside it stays hidden: 0.75 cm of offset does not reach it (2026-11-08) |
 | Specular | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
-| Post process stencil test | compiles, not seen in the game yet |  |
+| Post process stencil test | seen in the game | Eden, Area500: the post process material (stencil equal 1) tints only a cube rendering custom depth with stencil value 1, once r.CustomDepth is 3. The game runs r.CustomDepth 1 (no stencil), where stock UE4 draws a stencil-tested material everywhere, as seen; a mod turns stencil on through Tsuchi's console variable call, as a UE4 project sets r.CustomDepth 3 (2026-11-08) |
 | Tessellation (PN triangles), World Displacement, multiplier | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
 | Wireframe | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: only the triangle edges draw, as the editor's wire cube (2026-11-08) |
 | World Position Offset | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the cube moves up and down with time (its top at y 290 then 255 in two pictures moments apart) (2026-11-08) |
@@ -125,12 +125,12 @@ right. **Refused** rows name the message the export gives.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Material parameter collection | refused | Compiles; export refuses MPC_Coverage: Export is not available for this asset type yet. |
-| Render target sample | refused | Compiles; export refuses RT_Coverage: Export is not available for this asset type yet. |
+| Material parameter collection | seen in the game | Eden, Area500: an unlit cube shows the collection's Glow 0.8, and turns near black when Lua sets Glow to 0.05 through Kismet Set Scalar Parameter Value. Export enabled in this PR (2026-11-08) |
+| Render target sample | seen in the game | Eden, Area500: black until drawn, as in the editor; cleared to orange at runtime (Kismet Clear Render Target 2D through Lua), the cube turns orange. Export enabled in this PR (2026-11-08) |
 | Texture 2D sample | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker texture draws once per face, as in the editor (2026-11-08) |
-| Texture 2D array sample | refused | Compiles; export refuses T_CoverageArray: Export is not available for this asset type yet. |
-| Texture cube sample | refused | Compiles; export refuses T_CoverageCube: Export is not available for this asset type yet. |
-| Volume texture sample | refused | Compiles; export refuses T_CoverageVolume: Export is not available for this asset type yet. |
+| Texture 2D array sample | seen in the game | Eden, Area500: the array slice's green and blue checker draws as in the editor. Export enabled in this PR (2026-11-08) |
+| Texture cube sample | seen in the game | Eden, Area500: the cube texture's colours draw on a lit cube as in the editor. Export enabled in this PR (2026-11-08) |
+| Volume texture sample | seen in the game | Eden, Area500: the volume texture's cyan draws on the lit cube as on the editor's. Export enabled in this PR; a volume texture is exported uncompressed, because the game makes no block-compressed volume texture (stock UVolumeTexture::ShaderPlatformSupportsCompression) and one drew black (2026-11-08) |
 
 ## Material domains and decal blend modes
 
@@ -157,7 +157,7 @@ right. **Refused** rows name the message the export gives.
 | Decal blend mode DecalNormalStripes | seen in the game | Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08) |
 | Decal blend mode DecalStain | seen in the game | Eden, Area500: a decal projected onto the dirt turns it a darker pink than the translucent mode (+23,-7,+34 against +33,+18,+59): the stain multiplies the ground's colour (2026-11-08) |
 | Decal blend mode DecalTranslucent | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
-| Decal blend mode DecalVolumetricDistanceFunction | compiles, not seen in the game yet |  |
+| Decal blend mode DecalVolumetricDistanceFunction | refused | Volumetric distance function decals draw only in UE4's deferred renderer. The game renders forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode. |
 | Domain DeferredDecal | seen in the game | Eden, Area500: a decal projected onto the dirt tints the ground green (mean shift +17,+59,+59 over the decal) and the captain standing in it, as UE projects a decal onto what it covers (2026-11-08) |
 | Domain LightFunction | seen in the game | Eden, Area500: as the sun's light function it dims the sunlit ground to about 80% (176,130,87 to 142,100,71) without tinting it: UE's light functions use the grey level of the emissive (here 0.47) (2026-11-08) |
 | Domain PostProcess | seen in the game | Eden, Area500: as the blendable of an unbound PostProcessComponent (its Settings.WeightedBlendables list; Tsuchi's reflection cannot pass AddOrUpdateBlendable's interface) the whole picture under the HUD turns (51,229,76), the emissive (0.2,0.9,0.3) written after tonemapping as UE does (2026-11-08) |

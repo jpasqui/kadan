@@ -235,7 +235,8 @@
    "family": "blend",
    "id": "AlphaHoldoutUnlit",
    "feature": "AlphaHoldout, Unlit",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500: nothing changes on screen (ratio 0.99), as in UE4: Alpha Holdout writes only alpha, which the game's frame does not show (2026-11-08)"
   },
   {
    "family": "blend",
@@ -276,7 +277,8 @@
    "family": "blend",
    "id": "ModulateUnlit",
    "feature": "Modulate, Unlit",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500: a Modulate (0.2, 0.6, 1.0) cube multiplies the scene behind it by its colour: measured ratios 0.22, 0.70, 1.00 against the same view without it (2026-11-08)"
   },
   {
    "family": "blend",
@@ -332,7 +334,7 @@
    "id": "Eye",
    "feature": "Shading model Eye",
    "status": "draws",
-   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (219,194,193), while the editor's eye cube is darker: not matched yet (2026-11-08)"
+   "seen": "Eden: lighter than the editor's eye cube. The editor's darkening comes from stock 4.26's screen-space subsurface pass of its deferred renderer (POST_PROCESS_SUBSURFACE for Eye); forward shading, the game's, draws Eye with EyeBxDF and no such pass. Not compared with a forward-shaded editor picture (2026-11-08)"
   },
   {
    "family": "shading",
@@ -381,7 +383,7 @@
    "id": "SubsurfaceProfile",
    "feature": "Shading model SubsurfaceProfile",
    "status": "draws",
-   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (220,195,193); the profile's scattering was not seen (2026-11-08)"
+   "seen": "Eden: draws like Default Lit. Stock 4.26 applies a subsurface profile's base colour in a screen-space pass of its deferred renderer only (POST_PROCESS_SUBSURFACE needs USES_GBUFFER); in forward shading, the game's, it lights as Default Lit with the profile's specular. The editor's deferred picture differs for that reason; not compared with a forward-shaded editor picture (2026-11-08)"
   },
   {
    "family": "shading",
@@ -534,7 +536,8 @@
    "family": "inputs",
    "id": "StencilTest",
    "feature": "Post process stencil test",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500: the post process material (stencil equal 1) tints only a cube rendering custom depth with stencil value 1, once r.CustomDepth is 3. The game runs r.CustomDepth 1 (no stencil), where stock UE4 draws a stencil-tested material everywhere, as seen; a mod turns stencil on through Tsuchi's console variable call, as a UE4 project sets r.CustomDepth 3 (2026-11-08)"
   },
   {
    "family": "inputs",
@@ -561,15 +564,15 @@
    "family": "textures",
    "id": "ParameterCollection",
    "feature": "Material parameter collection",
-   "status": "refused",
-   "error": "Compiles; export refuses MPC_Coverage: Export is not available for this asset type yet."
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube shows the collection's Glow 0.8, and turns near black when Lua sets Glow to 0.05 through Kismet Set Scalar Parameter Value. Export enabled in this PR (2026-11-08)"
   },
   {
    "family": "textures",
    "id": "RenderTarget",
    "feature": "Render target sample",
-   "status": "refused",
-   "error": "Compiles; export refuses RT_Coverage: Export is not available for this asset type yet."
+   "status": "game",
+   "seen": "Eden, Area500: black until drawn, as in the editor; cleared to orange at runtime (Kismet Clear Render Target 2D through Lua), the cube turns orange. Export enabled in this PR (2026-11-08)"
   },
   {
    "family": "textures",
@@ -582,22 +585,22 @@
    "family": "textures",
    "id": "Texture2DArray",
    "feature": "Texture 2D array sample",
-   "status": "refused",
-   "error": "Compiles; export refuses T_CoverageArray: Export is not available for this asset type yet."
+   "status": "game",
+   "seen": "Eden, Area500: the array slice's green and blue checker draws as in the editor. Export enabled in this PR (2026-11-08)"
   },
   {
    "family": "textures",
    "id": "TextureCube",
    "feature": "Texture cube sample",
-   "status": "refused",
-   "error": "Compiles; export refuses T_CoverageCube: Export is not available for this asset type yet."
+   "status": "game",
+   "seen": "Eden, Area500: the cube texture's colours draw on a lit cube as in the editor. Export enabled in this PR (2026-11-08)"
   },
   {
    "family": "textures",
    "id": "VolumeTexture",
    "feature": "Volume texture sample",
-   "status": "refused",
-   "error": "Compiles; export refuses T_CoverageVolume: Export is not available for this asset type yet."
+   "status": "game",
+   "seen": "Eden, Area500: the volume texture's cyan draws on the lit cube as on the editor's. Export enabled in this PR; a volume texture is exported uncompressed, because the game makes no block-compressed volume texture (stock UVolumeTexture::ShaderPlatformSupportsCompression) and one drew black (2026-11-08)"
   },
   {
    "family": "domain",
@@ -750,7 +753,8 @@
    "family": "domain",
    "id": "DecalVolumetricDistanceFunction",
    "feature": "Decal blend mode DecalVolumetricDistanceFunction",
-   "status": "compiles"
+   "status": "refused",
+   "error": "Volumetric distance function decals draw only in UE4's deferred renderer. The game renders forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."
   },
   {
    "family": "domain",

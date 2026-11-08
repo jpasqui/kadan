@@ -408,7 +408,8 @@ FMaterialResource* P4CacheMaterialForPlatform(
     FMaterialResource* Resource = Platform == SP_SWITCH
         ? static_cast<FMaterialResource*>(new FP4SwitchMaterialResource(Material, Instance))
         : Material->AllocateResource();
-    // The game renders at material quality High (r.MaterialQualityLevel 1). For a material whose Quality Switch uses
+    // The game renders at material quality High (r.MaterialQualityLevel 1, read live in Eden; none of the game's configs
+    // or device profiles, console or handheld, sets another). For a material whose Quality Switch uses
     // that level, its runtime asks for a High resource only (Material.cpp FindOrCreateMaterialResource, no fallback to
     // the default quality), so the one resource exported is compiled and named for High. Otherwise the default quality,
     // which the game uses at every level the material does not use.
@@ -591,6 +592,16 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
     }
+    // The game runs with virtual texturing off (r.VirtualTextures 0, a project setting read when it starts), so it has
+    // no runtime virtual texture for such a material to draw into.
+    if (Copy->MaterialDomain == MD_RuntimeVirtualTexture)
+        return Fail(TEXT("The game runs with virtual texturing off, so it has no runtime virtual texture for this ")
+                    TEXT("material to draw into."));
+    // Stock 4.26 draws a volumetric distance function decal only in its deferred renderer, into the GBuffer; a forward
+    // renderer (the game's, or a forward-shading UE4 project) draws no such decal.
+    if (Copy->MaterialDomain == MD_DeferredDecal && Copy->DecalBlendMode == DBM_Volumetric_DistanceFunction)
+        return Fail(TEXT("Volumetric distance function decals draw only in UE4's deferred renderer. The game renders ")
+                    TEXT("forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."));
     // The game's scene reads anywhere in the graph, material functions included, where the nodes cannot see the
     // material they compile for: only translucent and post process materials, with the instance chain's blend mode.
     {

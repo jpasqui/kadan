@@ -126,12 +126,27 @@ for. Parameters that the game controls, such as `C4SkyLightParam`, keep their in
 You can also make your own material from scratch. Kadan compiles it for the game with Unreal's
 own material compiler and shader code, so the material editor's domains, blend modes, shading
 models, and Details settings compile for the game. Kadan ships the material and the textures it
-uses together. Cube, volume, and array textures, render targets, and material parameter
-collections do not export yet.
+uses together: 2D, cube, volume, and 2D array textures, render targets, and material parameter
+collections.
+
+- A volume texture ships uncompressed. The game can't use a compressed one.
+- A render target ships empty. The game clears it to its clear color until your mod draws into it.
+- A material parameter collection ships with its default values. Your mod can change them while
+  the game runs.
+- The game renders forward, as a UE4 project with forward shading does. Subsurface Profile lights
+  as Default Lit, and Eye has no screen-space subsurface pass.
+- A post process material's stencil test needs custom depth with stencil. The game runs
+  `r.CustomDepth` at 1, so set it to 3 from your mod, as a UE4 project does.
+- Kadan refuses three things the game can't draw:
+  - Volumetric distance function decals. UE4 draws them only in its deferred renderer.
+  - Runtime virtual texture materials. The game runs with virtual texturing off.
+  - The Game Scene Depth and Game Scene Color nodes in opaque materials. As in UE4, only
+    translucent and post process materials can read the scene.
 
 The [material coverage table](https://github.com/jpasqui/kadan/blob/main/docs/MATERIAL_COVERAGE.md)
-gives each material feature one status: seen in the game, compiles but not yet seen in the
-game, or refused.
+gives each material feature one status: seen working in the game, drawing with its own effect
+unchecked, drawing wrong, compiling but not yet shown in the game, refused by Kadan, or refused
+by UE4 itself.
 
 Choose a supported material and renderer combination. A material instance of a game parent
 can reuse that parent's supported shader route. A successful static mesh export does not

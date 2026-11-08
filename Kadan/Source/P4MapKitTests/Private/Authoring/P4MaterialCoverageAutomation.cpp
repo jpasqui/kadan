@@ -793,7 +793,10 @@ TArray<FCoverageCase> SettingCases()
             G->MaterialDomain = MD_PostProcess;
             G->SetShadingModel(MSM_Unlit);
             G->EmissiveColor.Expression = Color(G, 0.5f, 0.5f, 1.f);
+            // Drawn only where the stencil is 1: on a mesh rendering custom depth with stencil value 1.
             G->bEnableStencilTest = true;
+            G->StencilCompare = MSC_Equal;
+            G->StencilRefValue = 1;
             return true;
         });
 
@@ -832,7 +835,10 @@ TArray<FCoverageCase> SettingCases()
         {
             if (!C.Collection)
                 return false;
-            LitSurface(G, 1.f, 1.f, 1.f);
+            // Unlit, so the cube shows the collection's value itself, and a change of it at runtime.
+            G->MaterialDomain = MD_Surface;
+            G->BlendMode = BLEND_Opaque;
+            G->SetShadingModel(MSM_Unlit);
             auto* Read = Node<UMaterialExpressionCollectionParameter>(G);
             Read->Collection = C.Collection;
             Read->ParameterName = TEXT("Glow");

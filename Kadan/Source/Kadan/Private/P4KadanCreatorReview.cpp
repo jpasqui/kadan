@@ -73,6 +73,9 @@ FP4KadanCreatorReview P4ReviewCreatorSelection(const FP4ModDescriptor& Mod, cons
                 Row.Reason = Availability.Reason;
             else if (Availability.Route == EP4ExportAssetRoute::CreatorTexture)
                 Row.Reason = TEXT("Your texture is included.");
+            else if (Availability.Route == EP4ExportAssetRoute::CreatorData)
+                Row.Reason = Asset->IsA<UTexture>() ? TEXT("Your render target is included.")
+                                                    : TEXT("Your material parameter collection is included.");
             else if (Availability.Route == EP4ExportAssetRoute::CreatorStaticMesh)
                 Row.Reason = TEXT("Your mesh and its collision are included.");
             else if (Availability.Route == EP4ExportAssetRoute::CreatorMaterialInstance)

@@ -4,7 +4,7 @@
 
 enum class EP4ExportAssetRoute : uint8
 {
-    Unavailable, CreatorTexture, CreatorStaticMesh, CreatorMaterialInstance, CreatorMaterial, OriginalLevelChanges, OriginalTableFields, CreatorBlueprint, CreatorContent, CreatorLevel, CreatorSound, CreatorSkinned, PreviewObject, CreatorLighting, GameActorBlueprint
+    Unavailable, CreatorTexture, CreatorStaticMesh, CreatorMaterialInstance, CreatorMaterial, OriginalLevelChanges, OriginalTableFields, CreatorBlueprint, CreatorContent, CreatorLevel, CreatorSound, CreatorSkinned, PreviewObject, CreatorLighting, GameActorBlueprint, CreatorData
 };
 struct FP4ExportAvailability
 {
