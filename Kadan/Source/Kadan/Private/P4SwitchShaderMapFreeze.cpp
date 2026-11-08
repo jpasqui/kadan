@@ -536,6 +536,7 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
     Copy->bUsedWithInstancedStaticMeshes = Request.Instanced;
     P4ApplyMaterialFactoryUsage(Copy.Get(), Request.Factories);
     P4ApplyGameRenderLimits(Copy.Get());
+    P4ApplyGameRefraction(Copy.Get());
     // Compile a private copy of the complete chain. Flattening local overrides loses inherited
     // switches, layer associations and base-property overrides from intermediate instances.
     TArray<UMaterialInstanceConstant*> Chain;

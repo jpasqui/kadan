@@ -240,6 +240,24 @@ TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (Dif
 	MaterialParameters.ScreenPosition.w += PixelDepthOffset;
 +++ replace
 	MaterialParameters.ScreenPosition.w = 1 / (C4ViewW + PixelDepthOffset);
+@@ refraction without the game's distortion pass (it keeps it off, r.RefractionQuality 0): the scene behind, read at UE's own distortion offset (DistortionCommon.ush ComputeBufferUVDistortion), under the surface, which then covers it; a material without a Refraction input folds this away requires 		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
+--- find
+		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
++++ replace
+		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
+		{
+			float2 C4Refraction = GetMaterialRefraction(PixelMaterialInputs);
+			if (C4Refraction.x != 1)
+			{
+				float3 C4ViewNormal = normalize(mul(MaterialParameters.WorldNormal, (float3x3)View_TranslatedWorldToView));
+				float C4InvTanHalfFov = View_ViewToClip[0][0];
+				float2 C4Offset = C4ViewNormal.xy * (C4Refraction.x - 1) * View_ViewSizeAndInvSize.xy * View_BufferSizeAndInvSize.zw;
+				C4Offset *= View_ViewSizeAndInvSize.xy * float2(0.00023, -0.00023) * float2(C4InvTanHalfFov, View_ViewSizeAndInvSize.x * View_ViewSizeAndInvSize.w * C4InvTanHalfFov);
+				float2 C4UV = clamp(MaterialParameters.SvPosition.xy * View_BufferSizeAndInvSize.zw + C4Offset, View_BufferBilinearUVMinMax.xy, View_BufferBilinearUVMinMax.zw);
+				float3 C4Behind = DecodeSceneColorForMaterialNode(C4UV);
+				Out.MRT[0] = float4(Out.MRT[0].rgb * Out.MRT[0].a + C4Behind * (1 - Out.MRT[0].a), 1);
+			}
+		}
 @@ translucency: no pixel where the material is fully transparent, on materials with bC4MaterialParam10
 --- find
 	float  Opacity = GetMaterialOpacity(PixelMaterialInputs);

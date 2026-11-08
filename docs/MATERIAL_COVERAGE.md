@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 28 |
+| seen in the game | 30 |
 | draws in the game, its effect not checked yet | 45 |
-| draws wrong in the game | 1 |
-| compiles, not seen in the game yet | 204 |
+| draws wrong in the game | 0 |
+| compiles, not seen in the game yet | 203 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -36,8 +36,8 @@ right. **Refused** rows name the message the export gives.
 | Compute Fog Per Pixel, Unlit | draws in the game, its effect not checked yet | Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Output Velocity | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
-| Refraction input (index 1.33) | draws wrong in the game | Eden, Area500: draws without bending anything (behind it the scene lines up, correlation 0.76 at no shift), because the game keeps its distortion pass off (r.RefractionQuality 0; UE skips the pass at 0). With r.RefractionQuality 2 held, the same cube bends the scene behind it (correlation 0.01 unshifted) while a plain translucent cube does not: Kadan's distortion programs work. Turning the pass on also makes the game's own glass helmets refract and garbles Oatchi, so Kadan does not turn it on (2026-11-08) |
-| Refraction input (index 1.5, unlit, nearly clear) | compiles, not seen in the game yet |  |
+| Refraction input (index 1.33) | seen in the game | Eden, Area500, cube turned 45 degrees in front of the wall and pots: the scene behind is bent (correlation with it 0.01 unshifted, best at about 30 by 16 pixels; a plain translucent cube beside it 0.69 unshifted), as the editor's cube bends the floor behind it. Kadan draws it in the material's own translucent pass: the game keeps its distortion pass off (r.RefractionQuality 0). Other translucent things behind it are not bent (2026-11-08) |
+| Refraction input (index 1.5, unlit, nearly clear) | seen in the game | Eden, Area500, cube turned 45 degrees in front of the wall and pots: the wall and pots behind are visibly displaced, differently on each face (correlation 0.00 unshifted), as the editor's cube (2026-11-08) |
 | Responsive AA | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Screen Space Reflections (translucent) | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Render After DOF off, Lit | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |

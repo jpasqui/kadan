@@ -12,6 +12,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
+#include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionMultiply.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleEmitter.h"
 #include "Particles/ParticleLODLevel.h"
@@ -90,6 +92,36 @@ void P4ApplyGameRenderLimits(UMaterial* Material)
 {
     if (Material && Material->GetBlendMode() == BLEND_Modulate && Material->bEnableSeparateTranslucency)
         Material->bEnableSeparateTranslucency = false;
+}
+void P4ApplyGameRefraction(UMaterial* Material)
+{
+    if (!Material || !Material->bUsesDistortion || !IsTranslucentBlendMode(Material->GetBlendMode()) ||
+        Material->bUseMaterialAttributes)
+        return;
+    // Scene Color x 0 in the emissive: compiles to nothing, but marks the material as reading the scene colour, so
+    // the game copies the scene before its translucency for it (the copy the refraction patch samples).
+    // The engine does not export the Scene Color expression's class: found by name.
+    UClass* SceneClass = FindObject<UClass>(ANY_PACKAGE, TEXT("MaterialExpressionSceneColor"));
+    if (!SceneClass)
+        return;
+    auto* Scene = NewObject<UMaterialExpression>(Material, SceneClass);
+    auto* Zero = NewObject<UMaterialExpressionMultiply>(Material);
+    Zero->A.Expression = Scene;
+    Zero->ConstB = 0.f;
+    Material->Expressions.Add(Scene);
+    Material->Expressions.Add(Zero);
+    UMaterialExpression* Result = Zero;
+    if (Material->EmissiveColor.Expression)
+    {
+        auto* Sum = NewObject<UMaterialExpressionAdd>(Material);
+        Sum->A = Material->EmissiveColor;
+        Sum->B.Expression = Zero;
+        Material->Expressions.Add(Sum);
+        Result = Sum;
+    }
+    Material->EmissiveColor.Expression = Result;
+    Material->EmissiveColor.OutputIndex = 0;
+    Material->EmissiveColor.Mask = 0;
 }
 bool P4MaterialUsageCovers(const UMaterial* Material, uint64 Factory)
 {
