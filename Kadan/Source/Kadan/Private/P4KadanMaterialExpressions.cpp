@@ -252,10 +252,21 @@ bool ForTheGame(FMaterialCompiler* Compiler)
 {
     return Compiler->GetShaderPlatform() == SP_SWITCH && Compiler->GetCurrentShaderFrequency() == SF_Pixel;
 }
+
+// Stock's rule for its Scene Depth and Scene Color nodes: only translucent and post process materials read the scene.
+// The game's opaque passes bind no scene textures, so an opaque read takes a freed texture and the game crashes.
+// Inside a material function the owning material isn't known here, and the read is let through.
+bool SceneReadAllowed(const UMaterialExpression* Expression)
+{
+    const UMaterial* Owner = Expression->Material ? Expression->Material : Expression->GetTypedOuter<UMaterial>();
+    return !Owner || Owner->MaterialDomain == MD_PostProcess || IsTranslucentBlendMode(Owner->BlendMode);
+}
 } //namespace
 
 int32 UMaterialExpressionKadanSceneDepth::Compile(FMaterialCompiler* Compiler, int32 OutputIndex)
 {
+    if (!SceneReadAllowed(this))
+        return Compiler->Errorf(TEXT("Only translucent and post process materials can read the game's scene depth."));
     if (ForTheGame(Compiler))
         return CompileGameSceneRead(Compiler, this, CompileExpression, MaterialExpressionGuid, InputMode, Input,
             ConstInput, TEXT("CalcSceneDepth"), CMOT_Float1);
@@ -276,9 +287,19 @@ void UMaterialExpressionKadanSceneDepth::GetExpressionToolTip(TArray<FString>& O
 
 int32 UMaterialExpressionKadanSceneColor::Compile(FMaterialCompiler* Compiler, int32 OutputIndex)
 {
+    if (!SceneReadAllowed(this))
+        return Compiler->Errorf(TEXT("Only translucent and post process materials can read the game's scene color."));
     if (ForTheGame(Compiler))
+    {
+        // Stock's own Scene Color read marks the material as reading the scene color, so the game copies the scene
+        // for it (without the mark the read is black). Its value is not used. Stock's read is for surfaces only.
+        const UMaterial* Owner = Material ? Material : GetTypedOuter<UMaterial>();
+        if (Owner && Owner->MaterialDomain == MD_Surface &&
+            Compiler->SceneColor(Compiler->Constant2(0.f, 0.f), INDEX_NONE, true) == INDEX_NONE)
+            return INDEX_NONE;
         return CompileGameSceneRead(Compiler, this, CompileExpression, MaterialExpressionGuid, InputMode, Input,
             ConstInput, TEXT("DecodeSceneColorForMaterialNode"), CMOT_Float3);
+    }
     return Compiler->Constant3(0.f, 0.f, 0.f);
 }
 

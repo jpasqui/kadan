@@ -847,6 +847,12 @@ TArray<FCoverageCase> NodeCases()
                 G->MaterialDomain = MD_Surface;
                 G->BlendMode = BLEND_Opaque;
                 G->SetShadingModel(MSM_Unlit);
+                if (Class->GetName().StartsWith(TEXT("MaterialExpressionKadanScene")))
+                {
+                    // The game's scene reads are for translucent materials only, as stock's.
+                    G->BlendMode = BLEND_Translucent;
+                    G->Opacity.Expression = Scalar(G, 1.f);
+                }
                 UMaterialExpression* Made = NewObject<UMaterialExpression>(G, Class);
                 Made->Material = G;
                 G->Expressions.Add(Made);
@@ -897,7 +903,7 @@ FVector GalleryPosition(const FVector& Origin, int32 Index)
 }
 
 // The UE4 editor's own rendering of the gallery: the cubes in the editor world far from anything else, under a sun
-// and a sky light, one picture per two rows from where the game check's camera looks. The editor compiles the
+// and a sky light, one picture per row with the other rows hidden. The editor compiles the
 // materials for its own platform; this is the reference each game picture is compared with.
 bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArray<UMaterial*>& Materials,
     const TArray<FString>& Leaves, const FString& Out)
@@ -948,6 +954,7 @@ bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArr
                 Part->SetActorScale3D(FVector(20.f, Rows * 2.f + 10.f, 1.f));
             }
     }
+    TArray<AActor*> Cubes;
     for (int32 Index = 0; Index < Materials.Num(); ++Index)
     {
         AStaticMeshActor* Part =
@@ -955,6 +962,7 @@ bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArr
         if (!Part)
             return false;
         Made.Add(Part);
+        Cubes.Add(Part);
         Part->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
         Part->GetStaticMeshComponent()->SetStaticMesh(Cube);
         Part->GetStaticMeshComponent()->SetMaterial(0, Materials[Index]);
@@ -975,13 +983,22 @@ bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArr
     Capture->FOVAngle = 70.f;
     Capture->ShowFlags.SetEyeAdaptation(false);
     Capture->ShowFlags.SetMotionBlur(false);
+    Capture->ShowFlags.SetBloom(false);
+    Capture->ShowFlags.SetLensFlares(false);
+    Capture->ShowFlags.SetVignette(false);
     IImageWrapperModule& Images = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
     TArray<FString> Captions;
-    for (int32 Row = 0; Row < Rows; Row += 2)
+    // One picture per row, near enough to tell each cube's colour, as the game's gallery shows one row at a time.
+    for (int32 Row = 0; Row < Rows; ++Row)
     {
-        const FVector Look = Origin + FVector(0, (Row + 0.5f) * GallerySpacing, 0);
-        const FVector Eye = Look + FVector(0, -620.f, 260.f);
+        const FVector Look = Origin + FVector(0, Row * GallerySpacing, 0);
+        const FVector Eye = Look + FVector(0, -560.f, 230.f);
         Camera->SetActorLocationAndRotation(Eye, (Look - Eye).Rotation());
+        // Only this row's cubes, so each picture shows the same six the game's picture of the row shows.
+        Capture->HiddenActors.Reset();
+        for (int32 Index = 0; Index < Cubes.Num(); ++Index)
+            if (Index / GalleryRow != Row)
+                Capture->HiddenActors.Add(Cubes[Index]);
         TArray<FColor> Pixels;
         for (int32 Frame = 0; Frame < 3; ++Frame) // the sky capture and new shaders land a frame later
         {
@@ -999,7 +1016,7 @@ bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArr
             !FFileHelper::SaveArrayToFile(Jpeg->GetCompressed(85), *File))
             return false;
         FString Caption = FString::Printf(TEXT("%s:"), *FPaths::GetCleanFilename(File));
-        for (int32 Index = Row * GalleryRow; Index < FMath::Min(Materials.Num(), (Row + 2) * GalleryRow); ++Index)
+        for (int32 Index = Row * GalleryRow; Index < FMath::Min(Materials.Num(), (Row + 1) * GalleryRow); ++Index)
             Caption += TEXT(" ") + Leaves[Index];
         Captions.Add(Caption);
     }

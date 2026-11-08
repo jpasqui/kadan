@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 55 |
-| draws in the game, its effect not checked yet | 45 |
-| draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 183 |
+| seen in the game | 207 |
+| draws in the game, its effect not checked yet | 69 |
+| draws wrong in the game | 1 |
+| compiles, not seen in the game yet | 6 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -168,214 +168,214 @@ right. **Refused** rows name the message the export gives.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Abs node | compiles, not seen in the game yet |  |
-| ActorPositionWS node | compiles, not seen in the game yet |  |
-| Add node | compiles, not seen in the game yet |  |
-| AntialiasedTextureMask node | compiles, not seen in the game yet |  |
-| AppendVector node | compiles, not seen in the game yet |  |
-| Arccosine node | compiles, not seen in the game yet |  |
-| ArccosineFast node | compiles, not seen in the game yet |  |
-| Arcsine node | compiles, not seen in the game yet |  |
-| ArcsineFast node | compiles, not seen in the game yet |  |
-| Arctangent node | compiles, not seen in the game yet |  |
-| Arctangent2 node | compiles, not seen in the game yet |  |
-| Arctangent2Fast node | compiles, not seen in the game yet |  |
-| ArctangentFast node | compiles, not seen in the game yet |  |
-| AtmosphericFogColor node | compiles, not seen in the game yet |  |
-| AtmosphericLightColor node | compiles, not seen in the game yet |  |
-| AtmosphericLightVector node | compiles, not seen in the game yet |  |
-| BentNormalCustomOutput node | compiles, not seen in the game yet |  |
-| BlackBody node | compiles, not seen in the game yet |  |
-| BlendMaterialAttributes node | compiles, not seen in the game yet |  |
-| BreakMaterialAttributes node | compiles, not seen in the game yet |  |
-| BumpOffset node | compiles, not seen in the game yet |  |
-| CameraPositionWS node | compiles, not seen in the game yet |  |
-| CameraVectorWS node | compiles, not seen in the game yet |  |
-| Ceil node | compiles, not seen in the game yet |  |
-| ChannelMaskParameter node | compiles, not seen in the game yet |  |
-| Clamp node | compiles, not seen in the game yet |  |
-| ClearCoatNormalCustomOutput node | compiles, not seen in the game yet |  |
-| CloudSampleAttribute node | compiles, not seen in the game yet |  |
+| Abs node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ActorPositionWS node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Add node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| AntialiasedTextureMask node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| AppendVector node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Arccosine node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ArccosineFast node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Arcsine node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ArcsineFast node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Arctangent node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Arctangent2 node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Arctangent2Fast node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ArctangentFast node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| AtmosphericFogColor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| AtmosphericLightColor node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun colour (white); the editor test scene has no atmosphere light (black); not compared with the editor (2026-11-08) |
+| AtmosphericLightVector node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun direction; the editor's differs; not compared with the editor (2026-11-08) |
+| BentNormalCustomOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| BlackBody node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| BlendMaterialAttributes node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| BreakMaterialAttributes node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: black, tinted magenta by the neighbouring Camera Position cube's bloom; not compared with the editor (2026-11-08) |
+| BumpOffset node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a light yellow-pink; the offset follows the camera vector, so it depends on the view; not compared with the editor (2026-11-08) |
+| CameraPositionWS node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| CameraVectorWS node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the direction to the game's camera (it looks along another axis than the editor's); not compared with the editor (2026-11-08) |
+| Ceil node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ChannelMaskParameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Clamp node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ClearCoatNormalCustomOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| CloudSampleAttribute node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | CollectionParameter node | UE4 refuses this setup too | (Node CollectionParameter) CollectionParameter has invalid Collection! |
 | ComponentMask node | UE4 refuses this setup too | (Node ComponentMask) Couldn't determine result type of component mask 0000 |
-| Constant node | compiles, not seen in the game yet |  |
-| Constant2Vector node | compiles, not seen in the game yet |  |
-| Constant3Vector node | compiles, not seen in the game yet |  |
-| Constant4Vector node | compiles, not seen in the game yet |  |
-| ConstantBiasScale node | compiles, not seen in the game yet |  |
-| Cosine node | compiles, not seen in the game yet |  |
-| CrossProduct node | compiles, not seen in the game yet |  |
+| Constant node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Constant2Vector node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Constant3Vector node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Constant4Vector node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ConstantBiasScale node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Cosine node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| CrossProduct node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | CurveAtlasRowParameter node | UE4 refuses this setup too | (Node CurveAtlasRowParameter) > The curve and atlas are not currently set. |
-| Custom node | compiles, not seen in the game yet |  |
-| DDX node | compiles, not seen in the game yet |  |
-| DDY node | compiles, not seen in the game yet |  |
+| Custom node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DDX node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DDY node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | DecalDerivative node | UE4 refuses this setup too | (Node DecalDerivative) Decal derivatives only available in the decal material domain. |
 | DecalLifetimeOpacity node | UE4 refuses this setup too | (Node DecalLifetimeOpacity) Decal Lifetime Opacity> Node only works for the deferred decal material domain. |
 | DecalMipmapLevel node | UE4 refuses this setup too | (Node DecalMipmapLevel) Decal Mipmap Level> Node only works for the deferred decal material domain. |
-| DeltaTime node | compiles, not seen in the game yet |  |
+| DeltaTime node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, 1/60 s; the editor test's frame time is longer; not compared with the editor (2026-11-08) |
 | DepthFade node | UE4 refuses this setup too | Only transparent or postprocess materials can read from scene depth. |
-| DepthOfFieldFunction node | compiles, not seen in the game yet |  |
-| DeriveNormalZ node | compiles, not seen in the game yet |  |
-| Desaturation node | compiles, not seen in the game yet |  |
-| Distance node | compiles, not seen in the game yet |  |
-| DistanceCullFade node | compiles, not seen in the game yet |  |
-| DistanceFieldGradient node | compiles, not seen in the game yet |  |
-| DistanceToNearestSurface node | compiles, not seen in the game yet |  |
-| Divide node | compiles, not seen in the game yet |  |
-| DotProduct node | compiles, not seen in the game yet |  |
-| DynamicParameter node | compiles, not seen in the game yet |  |
-| EyeAdaptation node | compiles, not seen in the game yet |  |
-| FeatureLevelSwitch node | compiles, not seen in the game yet |  |
-| Floor node | compiles, not seen in the game yet |  |
-| Fmod node | compiles, not seen in the game yet |  |
+| DepthOfFieldFunction node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DeriveNormalZ node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Desaturation node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Distance node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DistanceCullFade node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DistanceFieldGradient node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DistanceToNearestSurface node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Divide node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DotProduct node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| DynamicParameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| EyeAdaptation node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| FeatureLevelSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Floor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Fmod node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | FontSample node | UE4 refuses this setup too | (Node FontSample) Font Sample> Missing input Font |
 | FontSampleParameter node | UE4 refuses this setup too | (Node FontSampleParameter) Font Param> Missing input Font |
-| Frac node | compiles, not seen in the game yet |  |
-| Fresnel node | compiles, not seen in the game yet |  |
-| GIReplace node | compiles, not seen in the game yet |  |
-| GetMaterialAttributes node | compiles, not seen in the game yet |  |
-| HairAttributes node | compiles, not seen in the game yet |  |
-| HairColor node | compiles, not seen in the game yet |  |
-| If node | compiles, not seen in the game yet |  |
-| InverseLinearInterpolate node | compiles, not seen in the game yet |  |
-| KadanGameCustom node | compiles, not seen in the game yet |  |
-| KadanGroundSoftAlpha node | compiles, not seen in the game yet |  |
+| Frac node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Fresnel node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, the face seen nearly head on; depends on the view; not compared with the editor (2026-11-08) |
+| GIReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| GetMaterialAttributes node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| HairAttributes node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| HairColor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| If node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| InverseLinearInterpolate node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| KadanGameCustom node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| KadanGroundSoftAlpha node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | KadanReflectionCustom node | UE4 refuses this setup too | (Node KadanReflectionCustom) Original reflection Custom has no supported original reflection access. |
-| KadanSceneColor node | compiles, not seen in the game yet |  |
-| KadanSceneDepth node | compiles, not seen in the game yet |  |
-| LandscapeGrassOutput node | compiles, not seen in the game yet |  |
-| LandscapeLayerBlend node | compiles, not seen in the game yet |  |
-| LandscapeLayerCoords node | compiles, not seen in the game yet |  |
-| LandscapeLayerSample node | compiles, not seen in the game yet |  |
-| LandscapeLayerSwitch node | compiles, not seen in the game yet |  |
-| LandscapeLayerWeight node | compiles, not seen in the game yet |  |
-| LandscapePhysicalMaterialOutput node | compiles, not seen in the game yet |  |
-| LandscapeVisibilityMask node | compiles, not seen in the game yet |  |
+| KadanSceneColor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: translucent, it drew black; now the scene shows through the cube (mean change 5.0 per pixel over the empty scene, noise 2.3) (2026-11-08) |
+| KadanSceneDepth node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: opaque, it crashed the game; now only translucent and post process materials compile it (as stock's Scene Depth), and a translucent cube draws the scene's depth, hundreds of units, white (2026-11-08) |
+| LandscapeGrassOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeLayerBlend node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeLayerCoords node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeLayerSample node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeLayerSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeLayerWeight node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapePhysicalMaterialOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LandscapeVisibilityMask node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | LightVector node | UE4 refuses this setup too | (Node LightVector) LightVector can only be used in LightFunction or DeferredDecal materials |
-| LightmapUVs node | compiles, not seen in the game yet |  |
-| LightmassReplace node | compiles, not seen in the game yet |  |
-| LinearInterpolate node | compiles, not seen in the game yet |  |
-| Logarithm10 node | compiles, not seen in the game yet |  |
-| Logarithm2 node | compiles, not seen in the game yet |  |
-| MakeMaterialAttributes node | compiles, not seen in the game yet |  |
-| MapARPassthroughCameraUV node | compiles, not seen in the game yet |  |
-| MaterialAttributeLayers node | compiles, not seen in the game yet |  |
-| MaterialFunctionCall node | compiles, not seen in the game yet |  |
-| MaterialLayerOutput node | compiles, not seen in the game yet |  |
-| MaterialProxyReplace node | compiles, not seen in the game yet |  |
-| Max node | compiles, not seen in the game yet |  |
-| Min node | compiles, not seen in the game yet |  |
-| Multiply node | compiles, not seen in the game yet |  |
-| Noise node | compiles, not seen in the game yet |  |
-| Normalize node | compiles, not seen in the game yet |  |
-| ObjectBounds node | compiles, not seen in the game yet |  |
-| ObjectOrientation node | compiles, not seen in the game yet |  |
-| ObjectPositionWS node | compiles, not seen in the game yet |  |
-| ObjectRadius node | compiles, not seen in the game yet |  |
-| OneMinus node | compiles, not seen in the game yet |  |
-| Panner node | compiles, not seen in the game yet |  |
-| Parameter node | compiles, not seen in the game yet |  |
-| ParticleColor node | compiles, not seen in the game yet |  |
-| ParticleDirection node | compiles, not seen in the game yet |  |
-| ParticleMacroUV node | compiles, not seen in the game yet |  |
-| ParticleMotionBlurFade node | compiles, not seen in the game yet |  |
-| ParticlePositionWS node | compiles, not seen in the game yet |  |
-| ParticleRadius node | compiles, not seen in the game yet |  |
-| ParticleRandom node | compiles, not seen in the game yet |  |
-| ParticleRelativeTime node | compiles, not seen in the game yet |  |
-| ParticleSize node | compiles, not seen in the game yet |  |
-| ParticleSpeed node | compiles, not seen in the game yet |  |
-| ParticleSubUV node | compiles, not seen in the game yet |  |
-| ParticleSubUVProperties node | compiles, not seen in the game yet |  |
+| LightmapUVs node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LightmassReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| LinearInterpolate node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Logarithm10 node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Logarithm2 node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MakeMaterialAttributes node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MapARPassthroughCameraUV node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MaterialAttributeLayers node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MaterialFunctionCall node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MaterialLayerOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| MaterialProxyReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Max node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Min node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Multiply node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Noise node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a mid grey; depends on world position; not compared with the editor (2026-11-08) |
+| Normalize node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ObjectBounds node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ObjectOrientation node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ObjectPositionWS node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ObjectRadius node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| OneMinus node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Panner node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Parameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleColor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleDirection node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleMacroUV node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: yellow, from the screen position; not compared with the editor (2026-11-08) |
+| ParticleMotionBlurFade node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticlePositionWS node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleRadius node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: magenta from the neighbouring Particle Position cube's bloom; black in the editor; not compared with the editor (2026-11-08) |
+| ParticleRandom node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleRelativeTime node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleSize node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleSpeed node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleSubUV node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ParticleSubUVProperties node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | PerInstanceCustomData node | UE4 refuses this setup too | (Node PerInstanceCustomData) Invalid node used in pixel/hull/domain shader input! |
-| PerInstanceFadeAmount node | compiles, not seen in the game yet |  |
-| PerInstanceRandom node | compiles, not seen in the game yet |  |
-| PixelDepth node | compiles, not seen in the game yet |  |
-| PixelNormalWS node | compiles, not seen in the game yet |  |
-| Power node | compiles, not seen in the game yet |  |
-| PreSkinnedLocalBounds node | compiles, not seen in the game yet |  |
+| PerInstanceFadeAmount node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| PerInstanceRandom node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| PixelDepth node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: it was black (the game's 1/w); now its distance, hundreds of units, blooms white as the editor's white cube (2026-11-08) |
+| PixelNormalWS node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, the +Y face the game's camera sees; the editor's camera sees the -Y face (black); not compared with the editor (2026-11-08) |
+| Power node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| PreSkinnedLocalBounds node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | PreSkinnedNormal node | UE4 refuses this setup too | (Node PreSkinnedNormal) Pre-skinned normal is only available in the vertex shader, pass through custom interpolators if needed. |
 | PreSkinnedPosition node | UE4 refuses this setup too | (Node PreSkinnedPosition) Pre-skinned position is only available in the vertex shader, pass through custom interpolators if needed. |
-| PrecomputedAOMask node | compiles, not seen in the game yet |  |
-| PreviousFrameSwitch node | compiles, not seen in the game yet |  |
-| QualitySwitch node | compiles, not seen in the game yet |  |
-| RayTracingQualitySwitch node | compiles, not seen in the game yet |  |
-| ReflectionCapturePassSwitch node | compiles, not seen in the game yet |  |
-| ReflectionVectorWS node | compiles, not seen in the game yet |  |
-| Reroute node | compiles, not seen in the game yet |  |
-| RotateAboutAxis node | compiles, not seen in the game yet |  |
-| Rotator node | compiles, not seen in the game yet |  |
-| Round node | compiles, not seen in the game yet |  |
-| RuntimeVirtualTextureOutput node | compiles, not seen in the game yet |  |
-| RuntimeVirtualTextureReplace node | compiles, not seen in the game yet |  |
+| PrecomputedAOMask node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| PreviousFrameSwitch node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, under a bright neighbour's bloom; black in the editor; not compared with the editor (2026-11-08) |
+| QualitySwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: it drew the engine's default checker (no shader map for the game's quality level High); now the 0.5 grey of the editor (2026-11-08) |
+| RayTracingQualitySwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ReflectionCapturePassSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ReflectionVectorWS node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, toward the game's camera; the editor's camera is on the other side; not compared with the editor (2026-11-08) |
+| Reroute node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| RotateAboutAxis node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Rotator node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a moving rainbow, as in the editor; depends on time; not compared with the editor (2026-11-08) |
+| Round node | draws wrong in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of 0.5 is 0 (black) in the game and 1 (white) in the editor. The game's compiler rounds halves to even, as GPU round() does; the editor's 1 is most likely its compiler folding the constant (not verified) (2026-11-08) |
+| RuntimeVirtualTextureOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| RuntimeVirtualTextureReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RuntimeVirtualTextureSample node | UE4 refuses this setup too | (Node RuntimeVirtualTextureSample) Missing input Virtual Texture |
 | RuntimeVirtualTextureSampleParameter node | UE4 refuses this setup too | (Node RuntimeVirtualTextureSampleParameter) Missing input Virtual Texture |
-| Saturate node | compiles, not seen in the game yet |  |
-| ScalarParameter node | compiles, not seen in the game yet |  |
+| Saturate node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ScalarParameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | SceneColor node | UE4 refuses this setup too | Only translucent materials can use the scene color node. |
 | SceneDepth node | UE4 refuses this setup too | Only transparent or postprocess materials can read from scene depth. |
 | SceneDepthWithoutWater node | UE4 refuses this setup too | (Node SceneDepthWithoutWater) Can only read scene depth below water when material Shading Model is Single Layer Water. |
-| SceneTexelSize node | compiles, not seen in the game yet |  |
+| SceneTexelSize node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | SceneTexture node | UE4 refuses this setup too | Only translucent materials can use the scene color node. \| SceneTexture expressions cannot be used in opaque materials |
-| ScreenPosition node | compiles, not seen in the game yet |  |
-| SetMaterialAttributes node | compiles, not seen in the game yet |  |
-| ShaderStageSwitch node | compiles, not seen in the game yet |  |
+| ScreenPosition node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: (0.55, 0.24): the cube's place on the screen; not compared with the editor (2026-11-08) |
+| SetMaterialAttributes node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ShaderStageSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | ShadingModel node | UE4 refuses this setup too | Cannot force a cast between non-numeric types. |
-| ShadingPathSwitch node | compiles, not seen in the game yet |  |
-| ShadowReplace node | compiles, not seen in the game yet |  |
-| Sign node | compiles, not seen in the game yet |  |
-| Sine node | compiles, not seen in the game yet |  |
-| SingleLayerWaterMaterialOutput node | compiles, not seen in the game yet |  |
+| ShadingPathSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ShadowReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Sign node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Sine node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| SingleLayerWaterMaterialOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | SkinningVertexOffsets node | UE4 refuses this setup too | (Node SkinningVertexOffsets) Pre Skin Offset only available in the vertex shader, pass through custom interpolators if needed. |
-| SkyAtmosphereAerialPerspective node | compiles, not seen in the game yet |  |
-| SkyAtmosphereDistantLightScatteredLuminance node | compiles, not seen in the game yet |  |
-| SkyAtmosphereLightDirection node | compiles, not seen in the game yet |  |
-| SkyAtmosphereLightDiskLuminance node | compiles, not seen in the game yet |  |
-| SkyAtmosphereLightIlluminance node | compiles, not seen in the game yet |  |
-| SkyAtmosphereViewLuminance node | compiles, not seen in the game yet |  |
-| SmoothStep node | compiles, not seen in the game yet |  |
-| Sobol node | compiles, not seen in the game yet |  |
+| SkyAtmosphereAerialPerspective node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| SkyAtmosphereDistantLightScatteredLuminance node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a dark blue in the game; black in the editor scene without a sky atmosphere; not compared with the editor (2026-11-08) |
+| SkyAtmosphereLightDirection node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun direction, the same as Atmospheric Light Vector; the editor's differs; not compared with the editor (2026-11-08) |
+| SkyAtmosphereLightDiskLuminance node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| SkyAtmosphereLightIlluminance node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun (white); the editor test scene has no sky atmosphere (black); not compared with the editor (2026-11-08) |
+| SkyAtmosphereViewLuminance node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| SmoothStep node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Sobol node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | SpeedTree node | UE4 refuses this setup too | (Node SpeedTree) Invalid node used in pixel/hull/domain shader input! |
-| SphereMask node | compiles, not seen in the game yet |  |
+| SphereMask node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | SphericalParticleOpacity node | UE4 refuses this setup too | Only transparent or postprocess materials can read from scene depth. |
-| SpriteTextureSampler node | compiles, not seen in the game yet |  |
-| SquareRoot node | compiles, not seen in the game yet |  |
+| SpriteTextureSampler node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| SquareRoot node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | StaticBool node | UE4 refuses this setup too | Cannot force a cast between non-numeric types. |
 | StaticBoolParameter node | UE4 refuses this setup too | Cannot force a cast between non-numeric types. |
 | StaticComponentMaskParameter node | UE4 refuses this setup too | (Node StaticComponentMaskParameter) Couldn't determine result type of component mask 0000 |
-| StaticSwitch node | compiles, not seen in the game yet |  |
-| StaticSwitchParameter node | compiles, not seen in the game yet |  |
-| Step node | compiles, not seen in the game yet |  |
-| Subtract node | compiles, not seen in the game yet |  |
-| Tangent node | compiles, not seen in the game yet |  |
-| TangentOutput node | compiles, not seen in the game yet |  |
-| TemporalSobol node | compiles, not seen in the game yet |  |
-| TextureCoordinate node | compiles, not seen in the game yet |  |
+| StaticSwitch node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| StaticSwitchParameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Step node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Subtract node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Tangent node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| TangentOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| TemporalSobol node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: changes each frame; not compared with the editor (2026-11-08) |
+| TextureCoordinate node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | TextureObject node | UE4 refuses this setup too | Cannot force a cast between non-numeric types. |
 | TextureObjectParameter node | UE4 refuses this setup too | Cannot force a cast between non-numeric types. |
 | TextureProperty node | UE4 refuses this setup too | (Node TextureProperty) Texture size only available for Texture2D, TextureVirtual, and VolumeTexture, not float2 |
-| TextureSample node | compiles, not seen in the game yet |  |
-| TextureSampleParameter2D node | compiles, not seen in the game yet |  |
+| TextureSample node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| TextureSampleParameter2D node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | TextureSampleParameter2DArray node | UE4 refuses this setup too | (Node TextureSampleParameter2DArray) Param2DArray> 2D array sample needs UVW input |
 | TextureSampleParameterCube node | UE4 refuses this setup too | (Node TextureSampleParameterCube) ParamCube> Cube sample needs UV input |
-| TextureSampleParameterSubUV node | compiles, not seen in the game yet |  |
+| TextureSampleParameterSubUV node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | TextureSampleParameterVolume node | UE4 refuses this setup too | (Node TextureSampleParameterVolume) ParamVolume> Volume sample needs UVW input |
-| ThinTranslucentMaterialOutput node | compiles, not seen in the game yet |  |
-| Time node | compiles, not seen in the game yet |  |
-| Transform node | compiles, not seen in the game yet |  |
-| TransformPosition node | compiles, not seen in the game yet |  |
-| Truncate node | compiles, not seen in the game yet |  |
-| TwoSidedSign node | compiles, not seen in the game yet |  |
-| VectorNoise node | compiles, not seen in the game yet |  |
-| VectorParameter node | compiles, not seen in the game yet |  |
-| VertexColor node | compiles, not seen in the game yet |  |
-| VertexInterpolator node | compiles, not seen in the game yet |  |
-| VertexNormalWS node | compiles, not seen in the game yet |  |
-| VertexTangentWS node | compiles, not seen in the game yet |  |
-| ViewProperty node | compiles, not seen in the game yet |  |
-| ViewSize node | compiles, not seen in the game yet |  |
-| VirtualTextureFeatureSwitch node | compiles, not seen in the game yet |  |
-| VolumetricAdvancedMaterialInput node | compiles, not seen in the game yet |  |
-| VolumetricAdvancedMaterialOutput node | compiles, not seen in the game yet |  |
-| WorldPosition node | compiles, not seen in the game yet |  |
+| ThinTranslucentMaterialOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Time node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Transform node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the tangent-to-world colour of the face the game's camera sees; the editor sees the opposite face (black); not compared with the editor (2026-11-08) |
+| TransformPosition node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| Truncate node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| TwoSidedSign node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VectorNoise node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VectorParameter node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VertexColor node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VertexInterpolator node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VertexNormalWS node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, the +Y face the game's camera sees; the editor's camera sees the -Y face (black); not compared with the editor (2026-11-08) |
+| VertexTangentWS node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: orange-red on the face the game's camera sees, tinted by a bright neighbour's bloom; the editor sees another face; not compared with the editor (2026-11-08) |
+| ViewProperty node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| ViewSize node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| VirtualTextureFeatureSwitch node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: light, under a bright neighbour's yellow bloom; a mid grey in the editor; not compared with the editor (2026-11-08) |
+| VolumetricAdvancedMaterialInput node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark blue from the neighbouring World Position cube's bloom; black in the editor; not compared with the editor (2026-11-08) |
+| VolumetricAdvancedMaterialOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
+| WorldPosition node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 

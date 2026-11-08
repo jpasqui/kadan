@@ -240,6 +240,31 @@ TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (Dif
 	MaterialParameters.ScreenPosition.w += PixelDepthOffset;
 +++ replace
 	MaterialParameters.ScreenPosition.w = 1 / (C4ViewW + PixelDepthOffset);
+)KSP"),
+TEXT(R"KSP(@@ pixel depth: the Pixel Depth node's w (HLSLMaterialTranslator.cpp PixelDepth, also Depth Fade's) through a helper, as the game's pixel ScreenPosition.w is 1/w (see pixel depth offset)
+--- find
+GetScreenPosition(Parameters).w
++++ replace
+C4PixelDepth(Parameters)
+@@ pixel depth: the helper, w itself for a pixel, the vertex's clip w unchanged requires C4PixelDepth(Parameters)
+--- find
+float4 GetScreenPosition(FMaterialPixelParameters Parameters)
+{
+	return Parameters.ScreenPosition;
+}
++++ replace
+float4 GetScreenPosition(FMaterialPixelParameters Parameters)
+{
+	return Parameters.ScreenPosition;
+}
+float C4PixelDepth(FMaterialVertexParameters Parameters)
+{
+	return GetScreenPosition(Parameters).w;
+}
+float C4PixelDepth(FMaterialPixelParameters Parameters)
+{
+	return 1 / Parameters.ScreenPosition.w;
+}
 @@ refraction without the game's distortion pass (it keeps it off, r.RefractionQuality 0): the scene behind, read at UE's own distortion offset (DistortionCommon.ush ComputeBufferUVDistortion), under the surface, which then covers it; a material without a Refraction input folds this away requires 		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
 --- find
 		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);

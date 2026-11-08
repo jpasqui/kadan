@@ -7,6 +7,7 @@
 #include "KadanSwitchShaderCompiler.h"
 #include "Features/IModularFeatures.h"
 #include "MaterialShared.h"
+#include "Materials/MaterialExpressionQualitySwitch.h"
 #include "Serialization/MemoryImage.h"
 #include "Serialization/MemoryImageWriter.h"
 #include "Serialization/MemoryLayout.h"
@@ -406,7 +407,21 @@ FMaterialResource* P4CacheMaterialForPlatform(
     FMaterialResource* Resource = Platform == SP_SWITCH
         ? static_cast<FMaterialResource*>(new FP4SwitchMaterialResource(Material, Instance))
         : Material->AllocateResource();
-    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform));
+    // The game renders at material quality High (r.MaterialQualityLevel 1). For a material whose Quality Switch uses
+    // that level, its runtime asks for a High resource only (Material.cpp FindOrCreateMaterialResource, no fallback to
+    // the default quality), so the one resource exported is compiled and named for High. Otherwise the default quality,
+    // which the game uses at every level the material does not use.
+    EMaterialQualityLevel::Type Quality = EMaterialQualityLevel::Num;
+    if (Platform == SP_SWITCH)
+    {
+        // As stock's quality level usage (not exported): a level is used when a Quality Switch has its input.
+        TArray<UMaterialExpressionQualitySwitch*> Switches;
+        Material->GetAllExpressionsInMaterialAndFunctionsOfType(Switches);
+        for (UMaterialExpressionQualitySwitch* Switch : Switches)
+            if (Switch && Switch->Inputs[EMaterialQualityLevel::High].GetTracedInput().Expression)
+                Quality = EMaterialQualityLevel::High;
+    }
+    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform), Quality);
     Resource->CacheShaders(Platform, nullptr);
     return Resource;
 }
