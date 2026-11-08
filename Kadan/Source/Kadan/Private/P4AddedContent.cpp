@@ -3,6 +3,7 @@
 #include "P4GamePaths.h"
 #include "P4GameNames.h"
 #include "P4KadanEditor.h"
+#include "P4KadanReadOnly.h"
 #include "P4OriginalRecord.h"
 #include "P4ModDescriptor.h"
 #include "P4GamePreviewWorld.h"
@@ -100,11 +101,21 @@ uint32 UP4AddedContentFactory::GetMenuCategories() const
 UObject* UP4AddedContentFactory::FactoryCreateNew(
     UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
 {
-    FString Root, Error;
-    if (!IsInGameThread() || Class != SupportedClass || !Parent || !P4KadanActiveCreatorRoot(Root, Error) ||
-        !P4IsModContentPath(Root, Parent->GetName()) || FindObjectFast<UObject>(Parent, Name) ||
-        FPackageName::DoesPackageExist(Parent->GetName()))
+    if (!IsInGameThread() || Class != SupportedClass || !Parent)
         return nullptr;
+    // The editor's own message for a failed creation does not say why, so the reason is told here.
+    FString Root, Error;
+    if (!P4KadanActiveCreatorRoot(Root, Error))
+        Error = TEXT("Open Kadan and choose your mod on Mods and export before making a treasure or creature.");
+    else
+        Error = P4ModContentPathIssue(Root, Parent->GetName());
+    if (Error.IsEmpty() && (FindObjectFast<UObject>(Parent, Name) || FPackageName::DoesPackageExist(Parent->GetName())))
+        Error = Parent->GetName() + TEXT(" already exists. Choose another name.");
+    if (!Error.IsEmpty())
+    {
+        P4Kadan::Tell(TEXT("The treasure or creature was not made. ") + Error);
+        return nullptr;
+    }
     return NewObject<UP4AddedContent>(Parent, Class, Name, Flags);
 }
 
@@ -113,9 +124,12 @@ FString P4CreatorBlueprintIssue(const UBlueprint* Blueprint, const FString& Pack
     if (!IsValid(Blueprint) || !Blueprint->GeneratedClass || Blueprint->Status == BS_Error ||
         Blueprint->BlueprintType != BPTYPE_Normal || !Blueprint->ParentClass)
         return TEXT("Compile the Blueprint and fix its errors before exporting it.");
+    // A Blueprint in another mod's folder is that mod's, which is not the same as the game's own.
+    const FString Elsewhere = P4ModContentPathIssue(PackageRoot, Blueprint->GetOutermost()->GetName());
+    if (!Elsewhere.IsEmpty())
+        return Elsewhere;
     // A copy of one of the game's Blueprints is the creator's, like any other copy; the game's own is not.
-    if (!P4IsModContentPath(PackageRoot, Blueprint->GetOutermost()->GetName()) ||
-        P4QueryOriginalAsset(const_cast<UBlueprint*>(Blueprint)).IsOriginal())
+    if (P4QueryOriginalAsset(const_cast<UBlueprint*>(Blueprint)).IsOriginal())
         return TEXT("This is the game's own Blueprint. Make a child class or a copy of it in this mod.");
     // Installed engine templates, such as the default level's sky Blueprint,
     // are copied only inside the owning temporary preview cook scope.
@@ -148,10 +162,11 @@ bool P4AddedContentDeclaration(
         Error = Why;
         return false;
     };
-    if (!IsInGameThread() || !IsValid(Definition) ||
-        !P4IsModContentPath(PackageRoot, Definition->GetOutermost()->GetName()))
-        return No(TEXT(
-            "The treasure or creature declaration is in another mod's folder. Give this mod its own outside that folder."));
+    if (!IsInGameThread() || !IsValid(Definition))
+        return No(TEXT("The treasure or creature declaration cannot be read."));
+    Error = P4ModContentPathIssue(PackageRoot, Definition->GetOutermost()->GetName());
+    if (!Error.IsEmpty())
+        return false;
     if (!ShortName(Definition->ShortName))
         return No(TEXT(
             "Give the new kind a short lowercase name made of letters and digits with dots, underscores or hyphens inside."));

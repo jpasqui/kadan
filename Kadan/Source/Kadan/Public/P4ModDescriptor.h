@@ -21,6 +21,8 @@ KADAN_API bool P4ModDerivedNames(const FP4ModDescriptor& Descriptor, FP4ModNames
 // A path the mod's own content can have: anywhere under /Game except other mods' folders. Whether the
 // asset there is the game's is told by its game tag and the game's package list, never by its path.
 KADAN_API bool P4IsModContentPath(const FString& PackageRoot, const FString& Package);
+// Why a package is not at such a path, as a sentence for the person that names the mod's own folder. Empty when it is.
+KADAN_API FString P4ModContentPathIssue(const FString& PackageRoot, const FString& Package);
 // ProjectDirectory is the directory containing the .uproject. Reads never create directories.
 KADAN_API bool P4ReadModDescriptor(const FString& ProjectDirectory, const FString& Id,
     FP4ModDescriptor& Out, FString& Error);

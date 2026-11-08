@@ -12,6 +12,11 @@ struct FP4KadanCreatorReview
     bool CanExport() const { return (Ships > 0 || ManifestOnly) && Blockers.Num() == 0; }
 };
 
+// The imported game levels of the open map with changes of their own that the review's rows leave out, by package.
+// Their changes do not ship: export takes the levels a mod has, never the map's others.
+KADAN_API TArray<FString> P4ChangedLevelsOutsideSelection(
+    UWorld* OpenMap, const FP4ExportGameInventory& Inventory, const FP4KadanCreatorReview& Review);
+
 // The creator-facing readiness check uses the same supported routes as export.
 // It never saves, bakes, cooks or publishes. Export independently validates again.
 KADAN_API FP4KadanCreatorReview P4ReviewCreatorSelection(

@@ -43,8 +43,9 @@ Follow [Export a mod](/guides/export/) and [Several mods](/guides/several-mods/)
 | --- | --- |
 | Mod list | Switches between the project's mods. |
 | **Edit** | Changes the open mod's name and version. |
+| **Content folder** | Shows the mod's own folder in the Content Browser, making it first if needed. |
 | **New mod** | Starts a mod: its name, ID and version. The ID names the mod's folder and files, and can't change after you save. |
-| **Add selected** | Adds the maps, assets or folders selected in the Content Browser. What they need comes along. |
+| **Add selected** | Adds the maps, assets or folders selected in the Content Browser. What they need comes along, but the levels you changed don't: add each one. |
 | **Remove** | Takes that item out of the mod. |
 | **What ships** | What the mod exports, worked out by itself when the mod's content changes. Anything that can't ship comes first, with why and **Locate**. What the game already has is only counted. |
 | **Export to** | Eden's mod folder when Eden is installed, or a folder you choose. |

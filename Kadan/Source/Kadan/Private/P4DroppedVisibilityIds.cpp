@@ -43,3 +43,27 @@ void P4WithDroppedVisibilityIds(UWorld* World, const TArray<FString>& Imported, 
     if (Changed)
         Current.Sort([](const FString& A, const FString& B) { return A.Compare(B, ESearchCase::CaseSensitive) < 0; });
 }
+
+void P4WithImportedStreamingTextureData(const TArray<FString>& Imported, TArray<FString>& Current)
+{
+    const FString Mark = TEXT(" | streamingtexturedata = ");
+    const auto Built = [&](const FString& Line) { return Line.Contains(Mark, ESearchCase::CaseSensitive); };
+    const int32 Removed = Current.RemoveAll(Built);
+    // The objects still in the level: every one has a class line.
+    TSet<FString> Present;
+    for (const FString& Line : Current)
+    {
+        const int32 At = Line.Find(TEXT(" | "), ESearchCase::CaseSensitive);
+        if (At != INDEX_NONE)
+            Present.Add(Line.Left(At));
+    }
+    int32 Added = 0;
+    for (const FString& Line : Imported)
+        if (Built(Line) && Present.Contains(Line.Left(Line.Find(Mark, ESearchCase::CaseSensitive))))
+        {
+            Current.Add(Line);
+            ++Added;
+        }
+    if (Removed || Added)
+        Current.Sort([](const FString& A, const FString& B) { return A.Compare(B, ESearchCase::CaseSensitive) < 0; });
+}

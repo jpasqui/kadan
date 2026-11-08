@@ -47,6 +47,9 @@ struct FP4KadanImportPlan
     bool bMaterialExecutionDeferred = false;
     FP4KadanExecutionEdges ExecutionEdges;
     int32 Roots = 0, Dependencies = 0, SharedDependencies = 0, AlreadyPresent = 0, GameReferences = 0;
+    // Packages the plan's packages name that no converted source holds yet. With the game's containers the import
+    // reads them, and what they need, from there, so Dependencies does not count them or what they need.
+    int32 NotYetRead = 0;
     int64 SourceBytes = 0, RemainingSourceBytes = 0;
 };
 struct FP4KadanImportResult

@@ -191,6 +191,10 @@ FP4KadanImportPlan P4KadanPlanImport(const TArray<TSharedPtr<FP4KadanSourceAsset
     for (const FName& Identity : Wanted)
         if (!RootIdentities.Contains(Identity))
             ++Plan.Dependencies;
+    if (DeferMaterialExecution)
+        for (const FName& Identity : Missing)
+            if (!RootIdentities.Contains(Identity))
+                ++Plan.NotYetRead;
     Plan.GameReferences = GameReferences.Num();
     for (const auto& Pair : References)
         if (Pair.Value > 1)

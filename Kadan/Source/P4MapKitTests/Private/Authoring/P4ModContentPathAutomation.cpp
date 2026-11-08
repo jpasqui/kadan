@@ -1,6 +1,7 @@
 #if P4_MAPKIT_TESTS
 #include "P4ModDescriptor.h"
 #include "P4ExportDriver.h"
+#include "P4KadanBlueprintPlans.h"
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
 #include "Engine/World.h"
@@ -30,6 +31,20 @@ bool FP4ModContentPathTest::RunTest(const FString&)
     TestFalse(
         TEXT("Another mod's folder in other letter case"), P4IsModContentPath(Root, TEXT("/Game/mods/other/T_Leaf")));
     TestFalse(TEXT("Engine content"), P4IsModContentPath(Root, TEXT("/Engine/EngineMaterials/DefaultMaterial")));
+    // A readable folder made by hand in /Game/Mods is another mod's. The reason names the mod's own folder.
+    const FString HandMade = P4ModContentPathIssue(Root, TEXT("/Game/Mods/content_path/Creature_Test"));
+    AddInfo(TEXT("hand-made folder: ") + HandMade);
+    TestTrue(TEXT("A hand-made folder in /Game/Mods is told with the mod's own folder"),
+        HandMade.Contains(TEXT("/Game/Mods/content_path ")) && HandMade.Contains(Root));
+    TestTrue(TEXT("The mod's own folder has no issue"), P4ModContentPathIssue(Root, Root + TEXT("/Creature_Test")).IsEmpty());
+    TestTrue(TEXT("A folder of its own outside /Game/Mods has no issue"),
+        P4ModContentPathIssue(Root, TEXT("/Game/ContentPath/Creature_Test")).IsEmpty());
+    // A module the engine does not have is told as one of a later engine, with the Blueprints that use it.
+    const FString Later = P4KadanUnloadedModuleNote(
+        TEXT("KadanNoSuchModule"), {TEXT("/Game/Test/BP_ShakeB"), TEXT("/Game/Test/BP_ShakeA")});
+    AddInfo(TEXT("unloaded module: ") + Later);
+    TestTrue(TEXT("A module no plugin has is one of a later engine"),
+        Later.StartsWith(TEXT("BP_ShakeA, BP_ShakeB use the KadanNoSuchModule module of a later Unreal Engine")));
 
     // A level of the creator's next to the game's folders ships where it is. The same level in another
     // mod's folder does not.

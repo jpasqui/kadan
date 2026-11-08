@@ -27,11 +27,17 @@ struct FP4KadanBlueprintPlans
     TMap<FString, FString> SourceProblems;
     // The native modules whose declarations the plans were made with, and the ones that were not loaded.
     TArray<FString> Modules, ModulesNotLoaded;
+    // The Blueprint packages that name each native module.
+    TMap<FString, TArray<FString>> ModuleUsers;
     // Rebuilds every claimed generated UMG field from the retained immutable
     // native source, including verified original-import identities. JSON alone
     // cannot authorize omission of an authored variable.
     TFunction<bool(const FString&, const TSharedPtr<FJsonObject>&, FString&)> ValidateWidgetSource;
 };
+
+// What a native module the imported Blueprints name and this editor has not loaded means for them, as a sentence
+// for the person: a plugin of this project to enable, or a module of a later engine than this one.
+KADAN_API FString P4KadanUnloadedModuleNote(const FString& Module, const TArray<FString>& Users);
 
 // Excludes editable plans transitively requiring an already-refused Blueprint;
 // preserves valid original identities separately from missing/corrupt sources.

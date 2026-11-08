@@ -311,11 +311,14 @@ TSharedRef<SWidget> FKadanImportPage::ImportActions()
                 .TextStyle(FEditorStyle::Get(), "NormalText")
                 .ForegroundColor(FLinearColor::White)
                 .ContentPadding(FMargin(12, 4))
-                .IsEnabled_Lambda([this]() { return SelectedPackages.Num() > 0 && ProjectReady; })
+                .IsEnabled_Lambda([this]() { return SelectedPackages.Num() > 0 && ProjectReady && !ProjectDiskFull; })
                 .ToolTipText_Lambda(
                     [this]()
                     {
                         return Label(!ProjectReady ? TEXT("Set up the project first.")
+                                : ProjectDiskFull
+                                ? TEXT("The disk the project is on is almost full. Free some space: Import comes back "
+                                       "on by itself.")
                                 : ReimportSelected()
                                     ? TEXT("Some of the selection is already in the project. Kadan imports it again, "
                                            "with what it needs, and asks before it replaces anything.")

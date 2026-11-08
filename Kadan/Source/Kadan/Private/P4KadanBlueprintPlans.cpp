@@ -19,6 +19,7 @@ THIRD_PARTY_INCLUDES_END
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
+#include "Interfaces/IPluginManager.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
@@ -409,7 +410,11 @@ bool P4KadanPlanBlueprints(const TArray<TSharedPtr<FP4KadanSourceAsset>>& Scanne
         }
         for (const FPackageImport& Import : Inventory.Imports)
             if (Import.Outer == 0 && Import.Class == "Package" && Import.Name.compare(0, 8, "/Script/") == 0)
-                Modules.Add(KadanText(Import.Name.substr(8)));
+            {
+                const FString Module = KadanText(Import.Name.substr(8));
+                Modules.Add(Module);
+                Out.ModuleUsers.FindOrAdd(Module).AddUnique(Package);
+            }
         for (const FPackageImport& Import : Inventory.Imports)
         {
             const FString Name = KadanText(Import.Name);
@@ -686,4 +691,29 @@ bool P4KadanPlanBlueprints(const TArray<TSharedPtr<FP4KadanSourceAsset>>& Scanne
         return false;
     }
     return true;
+}
+
+FString P4KadanUnloadedModuleNote(const FString& Module, const TArray<FString>& Users)
+{
+    TArray<FString> Names;
+    for (const FString& User : Users)
+        Names.Add(FPackageName::GetShortName(User));
+    Names.Sort();
+    const FString Who = Names.Num() ? FString::Join(Names, TEXT(", ")) : FString(TEXT("Some of the Blueprints"));
+    const TCHAR* Uses = Names.Num() == 1 ? TEXT("uses") : TEXT("use");
+    // A plugin this project has, switched off.
+    for (const TSharedRef<IPlugin>& Plugin : IPluginManager::Get().GetDiscoveredPlugins())
+        for (const FModuleDescriptor& Each : Plugin->GetDescriptor().Modules)
+            if (Each.Name.ToString().Equals(Module, ESearchCase::IgnoreCase))
+                return FString::Printf(
+                    TEXT(
+                        "%s %s the %s module of the %s plugin, which %s, so what they hold of its classes was left out. %s, restart the editor and import them again."),
+                    *Who, Uses, *Module, *Plugin->GetName(),
+                    Plugin->IsEnabled() ? TEXT("did not load") : TEXT("is switched off"),
+                    Plugin->IsEnabled() ? TEXT("Check the Output Log for why it did not load")
+                                        : TEXT("Turn the plugin on in Edit > Plugins"));
+    return FString::Printf(
+        TEXT(
+            "%s %s the %s module of a later Unreal Engine than this one, which this editor does not have, so what they hold of its classes was left out. The game uses its own copies of them, so they still work there while you leave them unchanged."),
+        *Who, Uses, *Module);
 }

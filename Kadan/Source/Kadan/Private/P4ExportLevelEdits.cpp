@@ -277,7 +277,8 @@ bool P4ExportLevelRowEdits(UWorld* World, const FP4LevelChangesResult& Changes, 
         return false;
     }
     const FString Package = World->GetOutermost()->GetName();
-    const FString Folder = GameFolder.IsEmpty() ? FString() : P4GamePlacementFolder(GameFolder, Package);
+    // Read where export reads them, so that review and export agree.
+    const FString Folder = P4MapPlacementFolder(GameFolder, Package);
     TArray<FP4GamePlacementRow> Rows;
     if (!Folder.IsEmpty() && !P4ReadGamePlacementLists(Folder, Rows, Error))
     {

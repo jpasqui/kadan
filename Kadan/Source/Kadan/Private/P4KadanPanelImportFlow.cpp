@@ -21,6 +21,18 @@ void FKadanImportPage::InvalidateImportReview()
 
 void FKadanImportPage::Tick()
 {
+    // Once space is freed, the selection is counted again and Import comes back on.
+    if (ProjectDiskFull && FPlatformTime::Seconds() - DiskCheckedAt > 5.0)
+    {
+        DiskCheckedAt = FPlatformTime::Seconds();
+        if (P4DiskFullMessage(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir())).IsEmpty())
+        {
+            ProjectDiskFull = false;
+            Host.Message.Empty();
+            Host.NoticeError = false;
+            InvalidateImportReview();
+        }
+    }
     if (!ReviewWanted || FPlatformTime::Seconds() - SelectionChangedAt < 0.8 || !SelectedPackages.Num())
         return;
     ReviewWanted = false;
@@ -281,6 +293,20 @@ bool FKadanImportPage::ReviewImport(bool KeepExisting, bool Quiet)
         return false;
     }
     Host.WriteSettings();
+    // Counting reads the selection's sources from the game's containers into the project's folder, so a nearly
+    // full disk stops it here, before anything is read. Import stays off until there is room (Tick).
+    const FString DiskFull = P4DiskFullMessage(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
+    ProjectDiskFull = !DiskFull.IsEmpty();
+    DiskCheckedAt = FPlatformTime::Seconds();
+    if (ProjectDiskFull)
+    {
+        ImportPlan = FP4KadanImportPlan();
+        ImportSummary = FString::Printf(TEXT("%d selected · not counted: the project's disk is almost full"),
+            SelectedPackages.Num());
+        Host.Message = DiskFull;
+        Host.NoticeError = true;
+        return false;
+    }
     // An extracted folder was already read with real headers. Reuse that scan for the legacy
     // workflow; original-container rows require acquisition and planning
     // through the settings-aware backend before any import can run.
@@ -296,8 +322,12 @@ bool FKadanImportPage::ReviewImport(bool KeepExisting, bool Quiet)
     }
     uint64 Total = 0, Free = 0;
     const bool Disk = FPlatformMisc::GetDiskTotalAndFreeSpace(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()), Total, Free);
-    ImportSummary = FString::Printf(TEXT("%d selected · %d more they need · %d already in the project · %s to read from the game%s"),
-        ImportPlan.Roots, ImportPlan.Dependencies, ImportPlan.AlreadyPresent,
+    // What the selection's sources name and Kadan has not read yet is found during the import, with what it needs.
+    const FString Later = ImportPlan.NotYetRead
+        ? FString::Printf(TEXT(" so far, %d more found in the game's files on import"), ImportPlan.NotYetRead)
+        : FString();
+    ImportSummary = FString::Printf(TEXT("%d selected · %d more they need%s · %d already in the project · %s to read from the game%s"),
+        ImportPlan.Roots, ImportPlan.Dependencies, *Later, ImportPlan.AlreadyPresent,
         *Size(KeepExisting ? ImportPlan.RemainingSourceBytes : ImportPlan.SourceBytes),
         Disk ? *(TEXT(" · ") + Size(int64(Free)) + TEXT(" free")) : TEXT(""));
     for (const FString& Problem : ImportPlan.Problems)
@@ -305,14 +335,7 @@ bool FKadanImportPage::ReviewImport(bool KeepExisting, bool Quiet)
     for (const FString& Warning : ImportPlan.Warnings)
         UE_LOG(LogTemp, Log, TEXT("Kadan import review note: %s"), *Warning);
     ImportDetails = FString::Join(ImportPlan.Problems, TEXT("\n"));
-    // The import refuses to start on a nearly full disk, so say so before Import is clicked.
-    const FString DiskFull = P4DiskFullMessage(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir()));
-    if (!DiskFull.IsEmpty())
-    {
-        Host.Message = DiskFull;
-        Host.NoticeError = true;
-    }
-    else if (ImportPlan.Problems.Num() || !Quiet)
+    if (ImportPlan.Problems.Num() || !Quiet)
     {
         Host.Message = ImportPlan.Problems.Num()
             ? TEXT("Some of the selection can't be imported. The Output Log says which and why.")

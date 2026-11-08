@@ -1,4 +1,10 @@
 #include "P4KadanPanelModsPage.h"
+#include "AssetRegistryModule.h"
+#include "ContentBrowserModule.h"
+#include "HAL/FileManager.h"
+#include "IContentBrowserSingleton.h"
+#include "Misc/MessageDialog.h"
+#include "Misc/PackageName.h"
 
 namespace P4KadanEditorPrivate
 {
@@ -56,6 +62,30 @@ bool FKadanModsPage::CreatorPackageRoot(FString& Root, FString& Error) const
     if (!P4ModDerivedNames(*ActiveMod, Names, Error))
         return false;
     Root = Names.PackageRoot;
+    return true;
+}
+
+bool FKadanModsPage::OpenContentFolder()
+{
+    FString Root, Error, Directory;
+    if (!CreatorPackageRoot(Root, Error))
+    {
+        Host.Message = Error;
+        Host.NoticeError = true;
+        return false;
+    }
+    if (!FPackageName::TryConvertLongPackageNameToFilename(Root + TEXT("/"), Directory) ||
+        !IFileManager::Get().MakeDirectory(*Directory, true))
+    {
+        Host.Message = TEXT("Kadan could not make the mod's content folder ") + Root + TEXT(".");
+        Host.NoticeError = true;
+        return false;
+    }
+    FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().AddPath(Root);
+    FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")).Get().SyncBrowserToFolders({Root});
+    Host.NoticeError = false;
+    Host.Message = TEXT("Your mod's content folder is ") + Root +
+        TEXT(". Keep what you make for this mod in it, or in a folder of your own outside /Game/Mods.");
     return true;
 }
 
@@ -384,6 +414,29 @@ void FKadanModsPage::ExportMod()
     FP4ExportModResult Result;
     FString Why;
     UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+    // A changed level of the open map that the mod leaves out ships nothing. Selection stays the creator's.
+    const TArray<FString> Left = P4ChangedLevelsOutsideSelection(World, Inventory, CreatorReview);
+    if (Left.Num())
+    {
+        TArray<FString> Names;
+        for (const FString& Package : Left)
+            Names.Add(FPackageName::GetShortName(Package));
+        UE_LOG(LogTemp, Warning, TEXT("Kadan export: changed levels left out of the mod: %s"),
+            *FString::Join(Names, TEXT(", ")));
+        const FString Question = TEXT("These levels of the open map have changes, but they are not in this mod, so "
+                                      "their changes won't ship:\n\n") +
+            FString::Join(Names, TEXT("\n")) +
+            TEXT("\n\nTo ship a level's changes, select it in the Content Browser and click Add selected. Export "
+                 "without them?");
+        if (!FApp::IsUnattended() &&
+            FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(Question)) != EAppReturnType::Yes)
+        {
+            Host.NoticeError = true;
+            Host.Message = TEXT("Export stopped. Changed levels are not in the mod: ") +
+                FString::Join(Names, TEXT(", ")) + TEXT(".");
+            return;
+        }
+    }
     const bool Finished = P4KadanExportMod(ExportRequest(), World, Result, Why);
     if (Finished && Result.Published)
     {

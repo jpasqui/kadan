@@ -1,5 +1,7 @@
 // Placement export: the game's placement lists, read, and their options given to imported actors.
 #include "P4PlacementInternal.h"
+#include "P4KadanSourceCatalog.h"
+#include "AssetRegistryModule.h"
 
 using namespace P4PlacementDetail;
 
@@ -152,6 +154,12 @@ FString P4GamePlacementFolder(const FString& GameRoot, const FString& LevelPacka
     return Found;
 }
 
+FString P4MapPlacementFolder(const FString& GameFolder, const FString& LevelPackage)
+{
+    const FString Folder = GameFolder.IsEmpty() ? FString() : P4GamePlacementFolder(GameFolder, LevelPackage);
+    return Folder.IsEmpty() ? P4GamePlacementFolder(P4KadanCatalogGameFolder(), LevelPackage) : Folder;
+}
+
 const FP4GamePlacementRow* P4GamePlacementRowOf(
     const AActor* Actor, const TArray<FP4GamePlacementRow>& Rows, FString* Why)
 {
@@ -261,10 +269,21 @@ bool P4GameRowsOfLevelEdit(UWorld* World, const FP4LevelChangesResult& Changes, 
             continue;
         if (!Rows)
         {
+            // The lists this project has imported name the files to read again from the game.
+            TArray<FAssetData> Lists;
+            FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"))
+                .Get()
+                .GetAssetsByPath(FName(*FPackageName::GetLongPackagePath(P4GamePlacementListPackage(Package, TEXT("X")))),
+                    Lists);
+            TArray<FString> Names;
+            for (const FAssetData& List : Lists)
+                Names.AddUnique(List.AssetName.ToString());
+            Names.Sort();
             Error = FString::Printf(
                 TEXT(
-                    "%s of %s is one of the game's gameplay objects, which the game builds from its placement lists. Choose the game folder in the import settings, so that export can find its row."),
-                *Candidate.Actor, *Level);
+                    "%s of %s is one of the game's gameplay objects, which the game builds from its placement lists, and Kadan has no copy of the game's files of those lists. Choose the game folder in the import settings. If it is chosen, tick %s on the Import page and wait for the count, which reads them from the game's files, then review the export again."),
+                *Candidate.Actor, *Level,
+                Names.Num() ? *FString::Join(Names, TEXT(", ")) : TEXT("the map's placement lists (AP_)"));
             return false;
         }
         // A gameplay object with no row of the game's lists is one the game keeps in the level: a level change.
