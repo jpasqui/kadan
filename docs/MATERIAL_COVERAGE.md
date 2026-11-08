@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 30 |
+| seen in the game | 43 |
 | draws in the game, its effect not checked yet | 45 |
 | draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 203 |
+| compiles, not seen in the game yet | 190 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -135,25 +135,25 @@ right. **Refused** rows name the message the export gives.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Decal blend mode DecalAlphaComposite | compiles, not seen in the game yet |  |
+| Decal blend mode DecalAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalAmbientOcclusion | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferAlphaComposite | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferColor | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferColorNormal | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferColorNormalRoughness | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferColorRoughness | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferEmissive | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferEmissiveAlphaComposite | compiles, not seen in the game yet |  |
+| Decal blend mode DecalDBufferAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
+| Decal blend mode DecalDBufferColor | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
+| Decal blend mode DecalDBufferColorNormal | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
+| Decal blend mode DecalDBufferColorNormalRoughness | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
+| Decal blend mode DecalDBufferColorRoughness | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
+| Decal blend mode DecalDBufferEmissive | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
+| Decal blend mode DecalDBufferEmissiveAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
 | Decal blend mode DecalDBufferNormal | compiles, not seen in the game yet |  |
 | Decal blend mode DecalDBufferNormalRoughness | compiles, not seen in the game yet |  |
 | Decal blend mode DecalDBufferRoughness | compiles, not seen in the game yet |  |
-| Decal blend mode DecalEmissive | compiles, not seen in the game yet |  |
+| Decal blend mode DecalEmissive | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
 | Decal blend mode DecalNormal | compiles, not seen in the game yet |  |
-| Decal blend mode DecalStain | compiles, not seen in the game yet |  |
-| Decal blend mode DecalTranslucent | compiles, not seen in the game yet |  |
+| Decal blend mode DecalStain | seen in the game | Eden, Area500: a decal projected onto the dirt turns it a darker pink than the translucent mode (+23,-7,+34 against +33,+18,+59): the stain multiplies the ground's colour (2026-11-08) |
+| Decal blend mode DecalTranslucent | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalVolumetricDistanceFunction | compiles, not seen in the game yet |  |
-| Domain DeferredDecal | compiles, not seen in the game yet |  |
-| Domain LightFunction | compiles, not seen in the game yet |  |
+| Domain DeferredDecal | seen in the game | Eden, Area500: a decal projected onto the dirt tints the ground green (mean shift +17,+59,+59 over the decal) and the captain standing in it, as UE projects a decal onto what it covers (2026-11-08) |
+| Domain LightFunction | seen in the game | Eden, Area500: as the sun's light function it dims the sunlit ground to about 80% (176,130,87 to 142,100,71) without tinting it: UE's light functions use the grey level of the emissive (here 0.47) (2026-11-08) |
 | Domain PostProcess | compiles, not seen in the game yet |  |
 | Domain RuntimeVirtualTexture | compiles, not seen in the game yet |  |
 | Domain UI | compiles, not seen in the game yet |  |
