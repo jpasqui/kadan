@@ -137,9 +137,10 @@ collections.
   as Default Lit, and Eye has no screen-space subsurface pass.
 - A post process material's stencil test needs custom depth with stencil. The game runs
   `r.CustomDepth` at 1, so set it to 3 from your mod, as a UE4 project does.
-- Kadan refuses three things the game can't draw:
+- The game runs with virtual texturing off. A Runtime Virtual Texture Output node writes nothing,
+  as in a UE4 project with virtual texturing off. The material still draws as a surface.
+- Kadan refuses two things the game can't draw:
   - Volumetric distance function decals. UE4 draws them only in its deferred renderer.
-  - Runtime virtual texture materials. The game runs with virtual texturing off.
   - The Game Scene Depth and Game Scene Color nodes in opaque materials. As in UE4, only
     translucent and post process materials can read the scene.
 

@@ -592,11 +592,6 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
     }
-    // The game runs with virtual texturing off (r.VirtualTextures 0, a project setting read when it starts), so it has
-    // no runtime virtual texture for such a material to draw into.
-    if (Copy->MaterialDomain == MD_RuntimeVirtualTexture)
-        return Fail(TEXT("The game runs with virtual texturing off, so it has no runtime virtual texture for this ")
-                    TEXT("material to draw into."));
     // Stock 4.26 draws a volumetric distance function decal only in its deferred renderer, into the GBuffer; a forward
     // renderer (the game's, or a forward-shading UE4 project) draws no such decal.
     if (Copy->MaterialDomain == MD_DeferredDecal && Copy->DecalBlendMode == DBM_Volumetric_DistanceFunction)
