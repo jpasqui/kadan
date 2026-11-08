@@ -81,7 +81,8 @@
    "family": "translucency",
    "id": "Refraction",
    "feature": "Refraction input (index 1.33)",
-   "status": "compiles"
+   "status": "wrong",
+   "seen": "Eden, Cave000_F00: the cube draws at opacity 0.3 with the mushrooms behind it showing through, but they are not bent: no refraction (2026-11-08)"
   },
   {
    "family": "translucency",
@@ -393,97 +394,113 @@
    "family": "inputs",
    "id": "AmbientOcclusion",
    "feature": "Ambient Occlusion",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Anisotropy",
    "feature": "Anisotropy and Tangent",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "CustomizedUVs",
    "feature": "Customized UVs",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker repeats 3 by 3 with its blue dots, as in the editor (Texture 2D shows it once) (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "DitheredLOD",
    "feature": "Dithered LOD Transition",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Emissive",
    "feature": "Emissive Color (lit)",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: glows orange-yellow on its shaded faces, as the editor's bright orange block (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "FullPrecision",
    "feature": "Use Full Precision",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "HQForwardReflections",
    "feature": "High Quality Forward Reflections, planar reflections",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a mirror-like metal cube reflecting the surroundings; the high quality reflections themselves were not compared (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "LightmapDirectionality",
    "feature": "Use Lightmap Directionality off",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "MaterialAttributes",
    "feature": "Use Material Attributes (Make Material Attributes)",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: Make Material Attributes' pink base colour draws, as in the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Metallic",
    "feature": "Metallic",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: gold metal, its faces tinted reflections of the surroundings rather than diffuse shading (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "NegativeEmissive",
    "feature": "Allow Negative Emissive Color",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws black, as in the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Normal",
    "feature": "Normal (tangent space)",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "NormalCurvatureToRoughness",
    "feature": "Normal Curvature To Roughness",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "NormalWorld",
    "feature": "Normal (world space, Tangent Space Normal off)",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "PixelDepthOffset",
    "feature": "Pixel Depth Offset",
-   "status": "compiles"
+   "status": "wrong",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws nothing at all (shaders built, no Eden pipeline error). Likely the depth prepass draws it without the offset, so the base pass's farther depth fails the depth test (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Specular",
    "feature": "Specular",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
@@ -495,19 +512,22 @@
    "family": "inputs",
    "id": "Tessellation",
    "feature": "Tessellation (PN triangles), World Displacement, multiplier",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "Wireframe",
    "feature": "Wireframe",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: only the triangle edges draw, as the editor's wire cube (2026-11-08)"
   },
   {
    "family": "inputs",
    "id": "WorldPositionOffset",
    "feature": "World Position Offset",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the cube moves up and down with time (its top at y 290 then 255 in two pictures moments apart) (2026-11-08)"
   },
   {
    "family": "textures",
@@ -527,7 +547,8 @@
    "family": "textures",
    "id": "Texture2D",
    "feature": "Texture 2D sample",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker texture draws once per face, as in the editor (2026-11-08)"
   },
   {
    "family": "textures",

@@ -7,15 +7,17 @@ Kadan compiles a creator material with UE4's own material translator and shader 
 SPIR-V and Maxwell compiler (docs/OWN_SHADER_MAPS.md). A row is **seen in the game** only after a material
 using the feature was exported and looked at in Eden next to the UE4 editor's rendering, and the feature's own
 effect was seen. **Draws** means such a material draws in the game but its effect was not checked there.
+**Draws wrong** means it compiles and exports but the game draws it wrong; the note says how.
 **Compiles** means
 the game compile accepts it and nobody has looked at it in the game yet: it is not a promise that it draws
 right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 18 |
-| draws in the game, its effect not checked yet | 33 |
-| compiles, not seen in the game yet | 224 |
+| seen in the game | 26 |
+| draws in the game, its effect not checked yet | 44 |
+| draws wrong in the game | 2 |
+| compiles, not seen in the game yet | 203 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -34,7 +36,7 @@ right. **Refused** rows name the message the export gives.
 | Compute Fog Per Pixel, Unlit | draws in the game, its effect not checked yet | Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Output Velocity | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
-| Refraction input (index 1.33) | compiles, not seen in the game yet |  |
+| Refraction input (index 1.33) | draws wrong in the game | Eden, Cave000_F00: the cube draws at opacity 0.3 with the mushrooms behind it showing through, but they are not bent: no refraction (2026-11-08) |
 | Responsive AA | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Screen Space Reflections (translucent) | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Render After DOF off, Lit | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
@@ -94,26 +96,26 @@ right. **Refused** rows name the message the export gives.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Ambient Occlusion | compiles, not seen in the game yet |  |
-| Anisotropy and Tangent | compiles, not seen in the game yet |  |
-| Customized UVs | compiles, not seen in the game yet |  |
-| Dithered LOD Transition | compiles, not seen in the game yet |  |
-| Emissive Color (lit) | compiles, not seen in the game yet |  |
-| Use Full Precision | compiles, not seen in the game yet |  |
-| High Quality Forward Reflections, planar reflections | compiles, not seen in the game yet |  |
-| Use Lightmap Directionality off | compiles, not seen in the game yet |  |
-| Use Material Attributes (Make Material Attributes) | compiles, not seen in the game yet |  |
-| Metallic | compiles, not seen in the game yet |  |
-| Allow Negative Emissive Color | compiles, not seen in the game yet |  |
-| Normal (tangent space) | compiles, not seen in the game yet |  |
-| Normal Curvature To Roughness | compiles, not seen in the game yet |  |
-| Normal (world space, Tangent Space Normal off) | compiles, not seen in the game yet |  |
-| Pixel Depth Offset | compiles, not seen in the game yet |  |
-| Specular | compiles, not seen in the game yet |  |
+| Ambient Occlusion | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Anisotropy and Tangent | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Customized UVs | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker repeats 3 by 3 with its blue dots, as in the editor (Texture 2D shows it once) (2026-11-08) |
+| Dithered LOD Transition | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Emissive Color (lit) | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: glows orange-yellow on its shaded faces, as the editor's bright orange block (2026-11-08) |
+| Use Full Precision | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| High Quality Forward Reflections, planar reflections | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a mirror-like metal cube reflecting the surroundings; the high quality reflections themselves were not compared (2026-11-08) |
+| Use Lightmap Directionality off | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Use Material Attributes (Make Material Attributes) | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: Make Material Attributes' pink base colour draws, as in the editor (2026-11-08) |
+| Metallic | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: gold metal, its faces tinted reflections of the surroundings rather than diffuse shading (2026-11-08) |
+| Allow Negative Emissive Color | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws black, as in the editor (2026-11-08) |
+| Normal (tangent space) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Normal Curvature To Roughness | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Normal (world space, Tangent Space Normal off) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Pixel Depth Offset | draws wrong in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws nothing at all (shaders built, no Eden pipeline error). Likely the depth prepass draws it without the offset, so the base pass's farther depth fails the depth test (2026-11-08) |
+| Specular | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
 | Post process stencil test | compiles, not seen in the game yet |  |
-| Tessellation (PN triangles), World Displacement, multiplier | compiles, not seen in the game yet |  |
-| Wireframe | compiles, not seen in the game yet |  |
-| World Position Offset | compiles, not seen in the game yet |  |
+| Tessellation (PN triangles), World Displacement, multiplier | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
+| Wireframe | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: only the triangle edges draw, as the editor's wire cube (2026-11-08) |
+| World Position Offset | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the cube moves up and down with time (its top at y 290 then 255 in two pictures moments apart) (2026-11-08) |
 
 ## Texture types and parameter collections
 
@@ -121,7 +123,7 @@ right. **Refused** rows name the message the export gives.
 | --- | --- | --- |
 | Material parameter collection | refused | Compiles; export refuses MPC_Coverage: Export is not available for this asset type yet. |
 | Render target sample | refused | Compiles; export refuses RT_Coverage: Export is not available for this asset type yet. |
-| Texture 2D sample | compiles, not seen in the game yet |  |
+| Texture 2D sample | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker texture draws once per face, as in the editor (2026-11-08) |
 | Texture 2D array sample | refused | Compiles; export refuses T_CoverageArray: Export is not available for this asset type yet. |
 | Texture cube sample | refused | Compiles; export refuses T_CoverageCube: Export is not available for this asset type yet. |
 | Volume texture sample | refused | Compiles; export refuses T_CoverageVolume: Export is not available for this asset type yet. |

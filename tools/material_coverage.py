@@ -7,6 +7,7 @@ status:
     game       seen drawing in the game (Eden) through Kadan's export, the feature's own effect included; `seen`
                says what was seen and when
     draws      a material using it draws in the game, but the feature's own effect was not checked there
+    wrong      it compiles and exports, but draws wrong in the game (`seen` says how)
     compiles   compiles for the game through Kadan's export, not yet seen in the game
     refused    Kadan's game compile or export refuses it (`error` has the message) while UE4 compiles it for the editor
     ue4        UE4 itself refuses this graph for the editor too: the survey's setup, not a Kadan gap
@@ -18,6 +19,7 @@ what was seen in the game is kept across merges.
     py -3.11 tools/material_coverage.py merge report.json      take the test's compile results
     py -3.11 tools/material_coverage.py seen ID... --note TEXT  record what was seen in the game
     py -3.11 tools/material_coverage.py seen ID... --draws --note TEXT  it draws; its effect not checked
+    py -3.11 tools/material_coverage.py seen ID... --wrong --note TEXT  it draws wrong in the game
     py -3.11 tools/material_coverage.py render                  write docs/MATERIAL_COVERAGE.md
     py -3.11 tools/material_coverage.py check                   the page is up to date (tools/check.py)
 """
@@ -40,7 +42,7 @@ FAMILIES = [
     ('nodes', 'Expression nodes'),
 ]
 STATUS = {'game': 'seen in the game', 'draws': 'draws in the game, its effect not checked yet',
-          'compiles': 'compiles, not seen in the game yet',
+          'wrong': 'draws wrong in the game', 'compiles': 'compiles, not seen in the game yet',
           'refused': 'refused', 'ue4': 'UE4 refuses this setup too'}
 
 
@@ -76,7 +78,7 @@ def merge(table, report):
             row['error'] = 'Compiles; export refuses ' + entry['export_refused']
             row.pop('seen', None)
         elif result == 'compiles':
-            if row.get('status') not in ('game', 'draws'):
+            if row.get('status') not in ('game', 'draws', 'wrong'):
                 row['status'] = 'compiles'
             row.pop('error', None)
         elif result == 'game-refuses':
@@ -100,6 +102,7 @@ def render(table):
              'SPIR-V and Maxwell compiler (docs/OWN_SHADER_MAPS.md). A row is **seen in the game** only after a material',
              'using the feature was exported and looked at in Eden next to the UE4 editor\'s rendering, and the feature\'s own',
              'effect was seen. **Draws** means such a material draws in the game but its effect was not checked there.',
+             '**Draws wrong** means it compiles and exports but the game draws it wrong; the note says how.',
              '**Compiles** means',
              'the game compile accepts it and nobody has looked at it in the game yet: it is not a promise that it draws',
              'right. **Refused** rows name the message the export gives.', '']
@@ -130,6 +133,7 @@ def main(argv=None):
     s.add_argument('--note', required=True)
     s.add_argument('--date', default=datetime.date.today().isoformat())
     s.add_argument('--draws', action='store_true', help='it draws, but its own effect was not checked')
+    s.add_argument('--wrong', action='store_true', help='it draws wrong in the game')
     sub.add_parser('render')
     sub.add_parser('check')
     args = parser.parse_args(argv)
@@ -143,10 +147,10 @@ def main(argv=None):
                 print('no row', wanted, file=sys.stderr)
                 return 1
             for r in found:
-                if r.get('status') not in ('compiles', 'game', 'draws'):
+                if r.get('status') not in ('compiles', 'game', 'draws', 'wrong'):
                     print('%s is %s, not compiled for the game' % (wanted, r.get('status')), file=sys.stderr)
                     return 1
-                r['status'] = 'draws' if args.draws else 'game'
+                r['status'] = 'wrong' if args.wrong else 'draws' if args.draws else 'game'
                 r['seen'] = '%s (%s)' % (args.note, args.date)
         save(table)
     if args.action in ('merge', 'seen', 'render'):
