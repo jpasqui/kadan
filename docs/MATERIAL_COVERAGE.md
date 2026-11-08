@@ -13,9 +13,9 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 9 |
-| draws in the game, its effect not checked yet | 28 |
-| compiles, not seen in the game yet | 238 |
+| seen in the game | 18 |
+| draws in the game, its effect not checked yet | 33 |
+| compiles, not seen in the game yet | 224 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -75,20 +75,20 @@ right. **Refused** rows name the message the export gives.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Shading model ClearCoat | compiles, not seen in the game yet |  |
-| Shading model Cloth | compiles, not seen in the game yet |  |
-| Shading model DefaultLit | compiles, not seen in the game yet |  |
-| Shading model Eye | compiles, not seen in the game yet |  |
-| Shading model From Material Expression | compiles, not seen in the game yet |  |
-| Fully Rough | compiles, not seen in the game yet |  |
-| Shading model Hair | compiles, not seen in the game yet |  |
-| Shading model PreintegratedSkin | compiles, not seen in the game yet |  |
-| Shading model SingleLayerWater | compiles, not seen in the game yet |  |
-| Shading model Subsurface | compiles, not seen in the game yet |  |
-| Shading model SubsurfaceProfile | compiles, not seen in the game yet |  |
-| Shading model ThinTranslucent (translucent) | compiles, not seen in the game yet |  |
-| Shading model TwoSidedFoliage | compiles, not seen in the game yet |  |
-| Shading model Unlit | compiles, not seen in the game yet |  |
+| Shading model ClearCoat | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun whiter than Default Lit's (236,222,221 against 221,194,194): the coat's sky reflection (2026-11-08) |
+| Shading model Cloth | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun reddened by the red fuzz colour (247,202,204 against Default Lit's 221,194,194) (2026-11-08) |
+| Shading model DefaultLit | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face toward the sun near white, the face away pale pink (221,194,194) (2026-11-08) |
+| Shading model Eye | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (219,194,193), while the editor's eye cube is darker: not matched yet (2026-11-08) |
+| Shading model From Material Expression | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the Shading Model node's Clear Coat applies: the lavender cube draws blue-white with faint reflections, as the editor's coated top (2026-11-08) |
+| Fully Rough | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the green cube shades with the sun angle; the missing specular was not checked (2026-11-08) |
+| Shading model Hair | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: much darker than Default Lit (165,134,127 away from the sun, 123,90,90 toward it), as the editor's dark hair cube (2026-11-08) |
+| Shading model PreintegratedSkin | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
+| Shading model SingleLayerWater | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lavender-pink (189,162,188 away from the sun); the water look was not compared (2026-11-08) |
+| Shading model Subsurface | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
+| Shading model SubsurfaceProfile | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws like Default Lit (220,195,193); the profile's scattering was not seen (2026-11-08) |
+| Shading model ThinTranslucent (translucent) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a blue cube with its far faces showing through; transmittance colour not compared (2026-11-08) |
+| Shading model TwoSidedFoliage | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08) |
+| Shading model Unlit | seen in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: both faces the same salmon whatever their angle to the sun (2026-11-08) |
 
 ## Material inputs and surface settings
 
