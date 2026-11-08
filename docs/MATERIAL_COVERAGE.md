@@ -14,9 +14,9 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 207 |
+| seen in the game | 209 |
 | draws in the game, its effect not checked yet | 69 |
-| draws wrong in the game | 1 |
+| draws wrong in the game | 0 |
 | compiles, not seen in the game yet | 6 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
@@ -305,7 +305,8 @@ right. **Refused** rows name the message the export gives.
 | Reroute node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RotateAboutAxis node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | Rotator node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a moving rainbow, as in the editor; depends on time; not compared with the editor (2026-11-08) |
-| Round node | draws wrong in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of 0.5 is 0 (black) in the game and 1 (white) in the editor. The game's compiler rounds halves to even, as GPU round() does; the editor's 1 is most likely its compiler folding the constant (not verified) (2026-11-08) |
+| Round node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: Round of a literal 0.5 drew 0 (DXC rounds halves to even); a constant is now rounded half up as UE rounds the same value from a parameter, and draws 1 (white) as in the editor (2026-11-08) |
+| Round node of a scalar parameter 0.5 | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of a 0.5 parameter draws 1 (white) as in the editor (UE rounds it on the CPU, half up) (2026-11-08) |
 | RuntimeVirtualTextureOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RuntimeVirtualTextureReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RuntimeVirtualTextureSample node | UE4 refuses this setup too | (Node RuntimeVirtualTextureSample) Missing input Virtual Texture |

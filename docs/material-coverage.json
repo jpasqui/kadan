@@ -1748,8 +1748,15 @@
    "family": "nodes",
    "id": "Round",
    "feature": "Round node",
-   "status": "wrong",
-   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of 0.5 is 0 (black) in the game and 1 (white) in the editor. The game's compiler rounds halves to even, as GPU round() does; the editor's 1 is most likely its compiler folding the constant (not verified) (2026-11-08)"
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: Round of a literal 0.5 drew 0 (DXC rounds halves to even); a constant is now rounded half up as UE rounds the same value from a parameter, and draws 1 (white) as in the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RoundOfParameter",
+   "feature": "Round node of a scalar parameter 0.5",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of a 0.5 parameter draws 1 (white) as in the editor (UE rounds it on the CPU, half up) (2026-11-08)"
   },
   {
    "family": "nodes",

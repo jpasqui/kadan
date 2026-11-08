@@ -659,6 +659,28 @@ TArray<FCoverageCase> SettingCases()
             G->PixelDepthOffset.Expression = Scalar(G, 0.75f);
             return true;
         });
+    // Round of 0.5 from a parameter: UE rounds it on the CPU (FMaterialUniformExpressionRound, half up), where the
+    // node's own case rounds a literal 0.5 in the shader, which each platform's compiler folds its own way.
+    Add(TEXT("nodes"), TEXT("RoundOfParameter"), TEXT("Round node of a scalar parameter 0.5"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            G->MaterialDomain = MD_Surface;
+            G->BlendMode = BLEND_Opaque;
+            G->SetShadingModel(MSM_Unlit);
+            auto* Half = Node<UMaterialExpressionScalarParameter>(G);
+            Half->ParameterName = TEXT("Half");
+            Half->DefaultValue = 0.5f;
+            // The Round class is not exported: made by name, its one input set through the base class.
+            UClass* RoundClass = FindObject<UClass>(ANY_PACKAGE, TEXT("MaterialExpressionRound"));
+            if (!RoundClass)
+                return false;
+            UMaterialExpression* Rounded = NewObject<UMaterialExpression>(G, RoundClass);
+            Rounded->Material = G;
+            G->Expressions.Add(Rounded);
+            Rounded->GetInput(0)->Expression = Half;
+            G->EmissiveColor.Expression = Rounded;
+            return true;
+        });
     Add(TEXT("inputs"), TEXT("PixelDepthOffsetMasked"), TEXT("Pixel Depth Offset on a masked material"),
         [](UMaterial* G, const FCoverageContext&)
         {

@@ -36,7 +36,7 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 26; // Exact float32 C4 literals and resolved instance settings.
+constexpr uint32 FormatVersion = 27; // Round of a constant rounded as UE's CPU rounds it.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
@@ -138,6 +138,46 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
     return Out;
 }
 
+// A Round node of a constant: UE writes a constant uniform expression's code into the shader, "round(0.50000000)".
+// UE rounds the same value given by a parameter on the CPU, half up (FMaterialUniformExpressionRound,
+// FMath::RoundToFloat), and the editor's compiler folds the literal to that value too; DXC rounds a half to even. A
+// round() whose argument holds only numbers and MaterialFloat constructors is rounded half up. Engine code's round()
+// always has a variable in it and keeps the GPU's rounding, as the game's own programs have it.
+void RoundConstantsAsUE(FString& Source)
+{
+    static const FString Call = TEXT("round(");
+    bool bAny = false;
+    for (int32 From = 0;;)
+    {
+        const int32 At = Source.Find(Call, ESearchCase::CaseSensitive, ESearchDir::FromStart, From);
+        if (At == INDEX_NONE)
+            break;
+        From = At + Call.Len();
+        if (At > 0 && (FChar::IsAlnum(Source[At - 1]) || Source[At - 1] == TEXT('_')))
+            continue;
+        int32 Depth = 1, End = From;
+        for (; End < Source.Len() && Depth; ++End)
+            Depth += Source[End] == TEXT('(') ? 1 : Source[End] == TEXT(')') ? -1 : 0;
+        if (Depth)
+            break;
+        const FString Argument = Source.Mid(From, End - 1 - From).Replace(TEXT("MaterialFloat"), TEXT(""));
+        bool bConstant = !Argument.TrimStartAndEnd().IsEmpty();
+        for (const TCHAR Char : Argument)
+            bConstant &= !FChar::IsAlpha(Char) && Char != TEXT('_');
+        if (!bConstant)
+            continue;
+        Source = Source.Left(At) + TEXT("C4RoundAsUE(") + Source.Mid(From);
+        From = At + 12;
+        bAny = true;
+    }
+    if (bAny)
+        Source = TEXT("float C4RoundAsUE(float X) { return floor(X + 0.5); }\n"
+                      "float2 C4RoundAsUE(float2 X) { return floor(X + 0.5); }\n"
+                      "float3 C4RoundAsUE(float3 X) { return floor(X + 0.5); }\n"
+                      "float4 C4RoundAsUE(float4 X) { return floor(X + 0.5); }\n") +
+            Source;
+}
+
 bool ApplySourcePatches(FString& Source, FString& Error)
 {
     static const TArray<FSourcePatch> BuiltIn = ParsePatches(BuiltInPatches());
@@ -177,6 +217,7 @@ bool ApplySourcePatches(FString& Source, FString& Error)
             return false;
         }
     }
+    RoundConstantsAsUE(Source);
     return true;
 }
 
