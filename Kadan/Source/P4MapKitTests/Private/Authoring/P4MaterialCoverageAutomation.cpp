@@ -308,6 +308,13 @@ TArray<FCoverageCase> SettingCases()
             G->Refraction.Expression = Scalar(G, 1.33f);
             return true;
         });
+    Add(TEXT("translucency"), TEXT("RefractionUnlit"), TEXT("Refraction input (index 1.5, unlit, nearly clear)"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            Translucent(G, false, 0.1f);
+            G->Refraction.Expression = Scalar(G, 1.5f);
+            return true;
+        });
 
     // Blend modes, lit and unlit.
     const struct

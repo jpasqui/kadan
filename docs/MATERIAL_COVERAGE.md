@@ -17,7 +17,7 @@ right. **Refused** rows name the message the export gives.
 | seen in the game | 28 |
 | draws in the game, its effect not checked yet | 45 |
 | draws wrong in the game | 1 |
-| compiles, not seen in the game yet | 203 |
+| compiles, not seen in the game yet | 204 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -36,7 +36,8 @@ right. **Refused** rows name the message the export gives.
 | Compute Fog Per Pixel, Unlit | draws in the game, its effect not checked yet | Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Output Velocity | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
-| Refraction input (index 1.33) | draws wrong in the game | Eden, Cave000_F00: the cube draws at opacity 0.3 with the mushrooms behind it showing through, but they are not bent: no refraction (2026-11-08) |
+| Refraction input (index 1.33) | draws wrong in the game | Eden, Area500: draws without bending anything (behind it the scene lines up, correlation 0.76 at no shift), because the game keeps its distortion pass off (r.RefractionQuality 0; UE skips the pass at 0). With r.RefractionQuality 2 held, the same cube bends the scene behind it (correlation 0.01 unshifted) while a plain translucent cube does not: Kadan's distortion programs work. Turning the pass on also makes the game's own glass helmets refract and garbles Oatchi, so Kadan does not turn it on (2026-11-08) |
+| Refraction input (index 1.5, unlit, nearly clear) | compiles, not seen in the game yet |  |
 | Responsive AA | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Screen Space Reflections (translucent) | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
 | Render After DOF off, Lit | draws in the game, its effect not checked yet | Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08) |
