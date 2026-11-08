@@ -603,15 +603,15 @@
    "family": "domain",
    "id": "DecalAmbientOcclusion",
    "feature": "Decal blend mode DecalAmbientOcclusion",
-   "status": "wrong",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): no change at all, on the game's ground (4.8 per pixel, noise 2.8) or on a slab whose material takes every decal channel (0.1); cause not established (2026-11-08)"
+   "status": "game",
+   "seen": "Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08)"
   },
   {
    "family": "domain",
    "id": "DecalAmbientOcclusionStripes",
    "feature": "Decal blend mode DecalAmbientOcclusionStripes",
-   "status": "wrong",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): no change at all, on the game's ground (4.8 per pixel, noise 2.8) or on a slab whose material takes every decal channel (0.1); cause not established (2026-11-08)"
+   "status": "game",
+   "seen": "Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08)"
   },
   {
    "family": "domain",
@@ -667,7 +667,7 @@
    "id": "DecalDBufferNormal",
    "feature": "Decal blend mode DecalDBufferNormal",
    "status": "game",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08)"
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
   },
   {
    "family": "domain",
@@ -688,7 +688,7 @@
    "id": "DecalDBufferNormalStripes",
    "feature": "Decal blend mode DecalDBufferNormalStripes",
    "status": "game",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08)"
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
   },
   {
    "family": "domain",
@@ -716,14 +716,14 @@
    "id": "DecalNormal",
    "feature": "Decal blend mode DecalNormal",
    "status": "game",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08)"
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
   },
   {
    "family": "domain",
    "id": "DecalNormalStripes",
    "feature": "Decal blend mode DecalNormalStripes",
    "status": "game",
-   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08)"
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
   },
   {
    "family": "domain",

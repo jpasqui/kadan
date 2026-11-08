@@ -22,6 +22,7 @@ KADAN_API void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uin
 // field only with dual-source blending, which its RHI never gives the Switch (RHISupportsDualSourceBlending), so the
 // game's own engine refuses that combination: such a material draws in the ordinary translucency pass, before depth of
 // field, as a Modulate material with Render After DOF off does.
+// An ambient occlusion decal draws as a DBuffer colour decal that darkens by its AO (the game has no AO decal stage).
 KADAN_API void P4ApplyGameRenderLimits(UMaterial* Material);
 // Refraction without the game's distortion pass: the game keeps it off (r.RefractionQuality 0), so a translucent
 // material with a Refraction input composites the scene behind it at UE's own distortion offset in its translucent

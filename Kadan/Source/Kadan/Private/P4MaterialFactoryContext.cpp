@@ -13,6 +13,7 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
 #include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionMultiply.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleEmitter.h"
@@ -92,6 +93,41 @@ void P4ApplyGameRenderLimits(UMaterial* Material)
 {
     if (Material && Material->GetBlendMode() == BLEND_Modulate && Material->bEnableSeparateTranslucency)
         Material->bEnableSeparateTranslucency = false;
+    // An ambient occlusion decal: the game's forward renderer has no ambient occlusion decal stage (UE draws one only
+    // into deferred SSAO), so it draws as a DBuffer colour decal of black at opacity (1 - AO) x opacity, which leaves
+    // base colour x lerp(1, AO, opacity): the same darkening, through the colour buffer the game's base pass reads.
+    if (Material && Material->MaterialDomain == MD_DeferredDecal && Material->DecalBlendMode == DBM_AmbientOcclusion &&
+        Material->AmbientOcclusion.Expression)
+    {
+        const FExpressionInput Opacity = Material->Opacity;
+        auto* Covered = NewObject<UMaterialExpressionMultiply>(Material); // AO x opacity
+        Covered->A = Material->AmbientOcclusion;
+        if (Opacity.Expression)
+            Covered->B = Opacity;
+        else
+            Covered->ConstB = 1.f;
+        auto* Negated = NewObject<UMaterialExpressionMultiply>(Material);
+        Negated->A.Expression = Covered;
+        Negated->ConstB = -1.f;
+        auto* Left = NewObject<UMaterialExpressionAdd>(Material); // opacity - AO x opacity
+        if (Opacity.Expression)
+            Left->A = Opacity;
+        else
+            Left->ConstA = 1.f;
+        Left->B.Expression = Negated;
+        auto* Black = NewObject<UMaterialExpressionConstant3Vector>(Material);
+        Black->Constant = FLinearColor::Black;
+        Material->Expressions.Append({Covered, Negated, Left, Black});
+        Material->Opacity.Expression = Left;
+        Material->Opacity.OutputIndex = 0;
+        Material->Opacity.Mask = 0;
+        Material->BaseColor.Expression = Black;
+        Material->BaseColor.OutputIndex = 0;
+        Material->BaseColor.Mask = 0;
+        // An AO decal draws nothing else (stock returns after its AO): no emissive pass of its own.
+        Material->EmissiveColor.Expression = nullptr;
+        Material->DecalBlendMode = DBM_DBuffer_Color;
+    }
 }
 void P4ApplyGameRefraction(UMaterial* Material)
 {
