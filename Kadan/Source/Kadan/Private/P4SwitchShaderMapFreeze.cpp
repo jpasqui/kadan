@@ -1,6 +1,7 @@
 #include "P4SwitchShaderMapFreeze.h"
 #include "P4MaterialInstancePermutation.h"
 #include "P4MaterialFactoryContext.h"
+#include "P4KadanMaterialExpressions.h"
 #include "P4MaterialGameSettings.h"
 #include "P4MaterialInstanceGameSettings.h"
 #include "P4SwitchGpuFactoryParameters.h"
@@ -589,6 +590,18 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         Instance->UpdateOverridableBaseProperties();
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
+    }
+    // The game's scene reads anywhere in the graph, material functions included, where the nodes cannot see the
+    // material they compile for: only translucent and post process materials, with the instance chain's blend mode.
+    {
+        TArray<UMaterialExpressionKadanSceneDepth*> Depths;
+        TArray<UMaterialExpressionKadanSceneColor*> Colors;
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Depths);
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Colors);
+        const UMaterialInterface* Effective = Parent;
+        if ((Depths.Num() || Colors.Num()) && Copy->MaterialDomain != MD_PostProcess &&
+            !IsTranslucentBlendMode(Effective->GetBlendMode()))
+            return Fail(TEXT("Only translucent and post process materials can read the game's scene depth or color."));
     }
     FMaterialResource* Resource = nullptr;
     {
