@@ -124,7 +124,7 @@ FString P4CreatorBlueprintIssue(const UBlueprint* Blueprint, const FString& Pack
     if (!IsValid(Blueprint) || !Blueprint->GeneratedClass || Blueprint->Status == BS_Error ||
         Blueprint->BlueprintType != BPTYPE_Normal || !Blueprint->ParentClass)
         return TEXT("Compile the Blueprint and fix its errors before exporting it.");
-    // A Blueprint in another mod's folder is that mod's, which is not the same as the game's own.
+    // A Blueprint outside the mod's content folders is not the mod's.
     const FString Elsewhere = P4ModContentPathIssue(PackageRoot, Blueprint->GetOutermost()->GetName());
     if (!Elsewhere.IsEmpty())
         return Elsewhere;

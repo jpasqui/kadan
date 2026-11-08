@@ -23,14 +23,10 @@ assets that your map uses, so [import those](/guides/import/) into your project.
 Open **Kadan > Mods and export**, click **New mod**, and give your mod a **Name**, an **ID**, and a
 **Version**, then click **Save**. For example, use `example.course` as the ID.
 
-Kadan makes your mod's own content folder and shows it in the Content Browser. Its name is the ID
-without dots and a code made from the ID, for example `/Game/Mods/examplecourse_4f96774102517940`.
+Kadan makes your mod's content folder and shows it in the Content Browser. It's named after the
+ID, with underscores for the dots that Unreal doesn't allow in a folder name: `/Game/Mods/example_course`.
 **Content folder** on the Mods page shows it again. Keep the levels, scene, and assets that you
 create in it, so they stay together, and make a `Maps` folder inside it for the map.
-
-Don't make a folder of your own in `/Game/Mods`. Each folder there belongs to the mod it's named
-after, so Kadan treats a folder such as `/Game/Mods/ExampleCourse` as another mod's and refuses
-what's in it. A folder of your own outside `/Game/Mods`, such as `/Game/ExampleCourse`, works too.
 
 Give the area a short name, such as `course`. Its destination ID is your mod's ID and the short
 name, joined by a colon. For example, `example.course:course` identifies this area.
@@ -147,15 +143,15 @@ for one build is:
     "course": {
       "name": "Terrain Course",
       "builds": [{
-        "world": "/Game/Mods/examplecourse_4f96774102517940/Maps/Area005_P",
-        "scene": "/Game/Mods/examplecourse_4f96774102517940/Maps/SD_Area005.SD_Area005"
+        "world": "/Game/Mods/example_course/Maps/Area005_P",
+        "scene": "/Game/Mods/example_course/Maps/SD_Area005.SD_Area005"
       }]
     }
   }
 }
 ```
 
-Use the paths from your own mod's content folder in place of `examplecourse_4f96774102517940`. `world` takes a
+Use the paths from your own mod's content folder in place of `example_course`. `world` takes a
 package path, while `scene` takes an object path with the asset name after the dot. The game's
 first base and startup configuration belong in the level and scene, and the manifest names those
 built assets.

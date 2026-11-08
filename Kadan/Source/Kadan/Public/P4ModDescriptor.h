@@ -18,7 +18,7 @@ struct FP4ModNames
 
 KADAN_API bool P4ValidateModDescriptor(const FP4ModDescriptor& Descriptor, FString& Error);
 KADAN_API bool P4ModDerivedNames(const FP4ModDescriptor& Descriptor, FP4ModNames& Out, FString& Error);
-// A path the mod's own content can have: anywhere under /Game except other mods' folders. Whether the
+// A path the mod's own content can have: anywhere under /Game except Kadan's live preview folder. Whether the
 // asset there is the game's is told by its game tag and the game's package list, never by its path.
 KADAN_API bool P4IsModContentPath(const FString& PackageRoot, const FString& Package);
 // Why a package is not at such a path, as a sentence for the person that names the mod's own folder. Empty when it is.

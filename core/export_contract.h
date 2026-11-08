@@ -73,11 +73,9 @@ inline bool Validate(const Descriptor& Mod, std::string& Error) {
 }
 inline bool DerivedNames(const Descriptor& Mod, Names& Result, std::string& Error) {
     if (!Validate(Mod, Error)) return false;
-    std::uint64_t Hash = UINT64_C(14695981039346656037);
+    // The mod's ID, with the dots Unreal does not allow in a folder name as underscores.
     std::string Slug;
-    for (unsigned char C : Mod.Id) { Hash = (Hash ^ C) * UINT64_C(1099511628211); if (C != '.') Slug += char(C); }
-    std::ostringstream Hex; Hex.imbue(std::locale::classic()); Hex << std::hex << std::setw(16) << std::setfill('0') << Hash;
-    Slug += '_' + Hex.str();
+    for (char C : Mod.Id) Slug += C == '.' ? '_' : C;
     // A live preview's mod has its packages in Kadan's preview folder, every other mod in its own folder.
     const std::string Folder = PreviewModId(Mod.Id) ? P4_PREVIEW_FOLDER "/" : P4_MODS_FOLDER "/";
     Result = Names{Folder + Slug, "kadan_" + Slug}; return true;
@@ -148,11 +146,11 @@ inline bool MapFiles(const Descriptor& Mod, const MapEdit& Map, std::string& Ent
     // Build privately. A failed conversion never returns half a manifest.
     if (!Validate(Mod, Error) || !PackageName(Map.Package)) { Error = "Invalid mod descriptor or map package"; return false; }
     Names Naming; if (!DerivedNames(Mod, Naming, Error)) return false;
-    // A creator's level ships at the path it has (Tsuchi loads any package path), except in another mod's folder.
+    // A creator's level ships at the path it has (Tsuchi loads any package path), except in Kadan's live preview folder.
     std::vector<std::string> SeenLevels;
     for (const auto& Level : Map.Levels) {
-        if (!PackageName(Level) || (ModFolderPackage(Level) && Level.compare(0, Naming.Root.size() + 1, Naming.Root + '/') != 0)) {
-            Error = "A mod level must be a package outside other mods' folders";
+        if (!PackageName(Level) || PreviewFolderPackage(Level)) {
+            Error = "A mod level must be a package outside Kadan's live preview folder";
             return false;
         }
         std::string Lower = Level;

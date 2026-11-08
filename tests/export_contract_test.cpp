@@ -8,7 +8,8 @@ int main(int Count, char** Args) {
     Descriptor Mod{"example.cave", "Cave \"mine\"", "1.2.3"};
     std::string Error; Names Naming;
     CHECK(DerivedNames(Mod, Naming, Error));
-    CHECK(Naming.Root.find('.') == std::string::npos);
+    CHECK(Naming.Root == "/Game/Mods/example_cave");
+    CHECK(Naming.Container == "kadan_example_cave");
     Names Other; CHECK(DerivedNames({"examplec.ave", "Other", "0.0.0"}, Other, Error));
     CHECK(Naming.Root != Other.Root);
     CHECK(Naming.Root.compare(0, 11, "/Game/Mods/") == 0);
@@ -37,14 +38,16 @@ int main(int Count, char** Args) {
     CHECK(FrameworkFiles(Mod, Map, Files, Error)); CHECK(Files.size() == 2);
     CHECK(Files["mod.json"].find("\"framework\":0,") != std::string::npos);
     {
-        // K05: a creator's level ships at its own path, as review accepts it. Another mod's folder is refused,
-        // and so is a level named twice, which Tsuchi would refuse while loading the map.
+        // A creator's level ships at its own path, in /Game/Mods too, as review accepts it. Kadan's live preview
+        // folder is refused, and so is a level named twice, which Tsuchi would refuse while loading the map.
         MapEdit Own; Own.Package = "/Game/Folder/Cave_P";
         Own.Levels = {"/Game/MyLevels/Mine", Naming.Root + "/Other"};
         std::map<std::string,std::string> Written;
         CHECK(FrameworkFiles(Mod, Own, Written, Error));
         CHECK(Written["mod.json"].find("\"levels\":[\"/Game/MyLevels/Mine\",\"" + Naming.Root + "/Other\"]") != std::string::npos);
         Own.Levels = {Other.Root + "/Mine"};
+        CHECK(FrameworkFiles(Mod, Own, Written, Error));
+        Own.Levels = {Preview.Root + "/Mine"};
         CHECK(!FrameworkFiles(Mod, Own, Written, Error));
         Own.Levels = {"/Game/MyLevels/Mine", "/Game/MyLevels/mine"};
         CHECK(!FrameworkFiles(Mod, Own, Written, Error));

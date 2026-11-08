@@ -85,7 +85,7 @@ bool FKadanModsPage::OpenContentFolder()
     FModuleManager::LoadModuleChecked<FContentBrowserModule>(TEXT("ContentBrowser")).Get().SyncBrowserToFolders({Root});
     Host.NoticeError = false;
     Host.Message = TEXT("Your mod's content folder is ") + Root +
-        TEXT(". Keep what you make for this mod in it, or in a folder of your own outside /Game/Mods.");
+        TEXT(". Keep what you make for this mod in it.");
     return true;
 }
 
