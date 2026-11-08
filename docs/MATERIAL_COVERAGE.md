@@ -14,10 +14,10 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 45 |
+| seen in the game | 53 |
 | draws in the game, its effect not checked yet | 45 |
-| draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 188 |
+| draws wrong in the game | 2 |
+| compiles, not seen in the game yet | 183 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
 
@@ -136,7 +136,8 @@ right. **Refused** rows name the message the export gives.
 | Feature | Status | Notes |
 | --- | --- | --- |
 | Decal blend mode DecalAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
-| Decal blend mode DecalAmbientOcclusion | compiles, not seen in the game yet |  |
+| Decal blend mode DecalAmbientOcclusion | draws wrong in the game | Eden, Area500, striped decal (the value swings across its range every quarter): no change at all, on the game's ground (4.8 per pixel, noise 2.8) or on a slab whose material takes every decal channel (0.1); cause not established (2026-11-08) |
+| Decal blend mode DecalAmbientOcclusionStripes | draws wrong in the game | Eden, Area500, striped decal (the value swings across its range every quarter): no change at all, on the game's ground (4.8 per pixel, noise 2.8) or on a slab whose material takes every decal channel (0.1); cause not established (2026-11-08) |
 | Decal blend mode DecalDBufferAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalDBufferColor | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalDBufferColorNormal | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
@@ -144,11 +145,15 @@ right. **Refused** rows name the message the export gives.
 | Decal blend mode DecalDBufferColorRoughness | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalDBufferEmissive | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
 | Decal blend mode DecalDBufferEmissiveAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
-| Decal blend mode DecalDBufferNormal | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferNormalRoughness | compiles, not seen in the game yet |  |
-| Decal blend mode DecalDBufferRoughness | compiles, not seen in the game yet |  |
+| Decal blend mode DecalDBufferNormal | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08) |
+| Decal blend mode DecalDBufferNormalRoughness | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (29 per pixel against 2.8 noise), and normal and roughness bands on a slab that takes both (29) (2026-11-08) |
+| Decal blend mode DecalDBufferNormalRoughnessStripes | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (29 per pixel against 2.8 noise), and normal and roughness bands on a slab that takes both (29) (2026-11-08) |
+| Decal blend mode DecalDBufferNormalStripes | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08) |
+| Decal blend mode DecalDBufferRoughness | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (mean change 32 per pixel against 2.8 noise) and on a slab (23) (2026-11-08) |
+| Decal blend mode DecalDBufferRoughnessStripes | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (mean change 32 per pixel against 2.8 noise) and on a slab (23) (2026-11-08) |
 | Decal blend mode DecalEmissive | seen in the game | Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08) |
-| Decal blend mode DecalNormal | compiles, not seen in the game yet |  |
+| Decal blend mode DecalNormal | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08) |
+| Decal blend mode DecalNormalStripes | seen in the game | Eden, Area500, striped decal (the value swings across its range every quarter): on a slab whose material takes decal normals (WorldGridMaterial, Color Normal Roughness) a 63-degree normal draws as dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground takes no decal normals, as its decal response says, so on it nothing changes (2026-11-08) |
 | Decal blend mode DecalStain | seen in the game | Eden, Area500: a decal projected onto the dirt turns it a darker pink than the translucent mode (+23,-7,+34 against +33,+18,+59): the stain multiplies the ground's colour (2026-11-08) |
 | Decal blend mode DecalTranslucent | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalVolumetricDistanceFunction | compiles, not seen in the game yet |  |

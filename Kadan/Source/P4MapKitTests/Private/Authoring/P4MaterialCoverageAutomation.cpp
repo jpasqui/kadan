@@ -28,6 +28,7 @@
 #include "Materials/MaterialExpressionCustomOutput.h"
 #include "Materials/MaterialExpressionFunctionInput.h"
 #include "Materials/MaterialExpressionFunctionOutput.h"
+#include "Materials/MaterialExpressionLinearInterpolate.h"
 #include "Materials/MaterialExpressionMakeMaterialAttributes.h"
 #include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionParameter.h"
@@ -514,6 +515,59 @@ TArray<FCoverageCase> SettingCases()
                 G->Roughness.Expression = Scalar(G, 0.2f);
                 G->Opacity.Expression = Scalar(G, 0.8f);
                 G->AmbientOcclusion.Expression = Scalar(G, 0.3f);
+                return true;
+            });
+    }
+    // The decal modes that change only the ground's normal, roughness or ambient occlusion, as stripes: the value
+    // swings across its whole range every quarter of the decal, so a mode that works draws a pattern (a uniform
+    // change on flat ground is lost in the scene's own frame-to-frame noise).
+    auto Stripes = [](UMaterial* G)
+    {
+        auto* U = Node<UMaterialExpressionTextureCoordinate>(G);
+        U->UTiling = 4.f;
+        U->VTiling = 4.f;
+        auto* Wave = Node<UMaterialExpressionSine>(G);
+        Wave->Input.Expression = U;
+        return Wave;
+    };
+    // Lerp(Mid, High, sine): Mid at the stripe edge, High and 2 Mid - High at its middles.
+    auto Swing = [Stripes](UMaterial* G, UMaterialExpression* Mid, UMaterialExpression* High)
+    {
+        auto* L = Node<UMaterialExpressionLinearInterpolate>(G);
+        L->A.Expression = Mid;
+        L->B.Expression = High;
+        L->Alpha.Expression = Stripes(G);
+        L->Alpha.Mask = 1;
+        L->Alpha.MaskR = 1;
+        return L;
+    };
+    const struct
+    {
+        EDecalBlendMode Mode;
+        const TCHAR* Id;
+        bool Normal, Roughness, Occlusion;
+    } Patterned[] = {{DBM_Normal, TEXT("DecalNormalStripes"), true, false, false},
+        {DBM_DBuffer_Normal, TEXT("DecalDBufferNormalStripes"), true, false, false},
+        {DBM_DBuffer_NormalRoughness, TEXT("DecalDBufferNormalRoughnessStripes"), true, true, false},
+        {DBM_DBuffer_Roughness, TEXT("DecalDBufferRoughnessStripes"), false, true, false},
+        {DBM_AmbientOcclusion, TEXT("DecalAmbientOcclusionStripes"), false, false, true}};
+    for (const auto& Each : Patterned)
+    {
+        const auto Case = Each;
+        Add(TEXT("domain"), Case.Id, *(FString(TEXT("Decal blend mode ")) + Case.Id),
+            [Case, Swing](UMaterial* G, const FCoverageContext&)
+            {
+                G->MaterialDomain = MD_DeferredDecal;
+                G->BlendMode = BLEND_Translucent;
+                G->DecalBlendMode = Case.Mode;
+                G->Opacity.Expression = Scalar(G, 1.f);
+                // A normal tilted 63 degrees one way, then the other.
+                if (Case.Normal)
+                    G->Normal.Expression = Swing(G, Color(G, 0.f, 0.f, 1.f), Color(G, 0.9f, 0.f, 0.45f));
+                if (Case.Roughness)
+                    G->Roughness.Expression = Swing(G, Scalar(G, 0.5f), Scalar(G, 1.f));
+                if (Case.Occlusion)
+                    G->AmbientOcclusion.Expression = Swing(G, Scalar(G, 0.5f), Scalar(G, 1.f));
                 return true;
             });
     }
