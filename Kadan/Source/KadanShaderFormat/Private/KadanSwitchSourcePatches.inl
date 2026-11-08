@@ -224,6 +224,22 @@ TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (Dif
 +++ replace
 	float MaterialAO = GetMaterialAmbientOcclusion(PixelMaterialInputs);
 	C4MaterialAO = MaterialAO;
+@@ pixel depth offset: the depth from w itself (the game's SvPosition.w, and so ScreenPosition's scale, is 1/w: the fragment's w as its programs read it, spirv_front.h), where stock adds the offset to a w it reads as w requires float DeviceDepth = min(MaterialParameters.ScreenPosition.z / (MaterialParameters.ScreenPosition.w + PixelDepthOffset), MaterialParameters.SvPosition.z);
+--- find
+	float DeviceDepth = min(MaterialParameters.ScreenPosition.z / (MaterialParameters.ScreenPosition.w + PixelDepthOffset), MaterialParameters.SvPosition.z);
++++ replace
+	float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+	float DeviceDepth = min(MaterialParameters.SvPosition.z * C4ViewW / (C4ViewW + PixelDepthOffset), MaterialParameters.SvPosition.z);
+@@ pixel depth offset: the offset the clamped depth leaves, in w requires float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+--- find
+	PixelDepthOffset = (MaterialParameters.ScreenPosition.z - DeviceDepth * MaterialParameters.ScreenPosition.w) / DeviceDepth;
++++ replace
+	PixelDepthOffset = (MaterialParameters.SvPosition.z - DeviceDepth) * C4ViewW / DeviceDepth;
+@@ pixel depth offset: the screen position's (and SvPosition's) w as the game's 1/w of the offset w requires float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+--- find
+	MaterialParameters.ScreenPosition.w += PixelDepthOffset;
++++ replace
+	MaterialParameters.ScreenPosition.w = 1 / (C4ViewW + PixelDepthOffset);
 @@ translucency: no pixel where the material is fully transparent, on materials with bC4MaterialParam10
 --- find
 	float  Opacity = GetMaterialOpacity(PixelMaterialInputs);

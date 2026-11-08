@@ -591,6 +591,22 @@ TArray<FCoverageCase> SettingCases()
             G->PixelDepthOffset.Expression = Scalar(G, 20.f);
             return true;
         });
+    Add(TEXT("inputs"), TEXT("PixelDepthOffsetSmall"), TEXT("Pixel Depth Offset (0.75 cm)"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            LitSurface(G, 0.4f, 0.9f, 0.9f);
+            G->PixelDepthOffset.Expression = Scalar(G, 0.75f);
+            return true;
+        });
+    Add(TEXT("inputs"), TEXT("PixelDepthOffsetMasked"), TEXT("Pixel Depth Offset on a masked material"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            LitSurface(G, 0.9f, 0.4f, 0.9f);
+            G->BlendMode = BLEND_Masked;
+            G->OpacityMask.Expression = Scalar(G, 1.f);
+            G->PixelDepthOffset.Expression = Scalar(G, 15.f);
+            return true;
+        });
     Add(TEXT("inputs"), TEXT("CustomizedUVs"), TEXT("Customized UVs"),
         [](UMaterial* G, const FCoverageContext& C)
         {

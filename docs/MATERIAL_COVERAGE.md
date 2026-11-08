@@ -14,9 +14,9 @@ right. **Refused** rows name the message the export gives.
 
 | Status | Rows |
 | --- | ---: |
-| seen in the game | 26 |
-| draws in the game, its effect not checked yet | 44 |
-| draws wrong in the game | 2 |
+| seen in the game | 28 |
+| draws in the game, its effect not checked yet | 45 |
+| draws wrong in the game | 1 |
 | compiles, not seen in the game yet | 203 |
 | refused | 5 |
 | UE4 refuses this setup too | 35 |
@@ -110,7 +110,9 @@ right. **Refused** rows name the message the export gives.
 | Normal (tangent space) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
 | Normal Curvature To Roughness | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
 | Normal (world space, Tangent Space Normal off) | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
-| Pixel Depth Offset | draws wrong in the game | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws nothing at all (shaders built, no Eden pipeline error). Likely the depth prepass draws it without the offset, so the base pass's farther depth fails the depth test (2026-11-08) |
+| Pixel Depth Offset | seen in the game | Eden, Area500 in sunlight: a cube 2.5 cm inside the 20 cm offset cube shows through it (only a thin rim of the outer cube left), while a 0.75 cm offset cube still hides the same inner cube (2026-11-08) |
+| Pixel Depth Offset on a masked material | draws in the game, its effect not checked yet | Eden, Area500 in sunlight: the masked cube with a 15 cm offset draws; its depth was not compared (2026-11-08) |
+| Pixel Depth Offset (0.75 cm) | seen in the game | Eden, Area500 in sunlight: draws, and a cube 2.5 cm inside it stays hidden: 0.75 cm of offset does not reach it (2026-11-08) |
 | Specular | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
 | Post process stencil test | compiles, not seen in the game yet |  |
 | Tessellation (PN triangles), World Displacement, multiplier | draws in the game, its effect not checked yet | Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08) |
