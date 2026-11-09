@@ -272,6 +272,8 @@ UObject* ReplaceMesh(UStaticMesh* Game, const FString& File, FString& Error)
     Factory->ImportUI->bImportTextures = false;
     Factory->ImportUI->bImportAnimations = false;
     Factory->ImportUI->StaticMeshImportData->bCombineMeshes = true;
+    // The file's painted colors, which the game mesh's materials read as masks. Unreal's default ignores them.
+    Factory->ImportUI->StaticMeshImportData->VertexColorImportOption = EVertexColorImportOption::Replace;
     // Collision shapes in the file (UCX_ and the like) are used, and a mesh without any gets collision made from its shape.
     Factory->ImportUI->StaticMeshImportData->bAutoGenerateCollision = true;
     bool Cancelled = false;

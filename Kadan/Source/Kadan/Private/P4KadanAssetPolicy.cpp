@@ -492,6 +492,16 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
         Out.StandIn = false;
         return Out;
     }
+    // A level's built lighting is what a lighting build of that level writes. The level is the creator's to edit, so a
+    // lighting build in the editor saves into it. An export bakes the lighting a mod needs.
+    if (Out.Original && Record.Kind == TEXT("built-lighting"))
+    {
+        Out.AllowEdit = true;
+        Out.ReferenceOnly = false;
+        Out.Reason = TEXT("This is the built lighting of a game level. Build Lighting in the editor writes it, and "
+                          "your export bakes the lighting your mod needs.");
+        return Out;
+    }
     const bool CreatorReplacement = P4HasCreatorSource(Source);
     FString IntrinsicPackage;
     if (CreatorReplacement)

@@ -52,6 +52,9 @@ struct FP4KadanImportPlan
     int32 NotYetRead = 0;
     int64 SourceBytes = 0, RemainingSourceBytes = 0;
 };
+// The start of an import note about game objects a level keeps in the game and the editor does not show.
+#define P4KadanNotInEditorPrefix TEXT("Not in the editor · ")
+
 struct FP4KadanImportResult
 {
     bool Ok = false, Cancelled = false;

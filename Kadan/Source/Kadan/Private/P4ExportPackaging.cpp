@@ -249,7 +249,7 @@ bool FP4ExportRun::PackContainer()
             // The container's .pak holds the library at tsuchi/mods/<mod>/, the only file in it. Without Tsuchi it
             // is the Wwise plugin's library: the engine opens each enabled plugin's library by itself.
             const FString PakFiles = Working / TEXT("pak");
-            const FString Library = TEXT("kadan_") + Names.Container.Right(16);
+            const FString Library = UTF8_TO_TCHAR(P4MapKit::Export::ShaderLibraryName(Mod).c_str());
             const FString Format = UTF8_TO_TCHAR(Build.Family->ShaderFormat);
             const FString LibraryFile = Request.Native
                 ? PakFiles / TEXT(P4_GAME_PROJECT "/Plugins/Wwise/Content") /
@@ -408,9 +408,13 @@ bool FP4ExportRun::Publish()
     {
         TArray<FString> PriorFiles;
         IFileManager::Get().FindFilesRecursive(PriorFiles, *Target, TEXT("*"), true, false);
-        const FString Expected = TEXT("romfs/" P4_GAME_PROJECT "/Content/Paks/") + Names.Container + TEXT("_P.");
+        // Kadan 0.3.1 named the container kadan_<ID>; that export is this mod's own too.
+        const FString Paks = TEXT("romfs/" P4_GAME_PROJECT "/Content/Paks/");
+        const FString Expected = Paks + Names.Container + TEXT("_P.");
+        const FString Legacy = Paks + TEXT("kadan_") + Names.Container + TEXT("_P.");
         for (FString File : PriorFiles)
-            if (!FPaths::MakePathRelativeTo(File, *(Target + TEXT("/"))) || !File.StartsWith(Expected))
+            if (!FPaths::MakePathRelativeTo(File, *(Target + TEXT("/"))) ||
+                !(File.StartsWith(Expected) || File.StartsWith(Legacy)))
                 return Fail(TEXT("Existing output is not an export of this mod identity"));
     }
     else if (HadTarget)
@@ -451,7 +455,7 @@ bool FP4ExportRun::Publish()
         }
         for (FString File : PriorFiles)
             if (!FPaths::MakePathRelativeTo(File, *(Target + TEXT("/"))) ||
-                !P4MapKit::Export::AllowedLightFunctionFile(Mod, TCHAR_TO_UTF8(*File), PriorLightFunctionRuntime, Why))
+                !P4MapKit::Export::AllowedPriorLightFunctionFile(Mod, TCHAR_TO_UTF8(*File), PriorLightFunctionRuntime, Why))
                 return Fail(TEXT("Existing output contains unrelated files, so it cannot be replaced"));
     }
     if (!P4ReportExportStage(EP4ExportStage::Publishing, Request.Mod.Id, Error))

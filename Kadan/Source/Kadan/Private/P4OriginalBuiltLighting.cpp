@@ -6,6 +6,8 @@
 #include "P4PackageSave.h"
 #include "P4StaticMeshBuild.h"
 #include "P4TextureBuild.h"
+#include "P4OriginalImportSave.h"
+#include "Containers/Ticker.h"
 #include "AssetRegistryModule.h"
 #include "ComponentRecreateRenderStateContext.h"
 #include "Components/LightComponent.h"
@@ -22,6 +24,7 @@
 #include "Misc/PackageName.h"
 #include "Misc/ScopeExit.h"
 #include "Misc/Paths.h"
+#include "HAL/PlatformFilemanager.h"
 #include "Serialization/CustomVersion.h"
 #include "Serialization/MemoryReader.h"
 #include "UObject/Package.h"
@@ -458,4 +461,69 @@ int32 P4ApplyOriginalBuiltLightingPreviews(UWorld* World)
         Level->InitializeRenderingResources();
     }
     return Plans.Num();
+}
+
+namespace
+{
+FDelegateHandle DirtyHandle;
+
+// A registry Kadan made from the game's built lighting, as opposed to one a creator's own level owns.
+bool IsGameRegistry(UMapBuildDataRegistry* Registry)
+{
+    if (!IsValid(Registry))
+        return false;
+    const FP4OriginalStatus Status = P4QueryOriginalAsset(Registry);
+    return Status.Error.IsEmpty() && Status.Record.ReferenceOnly && Status.Record.ComparisonSchema == Schema;
+}
+} // namespace
+
+bool P4KeepGameBuiltLightingOutOfSave(UWorld* LevelWorld)
+{
+    if (!IsInGameThread() || !LevelWorld || !LevelWorld->PersistentLevel)
+        return false;
+    ULevel* Level = LevelWorld->PersistentLevel;
+    UMapBuildDataRegistry* Registry = Level->MapBuildData;
+    if (!Registry || Registry->GetOutermost() == LevelWorld->GetOutermost() || Registry->GetOutermost()->IsDirty() ||
+        !IsGameRegistry(Registry))
+        return false;
+    // The level is already written with its reference to the registry; only the editor's follow-up save reads this.
+    Level->MapBuildData = nullptr;
+    const TWeakObjectPtr<ULevel> Lent(Level);
+    const TWeakObjectPtr<UMapBuildDataRegistry> Held(Registry);
+    FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+        [Lent, Held](float)
+        {
+            ULevel* Back = Lent.Get();
+            if (Back && !Back->MapBuildData && Held.IsValid())
+                Back->MapBuildData = Held.Get();
+            return false;
+        }));
+    return true;
+}
+
+void P4StartGameBuiltLightingGuard()
+{
+    if (DirtyHandle.IsValid())
+        return;
+    DirtyHandle = UPackage::PackageMarkedDirtyEvent.AddLambda(
+        [](UPackage* Package, bool WasDirty)
+        {
+            if (WasDirty || !Package || !IsInGameThread() || P4ImportPublication::IsImporting())
+                return;
+            UMapBuildDataRegistry* Registry =
+                FindObject<UMapBuildDataRegistry>(Package, *FPackageName::GetShortName(Package));
+            FString File;
+            if (!IsGameRegistry(Registry) || !FPackageName::DoesPackageExist(Package->GetName(), nullptr, &File))
+                return;
+            IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
+            File = FPaths::ConvertRelativePathToFull(File);
+            if (Files.IsReadOnly(*File))
+                Files.SetReadOnly(*File, false);
+        });
+}
+
+void P4StopGameBuiltLightingGuard()
+{
+    UPackage::PackageMarkedDirtyEvent.Remove(DirtyHandle);
+    DirtyHandle.Reset();
 }

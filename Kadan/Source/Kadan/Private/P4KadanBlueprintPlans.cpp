@@ -160,7 +160,8 @@ std::shared_ptr<const P4MapKit::Blueprint::FVerifiedImportIdentities> ReadIdenti
     const std::vector<std::uint8_t>& Header, const std::vector<std::uint8_t>& Body,
     const FP4KadanImportSettings& Settings, FP4CurrentGameRegistryPtr& SharedReader,
     FP4OriginalZenSourceBatch& OriginalBatch, FP4OriginalZenSourcePtr& Original,
-    const TSharedPtr<FBlueprintPlanBoundSource>& Source, bool& ReadOriginal)
+    const TSharedPtr<FBlueprintPlanBoundSource>& Source, bool& ReadOriginal,
+    const TMap<FString, TSharedPtr<FP4KadanSourceAsset>>& Converted)
 {
     using namespace P4MapKit::Blueprint;
     ReadOriginal = false;
@@ -212,7 +213,27 @@ std::shared_ptr<const P4MapKit::Blueprint::FVerifiedImportIdentities> ReadIdenti
                     auto Value = RecoverImportIdentities(Header, Body,
                         std::vector<uint8>(Raw.GetData(), Raw.GetData() + Raw.Num()),
                         std::vector<uint8>(Metadata.GetData(), Metadata.GetData() + Metadata.Num()), SourcePackage,
-                        HashIdentityName);
+                        HashIdentityName,
+                        [&Converted](const std::string& Imported)
+                        {
+                            // The export names of a package this one imports, from its converted header.
+                            std::vector<std::string> Out;
+                            const TSharedPtr<FP4KadanSourceAsset>* Found =
+                                Converted.Find(FString(UTF8_TO_TCHAR(Imported.c_str())));
+                            TArray<uint8> Bytes;
+                            if (!Found || !Found->IsValid() ||
+                                !FFileHelper::LoadFileToArray(Bytes, *(*Found)->Header, FILEREAD_Silent))
+                                return Out;
+                            const int64 BodySize = IFileManager::Get().FileSize(*(*Found)->Body);
+                            const auto Inventory = P4MapKit::ReadPackageHeader(
+                                std::vector<std::uint8_t>(Bytes.GetData(), Bytes.GetData() + Bytes.Num()),
+                                std::size_t(FMath::Max<int64>(BodySize, 0)));
+                            if (!Inventory.Error.Code.empty())
+                                return Out;
+                            for (const auto& Export : Inventory.Exports)
+                                Out.push_back(Export.Name);
+                            return Out;
+                        });
                     Verified = std::make_shared<const FVerifiedImportIdentities>(std::move(Value));
                     // The class-default proof reads these converted bytes again later in the run.
                     P4RememberImportIdentities(Package, Header, Body, Verified->Imports());
@@ -368,7 +389,7 @@ bool P4KadanPlanBlueprints(const TArray<TSharedPtr<FP4KadanSourceAsset>>& Scanne
             File.Body.assign(File.Source->Binding.Body.GetData(),
                 File.Source->Binding.Body.GetData() + File.Source->Binding.Body.Num());
             File.Identities = ReadIdentities(Package, File.Header, File.Body, Settings, SharedReader, Originals,
-                File.Original, File.Source, ReadOriginal);
+                File.Original, File.Source, ReadOriginal, ByPackage);
             File.RequireCurrent();
         }
         catch (const FBlueprintPlanSourceError& Why)

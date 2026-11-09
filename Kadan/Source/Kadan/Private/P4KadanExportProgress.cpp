@@ -12,6 +12,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SWindow.h"
 #include "Widgets/Text/STextBlock.h"
+#include "FeedbackContextEditor.h"
 
 namespace
 {
@@ -31,9 +32,35 @@ FString StageName(EP4ExportStage Stage)
         return TEXT("Packing");
     case EP4ExportStage::Checking:
         return TEXT("Checking");
+    case EP4ExportStage::Materials:
+        return TEXT("Materials");
     default:
         return TEXT("Publishing");
     }
+}
+// The editor's feedback context, which also repaints the progress window whenever Unreal reports progress of its
+// own: loading a package, compiling shaders, saving a cooked package. The export runs on the editor's thread, so
+// without this the window would only repaint between Kadan's steps and its clock and Cancel button would freeze.
+class FProgressFeedback : public FFeedbackContextEditor
+{
+  public:
+    TFunction<void()> Pulse;
+
+  protected:
+    virtual void ProgressReported(const float TotalProgressInterp, FText DisplayMessage) override
+    {
+        FFeedbackContextEditor::ProgressReported(TotalProgressInterp, DisplayMessage);
+        if (Pulse)
+            Pulse();
+    }
+};
+
+// GWarn points here only while an export runs; the object itself lives as long as the module, so code that read
+// GWarn during the export never holds a dangling pointer.
+FProgressFeedback& ProgressFeedback()
+{
+    static FProgressFeedback Feedback;
+    return Feedback;
 }
 } // namespace
 
@@ -85,10 +112,9 @@ void P4KadanProgressOperation(TFunction<void()> Work)
                         .AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([State]() {
                             return FText::FromString(
                                 !State->CanCancel ? TEXT("Publication is in progress. Wait for it to finish.")
-                                : State->Canceled ? TEXT("Kadan will cancel before the next stage. The "
-                                                         "current step must finish first.")
-                                                  : TEXT("You can cancel before the next stage. The current "
-                                                         "step must finish first."));
+                                : State->Canceled ? TEXT("Canceling. Kadan stops after the step it is on.")
+                                                  : TEXT("Cancel stops the export after the step it is on. Your "
+                                                         "earlier export stays as it was."));
                         })] +
                     SVerticalBox::Slot()
                         .AutoHeight()
@@ -140,8 +166,14 @@ void P4KadanProgressOperation(TFunction<void()> Work)
                 Paint();
                 return !State->Canceled;
             },
-            Paint);
+            Paint, [State]() { return State->Canceled && State->CanCancel; });
+        FProgressFeedback& Feedback = ProgressFeedback();
+        Feedback.Pulse = Paint;
+        FFeedbackContext* const Before = GWarn;
+        GWarn = &Feedback;
         Work();
+        GWarn = Before;
+        Feedback.Pulse = nullptr;
     }
     Window->RequestDestroyWindow();
 }

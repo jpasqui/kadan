@@ -42,7 +42,8 @@ changes need, and your mod includes them.
 </Steps>
 
 The progress window shows the current stage, asset or map, elapsed time, and completed
-stages. **Cancel export** stops before the next stage.
+stages. **Cancel export** stops after the step the export is on, and your last export stays as it
+was. If an export stops, Kadan shows why in a window and in the Output Log.
 
 ## Assets
 
@@ -227,6 +228,11 @@ attached to another actor, or an actor that isn't a static mesh actor. The expor
 each actor that stays unbaked and says why. If the map that you added actors to isn't open in the
 editor, they're all exported without baked lighting. Open the map and export again to bake them.
 
+Kadan imports each game map with the game's built lighting, so the game's own meshes are lit as
+they are in the game. A mesh that you add has no baked lighting yet, so it draws dark in the
+editor. **Build** > **Build Lighting Only** lights it, and saving the map saves that build in the
+map's `_BuiltData` files. Your export bakes the lighting that your changes need either way.
+
 If your changes affect where Pikmin can walk, Kadan builds the map's navigation again and turns
 it into the game's navigation file, so Pikmin's routes go around your collision.
 
@@ -249,7 +255,8 @@ changes, and dependencies. Map-change files, navigation, creature AI settings, a
 shader files go beside it in `romfs/tsuchi/mods/<your-mod-id>`.
 
 Your assets, placement lists, sublevels, and lighting build data ship in `.pak`, `.ucas`, and
-`.utoc` files in that same folder, beside `mod.json`. Tsuchi loads them only while your mod is
+`.utoc` files in that same folder, beside `mod.json`. They're named after the mod's ID, such as
+`example_cave_P.pak`. Tsuchi loads them only while your mod is
 on. Supported original actor Blueprints ship whole at their game paths. Other unchanged game
 assets stay references.
 
@@ -271,6 +278,10 @@ Some parts of a mod need Tsuchi. With this option on, What ships lists them as t
 - New treasure and creature kinds. Tsuchi gives them their IDs and keeps them in the save.
 - Your own sounds. They play through the sound bank that Tsuchi loads.
 - Directional light functions. Tsuchi keeps a shadow channel for them.
+
+If you add a mesh to an edited level, or move or remove one of the game's lit objects, Kadan
+rebakes the map's lighting with the level as you left it, and the level ships with its new
+lighting. Keep the map open when you export.
 
 Maps that you edit keep the game's Pikmin paths, so Pikmin don't walk around the collision that
 you add. Your materials' shaders go into a shader library that the game opens when it starts.

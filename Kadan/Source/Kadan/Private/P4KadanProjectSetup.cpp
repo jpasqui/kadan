@@ -6,6 +6,7 @@
 #include "Engine/CollisionProfile.h"
 #include "Engine/World.h"
 #include "Interfaces/IPluginManager.h"
+#include "Interfaces/IProjectManager.h"
 #include "NavigationData.h"
 #include "GameFramework/WorldSettings.h"
 #include "HAL/FileManager.h"
@@ -50,16 +51,40 @@ const UClass* SectionClass(const FString& Header)
     return FindObject<UClass>(nullptr, *Header.Mid(1, Header.Len() - 2));
 }
 
+// Whether the plugin of the game's type declarations is there but off in this project, which setup can change.
+bool DeclarationsOff()
+{
+    const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(DeclarationsPlugin);
+    return Plugin.IsValid() && !Plugin->IsEnabled();
+}
+
 bool DeclarationsReady(FString& Why)
 {
-    const TArray<FString> Modules = P4KadanDeclarationModules();
-    bool Loaded = Modules.Num() > 0;
-    for (const FString& Module : Modules)
-        Loaded = Loaded && FModuleManager::Get().IsModuleLoaded(*Module);
-    if (!Loaded)
+    const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(DeclarationsPlugin);
+    if (!Plugin.IsValid())
     {
-        Why = TEXT(
-            "This project needs game type declarations before importing maps. Set up those declarations and restart Unreal Editor.");
+        Why = TEXT("Kadan can't find its P4Stubs plugin, which tells Unreal the game's types. Close Unreal Editor, put "
+                   "the P4Stubs folder from the Kadan zip beside the Kadan folder in your Plugins folder, then open the "
+                   "project again.");
+        return false;
+    }
+    if (!Plugin->IsEnabled())
+    {
+        Why = ChangedThisSession ? TEXT("P4Stubs is turned on for this project. Restart Unreal Editor to load it.")
+                                 : TEXT("The P4Stubs plugin is turned off in this project. Setup turns it on.");
+        return false;
+    }
+    const TArray<FString> Modules = P4KadanDeclarationModules();
+    FString Missing;
+    for (const FString& Module : Modules)
+        if (!FModuleManager::Get().IsModuleLoaded(*Module))
+            Missing = Module;
+    if (!Modules.Num() || !Missing.IsEmpty())
+    {
+        Why = FString::Printf(TEXT("Unreal did not load the P4Stubs plugin's %s module. Check that the P4Stubs folder "
+                                   "is the one from this Kadan zip, then restart Unreal Editor. The Output Log says "
+                                   "why it was not loaded."),
+            Modules.Num() ? *Missing : TEXT("game type"));
         return false;
     }
     for (TObjectIterator<UClass> Class; Class; ++Class)
@@ -319,6 +344,12 @@ bool P4KadanProjectConfig(
     return true;
 }
 
+bool P4KadanSetupCanFinish()
+{
+    FString Ignored;
+    return DeclarationsOff() || DeclarationsReady(Ignored);
+}
+
 bool P4KadanProjectRestartRequired()
 {
     return ChangedThisSession;
@@ -352,9 +383,34 @@ bool P4KadanProjectReady(FString& Why)
     return true;
 }
 
+// Turns the declarations plugin on in the project file, as Unreal's Plugins window does. It loads in the next session.
+static bool EnableDeclarations(FString& Why)
+{
+    FText Failure;
+    if (!IProjectManager::Get().SetPluginEnabled(DeclarationsPlugin, true, Failure) ||
+        !IProjectManager::Get().SaveCurrentProjectToDisk(Failure))
+    {
+        Why = TEXT("Kadan could not turn on the P4Stubs plugin: ") + Failure.ToString() +
+            TEXT(" Turn on Kadan game types in Edit > Plugins, then restart Unreal Editor.");
+        return false;
+    }
+    ChangedThisSession = true;
+    return true;
+}
+
 FP4KadanProjectSetupResult P4KadanSetupProject(const FString& GamePaks, const FString& Repak)
 {
     FP4KadanProjectSetupResult Result;
+    // The game's settings name its types, so P4Stubs has to be loaded before they can be copied: when it is off, setup
+    // turns it on and finishes after the restart.
+    if (DeclarationsOff())
+    {
+        Result.Ok = EnableDeclarations(Result.Message);
+        Result.RestartRequired = Result.Ok;
+        if (Result.Ok)
+            Result.Message = TEXT("Turned on the P4Stubs plugin. Restart Unreal Editor, then Kadan finishes the setup.");
+        return Result;
+    }
     if (!DeclarationsReady(Result.Message))
         return Result;
     const FString Pak = FPaths::Combine(GamePaks, P4GameContainerIn(GamePaks) + TEXT(".pak"));

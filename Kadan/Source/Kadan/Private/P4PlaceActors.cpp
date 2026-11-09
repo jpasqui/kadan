@@ -6,6 +6,7 @@
 #include "P4KadanReadOnly.h"
 #include "P4OriginalLevelImport.h"
 #include "P4OriginalRecord.h"
+#include "P4OriginalBuiltLighting.h"
 #include "P4OriginalComponentReferences.h"
 #include "P4CollisionHelperDisplay.h"
 #include "Engine/World.h"
@@ -97,6 +98,7 @@ void FKadanModule::StartupModule()
     P4RegisterEngineDeclarations();
     // Before any world Kadan makes can be collected: see P4SceneTeardown.h.
     P4StartSceneTeardownGuard();
+    P4StartGameBuiltLightingGuard();
     P4StartOriginalActorAttachments();
     // The game classes (P4Stubs) load before this module; their animation stand-ins are in place before
     // any map opens.
@@ -207,6 +209,8 @@ void FKadanModule::AfterEngineInit()
             {
                 P4GiveNavigationBoundsForSave(World, false);
                 P4SetNativePreviewsSuspended(false);
+                // Last, once the previews are back: Unreal saves the level's built lighting right after this.
+                P4KeepGameBuiltLightingOutOfSave(World);
             });
     // Startup lists loaded actor classes. The explicit refresh discovers saved Blueprints
     // after the editor is ready rather than loading their entire dependency closures here.
@@ -301,6 +305,7 @@ void FKadanModule::ShutdownModule()
     P4StopMaterialCollectionReadiness();
     P4StopGameFunctionStandIns();
     P4StopSceneTeardownGuard();
+    P4StopGameBuiltLightingGuard();
     FCoreUObjectDelegates::OnAssetLoaded.Remove(OriginalAssetLoadedHandle);
     FCoreDelegates::OnPostEngineInit.Remove(EngineInitHandle);
     if (GEditor && BlueprintHandle.IsValid())

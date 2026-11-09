@@ -1,6 +1,10 @@
 #pragma once
 #include "P4KadanPanel.h"
 
+// Whether a package path matches the Import page's search: text anywhere in the path, ignoring case. * stands for
+// any text and ? for one character, so Cave0*Soil finds the soil of every Cave0 map.
+KADAN_API bool P4KadanSearchMatches(const FString& Package, const FString& Search);
+
 namespace P4KadanEditorPrivate
 {
 // The Import page: the game folder and project setup, the source browser and the import of selected content.
@@ -71,7 +75,8 @@ class FKadanImportPage
 
     // Rewrites the project's collision, navigation and world settings from the game. Only an
     // explicit click runs it, so a creator's own config edits are never replaced unasked.
-    void SetUpProject();
+    void SetUpProject(bool Automatic = false);
+    void AutoSetUpProject();
 
     void FieldChanged(FString &Value);
 

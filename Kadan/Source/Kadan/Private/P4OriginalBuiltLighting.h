@@ -31,3 +31,12 @@ KADAN_API void P4HoldOriginalBuiltLightingOfRegistry(UMapBuildDataRegistry* Regi
 // the import kept. These are previews (P4NativeConstructionPreview.h): a save or an export sees the level as imported.
 // Returns how many levels were given their lighting.
 KADAN_API int32 P4ApplyOriginalBuiltLightingPreviews(UWorld* World);
+// Unreal's Save Current Level saves the level's built lighting package right after the level, changed or not
+// (FEditorFileUtils::SaveMapDataPackages). Called once the level is written (PostSaveWorld): when the game's registry
+// the level refers to is unchanged, the level gives it up until the next editor tick, so the follow-up save leaves the
+// game's file as imported. A registry a lighting build changed is saved. Returns whether it gave it up.
+KADAN_API bool P4KeepGameBuiltLightingOutOfSave(UWorld* LevelWorld);
+// A lighting build in the editor writes into the game's registry of each level it lights, and the save writes it. A
+// project made with Kadan 0.3.1 has the registry's file marked read-only; the first change makes it writable again.
+void P4StartGameBuiltLightingGuard();
+void P4StopGameBuiltLightingGuard();

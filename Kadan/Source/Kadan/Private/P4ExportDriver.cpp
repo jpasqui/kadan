@@ -6,6 +6,7 @@
 #include "P4KadanImport.h"
 #include "P4KadanSourceCatalog.h"
 #include "P4GameMaterialUsage.h"
+#include "P4CreatorSurfaceAdvice.h"
 #include "P4NativeConstructionPreview.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -26,11 +27,23 @@ FP4ExportRun::FP4ExportRun(const FP4ExportModRequest& InRequest, FP4ExportModRes
 
 bool FP4ExportRun::Execute()
 {
-    return Review() && ReadDeclarations() && ReadLevelEdits() && BuildPlacementLists() &&
-        PreflightCreatorReferences() && PrepareWorkFolders() && StageMaterials() && BuildNavigation() &&
-        ChooseLightingMap() && TellGameMaterialUsage() && ExportAddedLevels() && BuildLighting() && CookPlacementLists() && CookWholeLevels() &&
-        CookNativeTables() && CookOwnPackages() &&
-        WriteManifest() && PackContainer() && WritePreparedFiles() && Publish();
+    using FStep = bool (FP4ExportRun::*)();
+    static const FStep Steps[] = {&FP4ExportRun::Review, &FP4ExportRun::ReadDeclarations, &FP4ExportRun::ReadLevelEdits,
+        &FP4ExportRun::BuildPlacementLists, &FP4ExportRun::PreflightCreatorReferences, &FP4ExportRun::PrepareWorkFolders,
+        &FP4ExportRun::StageMaterials, &FP4ExportRun::BuildNavigation, &FP4ExportRun::ChooseLightingMap,
+        &FP4ExportRun::TellGameMaterialUsage, &FP4ExportRun::ExportAddedLevels, &FP4ExportRun::BuildLighting,
+        &FP4ExportRun::CookPlacementLists, &FP4ExportRun::CookWholeLevels, &FP4ExportRun::CookNativeTables,
+        &FP4ExportRun::CookOwnPackages, &FP4ExportRun::WriteManifest, &FP4ExportRun::PackContainer,
+        &FP4ExportRun::WritePreparedFiles, &FP4ExportRun::Publish};
+    for (const FStep Step : Steps)
+    {
+        // Between steps the progress window repaints and a cancel the creator asked for takes effect.
+        if (!P4ContinueExport(Error))
+            return Fail(Error);
+        if (!(this->*Step)())
+            return false;
+    }
+    return true;
 }
 
 bool FP4ExportRun::Fail(const FString& Problem)
@@ -151,6 +164,16 @@ bool FP4ExportRun::ReadLevelEdits()
                 // Without Tsuchi nothing swaps a map's navigation: the level keeps the navigation it holds.
                 Edit.Navigation = !Request.Native;
                 Edit.NavigationWhy = TEXT("The whole level");
+                // The level keeps the game's built lighting only while nothing drawn with it changed. A mesh added
+                // to it or a lit actor of the game's moved or taken out has no baked lighting there (it draws black
+                // in a cave), so the map's lighting is built again with the level as it is and ships with it, as the
+                // export of a list of changes does for the game's lit actors. A level whose changes cannot be read
+                // is built again too.
+                {
+                    const FP4LevelChangesResult Changes = P4AnalyzeOriginalLevelChanges(World);
+                    Edit.RebuildLighting =
+                        !Changes.IsValid() || Changes.LitByGame.Num() > 0 || Changes.AddedUnlit.Num() > 0;
+                }
                 // The creator's assets the level names (an added cube's mesh, the materials set on it), so they
                 // are staged and cooked as an added actor's would be.
                 TArray<UObject*> Objects, Referenced;
@@ -283,14 +306,14 @@ bool FP4ExportRun::PrepareWorkFolders()
         !IFileManager::Get().MakeDirectory(*Working, true) || !IFileManager::Get().DirectoryExists(*Working))
         return Fail(TEXT("Kadan could not prepare the export work folders."));
     const FString Lock = Target + TEXT(".lock");
-    Guard.Reset(IFileManager::Get().CreateFileWriter(*Lock, FILEWRITE_NoReplaceExisting));
+    Guard = P4HoldLockFile(Lock);
     if (!Guard)
         return Fail(TEXT("Another export holds this mod's output lock"));
     Release.Emplace(Guard, Lock);
     // Exports of one mod to other destinations, or from another project, can choose the same work folder. Hold it
     // too, so no other export resets the prepared and cooked files this one is using.
     const FString WorkLock = Working + TEXT(".lock");
-    WorkGuard.Reset(IFileManager::Get().CreateFileWriter(*WorkLock, FILEWRITE_NoReplaceExisting));
+    WorkGuard = P4HoldLockFile(WorkLock);
     if (!WorkGuard)
         return Fail(
             TEXT("Another export of this mod is using its work folder. Wait for it to finish, then export again."));
@@ -326,6 +349,8 @@ bool FP4ExportRun::PrepareWorkFolders()
 
 bool FP4ExportRun::StageMaterials()
 {
+    if (!P4ReportExportStage(EP4ExportStage::Materials, Request.Mod.Id, Error))
+        return Fail(Error);
     // Actors added to a game level go into a level of the mod's own. The game level itself is never cooked.
     if (!Request.ExtractedGameDirectory.IsEmpty())
         GameFiles = IFileManager::Get().DirectoryExists(
@@ -823,6 +848,12 @@ bool FP4ExportRun::CookOwnPackages()
                 CookedBase(Stage, Package) +
                     (Availability.Route == EP4ExportAssetRoute::CreatorLevel ? TEXT(".umap") : TEXT(".uasset"))))
             return Fail(Error);
+        if (Availability.Route == EP4ExportAssetRoute::CreatorStaticMesh)
+        {
+            const FString Colors = P4IgnoredVertexColorsNote(Cast<UStaticMesh>(Asset));
+            if (!Colors.IsEmpty())
+                Result.Told.AddUnique(Colors);
+        }
         FP4GameReplacement Replaced;
         if (P4IsGameReplacement(Asset, &Replaced) && !Result.Replacements.Contains(Package))
         {

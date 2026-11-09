@@ -1,5 +1,6 @@
 #include "P4KadanPanelImportPage.h"
 #include "P4ExportContainer.h"
+#include "Misc/MessageDialog.h"
 
 namespace P4KadanEditorPrivate
 {
@@ -62,10 +63,24 @@ void FKadanImportPage::PrepareGameFolder()
     if (!ReadSource() || Host.UseExtractedPackages)
         return;
     PreparedGameLocation = Host.GameLocation;
+    AutoSetUpProject();
 }
-// Rewrites the project's collision, navigation and world settings from the game. Only an
-// explicit click runs it, so a creator's own config edits are never replaced unasked.
-void FKadanImportPage::SetUpProject()
+
+// Setup is done once per project, so Kadan runs it by itself the first time it has the game folder in a project that
+// needs it, then asks to restart. Set up project stays for when that could not finish.
+void FKadanImportPage::AutoSetUpProject()
+{
+    static bool Tried = false;
+    if (Tried || ProjectReady || RestartRequired || FApp::IsUnattended() || Host.UseExtractedPackages ||
+        Host.GamePaks.IsEmpty() || !IFileManager::Get().FileExists(*Host.Repak) || !P4KadanSetupCanFinish())
+        return;
+    Tried = true;
+    SetUpProject(true);
+}
+
+// Rewrites the project's collision, navigation and world settings from the game: they are what the game's own
+// editor used, and the creator's other settings stay.
+void FKadanImportPage::SetUpProject(bool Automatic)
 {
     if (Host.UseExtractedPackages)
     {
@@ -84,8 +99,17 @@ void FKadanImportPage::SetUpProject()
     Host.Message = Result.Message;
     RefreshProjectSetup();
     // The settings take effect in a new editor session. Unreal asks to save open work before it restarts.
-    if (Result.Ok && RestartRequired)
-        FUnrealEdMisc::Get().RestartEditor(true);
+    if (!Result.Ok || !RestartRequired)
+        return;
+    const FText Title = FText::FromString(TEXT("Kadan setup"));
+    if (Automatic &&
+        FMessageDialog::Open(EAppMsgType::YesNo,
+            FText::FromString(TEXT("Kadan set this project up for the game: ") + Result.Message +
+                TEXT("\n\nRestart Unreal Editor now? Unreal asks you to save your work first. The first start after "
+                     "setup may take a while: Unreal compiles thousands of shaders for the game's renderer.")),
+            &Title) != EAppReturnType::Yes)
+        return;
+    FUnrealEdMisc::Get().RestartEditor(true);
 }
 
 void FKadanImportPage::QueueGameFolder()
@@ -373,7 +397,19 @@ void FKadanImportPage::ShowImportResult(const FP4KadanImportResult& Result)
                 (Why.IsEmpty() ? FString() : TEXT(" ") + Why));
         }
     Stayed.Sort();
-    if (Stayed.Num())
+    // Game objects the editor does not show come right after: they are in the game after an export all the same.
+    int32 NotShown = 0;
+    for (const FString& Warning : Result.Warnings)
+        if (Warning.StartsWith(P4KadanNotInEditorPrefix))
+        {
+            Stayed.Add(Warning);
+            ++NotShown;
+        }
+    if (NotShown)
+        Host.Message += FString::Printf(TEXT(" %d level%s keep%s some of the game's objects out of the editor; they "
+                                             "stay in the game. The Output Log names them."),
+            NotShown, NotShown == 1 ? TEXT("") : TEXT("s"), NotShown == 1 ? TEXT("s") : TEXT(""));
+    if (Stayed.Num() > NotShown)
     {
         Host.Message += TEXT(" The Output Log lists the selected packages that stayed in the game.");
         Host.NoticeError = true;
@@ -418,7 +454,8 @@ void FKadanImportPage::ShowImportResult(const FP4KadanImportResult& Result)
     for (const FString& Problem : Result.Problems)
         ImportNotes.Add(MakeShared<FString>(TEXT("Issue · ") + Problem));
     for (const FString& Warning : Result.Warnings)
-        ImportNotes.Add(MakeShared<FString>(TEXT("Note · ") + Warning));
+        if (!Warning.StartsWith(P4KadanNotInEditorPrefix))
+            ImportNotes.Add(MakeShared<FString>(TEXT("Note · ") + Warning));
     // The notes go to the Output Log, which the notice links when there are any.
     for (const auto& Note : ImportNotes)
         UE_LOG(LogTemp, Display, TEXT("Kadan import: %s"), **Note);
