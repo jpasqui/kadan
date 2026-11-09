@@ -620,7 +620,8 @@
    "family": "domain",
    "id": "DecalAmbientOcclusionAttributes",
    "feature": "Decal blend mode DecalAmbientOcclusion through Use Material Attributes (stripes)",
-   "status": "compiles"
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: through Use Material Attributes the AO decal is drawn as a darkening DBuffer colour decal, as the AO input's: the ground and rock wall in its box are 10.6 per pixel darker than without it (sky unchanged). The stripe bands were not resolved in that view (2026-11-09)"
   },
   {
    "family": "domain",
@@ -1779,7 +1780,8 @@
    "family": "nodes",
    "id": "RoundOfVector",
    "feature": "Round node of a vector constant (0.5, 1.5, 0.5)",
-   "status": "compiles"
+   "status": "game",
+   "seen": "Eden, Cave000_F00: an unlit cube with Round of the constant (0.5, 1.5, 0.5) in its emissive draws pale mint (201, 230, 203): R and B rounded up to 1, G to 2, as UE rounds a constant on the CPU, half up. Rounded half to even it would be (0, 2, 0), pure green (2026-11-09)"
   },
   {
    "family": "nodes",
