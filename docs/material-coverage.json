@@ -1,0 +1,2291 @@
+{
+ "rows": [
+  {
+   "family": "translucency",
+   "id": "ContactShadows",
+   "feature": "Contact Shadows (translucent)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "CustomDepthWrites",
+   "feature": "Allow Custom Depth Writes",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "DisableDepthTest",
+   "feature": "Disable Depth Test",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a cube 2 m under the floor draws over the floor and a ridge; the same cube with the depth test on stays hidden (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOffLit",
+   "feature": "Apply Fogging off, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOffUnlit",
+   "feature": "Apply Fogging off, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOnLit",
+   "feature": "Apply Fogging on, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogOnUnlit",
+   "feature": "Apply Fogging on, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogPerPixelLit",
+   "feature": "Compute Fog Per Pixel, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "FogPerPixelUnlit",
+   "feature": "Compute Fog Per Pixel, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "Numbers",
+   "feature": "Directional Lighting Intensity, shadow density, self-shadow and backscattering numbers",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "OutputVelocity",
+   "feature": "Output Velocity",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "Refraction",
+   "feature": "Refraction input (index 1.33)",
+   "status": "game",
+   "seen": "Eden, Area500, cube turned 45 degrees in front of the wall and pots: the scene behind is bent (correlation with it 0.01 unshifted, best at about 30 by 16 pixels; a plain translucent cube beside it 0.69 unshifted), as the editor's cube bends the floor behind it. Kadan draws it in the material's own translucent pass: the game keeps its distortion pass off (r.RefractionQuality 0). Other translucent things behind it are not bent (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "RefractionAttributes",
+   "feature": "Refraction through Use Material Attributes (index 1.5, unlit, nearly clear)",
+   "status": "game",
+   "seen": "Eden, Area500, cubes turned 45 degrees: the Material Attributes refraction cube (index 1.5, opacity 0.1) bends the rocks and grass behind it; edge correlation with the empty scene 0.33, the plain refraction cube 0.25, a plain translucent cube 0.61. Fixed in this PR (the scene colour mark goes through Set Material Attributes) (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "RefractionUnlit",
+   "feature": "Refraction input (index 1.5, unlit, nearly clear)",
+   "status": "game",
+   "seen": "Eden, Area500, cube turned 45 degrees in front of the wall and pots: the wall and pots behind are visibly displaced, differently on each face (correlation 0.00 unshifted), as the editor's cube (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "ResponsiveAA",
+   "feature": "Responsive AA",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "ScreenSpaceReflections",
+   "feature": "Screen Space Reflections (translucent)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOffLit",
+   "feature": "Render After DOF off, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOffUnlit",
+   "feature": "Render After DOF off, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOnLit",
+   "feature": "Render After DOF on, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "SeparateOnUnlit",
+   "feature": "Render After DOF on, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmSurface",
+   "feature": "Lighting Mode TlmSurface (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmSurfacePerPixelLighting",
+   "feature": "Lighting Mode TlmSurfacePerPixelLighting (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricDirectional",
+   "feature": "Lighting Mode TlmVolumetricDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricNonDirectional",
+   "feature": "Lighting Mode TlmVolumetricNonDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricPerVertexDirectional",
+   "feature": "Lighting Mode TlmVolumetricPerVertexDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TlmVolumetricPerVertexNonDirectional",
+   "feature": "Lighting Mode TlmVolumetricPerVertexNonDirectional (lit)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the lighting mode's look was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TwoSidedLit",
+   "feature": "Two Sided, Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: a lit translucent cube draws with the cave behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "translucency",
+   "id": "TwoSidedUnlit",
+   "feature": "Two Sided, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: an unlit translucent cube draws blue with the mushrooms and floor behind it showing through; the setting's own effect was not checked (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AdditiveLit",
+   "feature": "Additive, Default Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AdditiveUnlit",
+   "feature": "Additive, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaCompositeLit",
+   "feature": "AlphaComposite, Default Lit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaCompositeUnlit",
+   "feature": "AlphaComposite, Unlit",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: draws see-through over the cave; the blend's own result was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "AlphaHoldoutLit",
+   "feature": "AlphaHoldout, Default Lit",
+   "status": "ue4",
+   "error": "Alpha Holdout blend mode must use unlit shading model."
+  },
+  {
+   "family": "blend",
+   "id": "AlphaHoldoutUnlit",
+   "feature": "AlphaHoldout, Unlit",
+   "status": "game",
+   "seen": "Eden, Area500: nothing changes on screen (ratio 0.99), as in UE4: Alpha Holdout writes only alpha, which the game's frame does not show (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "DitherOpacityMask",
+   "feature": "Masked with Dither Opacity Mask",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the cube draws as a fine dither pattern at mask 0.5, the cave behind showing through (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedLit",
+   "feature": "Masked, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedTwoSided",
+   "feature": "Masked, Default Lit, Two Sided",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: green slats with the far faces' slats showing through the gaps (two-sided), as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "MaskedUnlit",
+   "feature": "Masked, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: the sine stripe mask cuts the cube into slats, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "ModulateLit",
+   "feature": "Modulate, Default Lit",
+   "status": "ue4",
+   "error": "Dynamically lit translucency is not supported for BLEND_Modulate materials."
+  },
+  {
+   "family": "blend",
+   "id": "ModulateUnlit",
+   "feature": "Modulate, Unlit",
+   "status": "game",
+   "seen": "Eden, Area500: a Modulate (0.2, 0.6, 1.0) cube multiplies the scene behind it by its colour: measured ratios 0.22, 0.70, 1.00 against the same view without it (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "OpaqueLit",
+   "feature": "Opaque, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "OpaqueUnlit",
+   "feature": "Opaque, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: draws as a solid cube, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "TranslucentLit",
+   "feature": "Translucent, Default Lit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a translucent blue cube with the mushrooms behind it showing through (2026-11-08)"
+  },
+  {
+   "family": "blend",
+   "id": "TranslucentUnlit",
+   "feature": "Translucent, Unlit",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: a translucent blue cube with the mushrooms behind it showing through (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "ClearCoat",
+   "feature": "Shading model ClearCoat",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun whiter than Default Lit's (236,222,221 against 221,194,194): the coat's sky reflection (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "Cloth",
+   "feature": "Shading model Cloth",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun reddened by the red fuzz colour (247,202,204 against Default Lit's 221,194,194) (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "DefaultLit",
+   "feature": "Shading model DefaultLit",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face toward the sun near white, the face away pale pink (221,194,194) (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "Eye",
+   "feature": "Shading model Eye",
+   "status": "draws",
+   "seen": "Eden: lighter than the editor's eye cube. The editor's darkening comes from stock 4.26's screen-space subsurface pass of its deferred renderer (POST_PROCESS_SUBSURFACE for Eye); forward shading, the game's, draws Eye with EyeBxDF and no such pass. Not compared with a forward-shaded editor picture (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "FromMaterialExpression",
+   "feature": "Shading model From Material Expression",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the Shading Model node's Clear Coat applies: the lavender cube draws blue-white with faint reflections, as the editor's coated top (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "FullyRough",
+   "feature": "Fully Rough",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the green cube shades with the sun angle; the missing specular was not checked (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "Hair",
+   "feature": "Shading model Hair",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: much darker than Default Lit (165,134,127 away from the sun, 123,90,90 toward it), as the editor's dark hair cube (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "PreintegratedSkin",
+   "feature": "Shading model PreintegratedSkin",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "SingleLayerWater",
+   "feature": "Shading model SingleLayerWater",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lavender-pink (189,162,188 away from the sun); the water look was not compared (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "Subsurface",
+   "feature": "Shading model Subsurface",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "SubsurfaceProfile",
+   "feature": "Shading model SubsurfaceProfile",
+   "status": "draws",
+   "seen": "Eden: draws like Default Lit. Stock 4.26 applies a subsurface profile's base colour in a screen-space pass of its deferred renderer only (POST_PROCESS_SUBSURFACE needs USES_GBUFFER); in forward shading, the game's, it lights as Default Lit with the profile's specular. The editor's deferred picture differs for that reason; not compared with a forward-shaded editor picture (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "ThinTranslucent",
+   "feature": "Shading model ThinTranslucent (translucent)",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a blue cube with its far faces showing through; transmittance colour not compared (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "TwoSidedFoliage",
+   "feature": "Shading model TwoSidedFoliage",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the face away from the sun redder than Default Lit's (about 246-251,196-202 against 221,194,194) from the red subsurface colour, as the editor's red sides (2026-11-08)"
+  },
+  {
+   "family": "shading",
+   "id": "Unlit",
+   "feature": "Shading model Unlit",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: both faces the same salmon whatever their angle to the sun (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "AmbientOcclusion",
+   "feature": "Ambient Occlusion",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Anisotropy",
+   "feature": "Anisotropy and Tangent",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "CustomizedUVs",
+   "feature": "Customized UVs",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker repeats 3 by 3 with its blue dots, as in the editor (Texture 2D shows it once) (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "DitheredLOD",
+   "feature": "Dithered LOD Transition",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Emissive",
+   "feature": "Emissive Color (lit)",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: glows orange-yellow on its shaded faces, as the editor's bright orange block (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "FullPrecision",
+   "feature": "Use Full Precision",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "HQForwardReflections",
+   "feature": "High Quality Forward Reflections, planar reflections",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: a mirror-like metal cube reflecting the surroundings; the high quality reflections themselves were not compared (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "LightmapDirectionality",
+   "feature": "Use Lightmap Directionality off",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "MaterialAttributes",
+   "feature": "Use Material Attributes (Make Material Attributes)",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: Make Material Attributes' pink base colour draws, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Metallic",
+   "feature": "Metallic",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: gold metal, its faces tinted reflections of the surroundings rather than diffuse shading (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "NegativeEmissive",
+   "feature": "Allow Negative Emissive Color",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws black, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Normal",
+   "feature": "Normal (tangent space)",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "NormalCurvatureToRoughness",
+   "feature": "Normal Curvature To Roughness",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "NormalWorld",
+   "feature": "Normal (world space, Tangent Space Normal off)",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "PixelDepthOffset",
+   "feature": "Pixel Depth Offset",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight: a cube 2.5 cm inside the 20 cm offset cube shows through it (only a thin rim of the outer cube left), while a 0.75 cm offset cube still hides the same inner cube (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "PixelDepthOffsetMasked",
+   "feature": "Pixel Depth Offset on a masked material",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight: the masked cube with a 15 cm offset draws; its depth was not compared (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "PixelDepthOffsetSmall",
+   "feature": "Pixel Depth Offset (0.75 cm)",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight: draws, and a cube 2.5 cm inside it stays hidden: 0.75 cm of offset does not reach it (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Specular",
+   "feature": "Specular",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "StencilTest",
+   "feature": "Post process stencil test",
+   "status": "game",
+   "seen": "Eden, Area500: the post process material (stencil equal 1) tints only a cube rendering custom depth with stencil value 1, once r.CustomDepth is 3. The game runs r.CustomDepth 1 (no stencil), where stock UE4 draws a stencil-tested material everywhere, as seen; a mod turns stencil on through Tsuchi's console variable call, as a UE4 project sets r.CustomDepth 3 (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Tessellation",
+   "feature": "Tessellation (PN triangles), World Displacement, multiplier",
+   "status": "draws",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: draws lit; the input's own effect was not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "Wireframe",
+   "feature": "Wireframe",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: only the triangle edges draw, as the editor's wire cube (2026-11-08)"
+  },
+  {
+   "family": "inputs",
+   "id": "WorldPositionOffset",
+   "feature": "World Position Offset",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the cube moves up and down with time (its top at y 290 then 255 in two pictures moments apart) (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "ParameterCollection",
+   "feature": "Material parameter collection",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube shows the collection's Glow 0.8, and turns near black when Lua sets Glow to 0.05 through Kismet Set Scalar Parameter Value. Export enabled in this PR (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "RenderTarget",
+   "feature": "Render target sample",
+   "status": "game",
+   "seen": "Eden, Area500: black until drawn, as in the editor; cleared to orange at runtime (Kismet Clear Render Target 2D through Lua), the cube turns orange. Export enabled in this PR (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "Texture2D",
+   "feature": "Texture 2D sample",
+   "status": "game",
+   "seen": "Eden, Area500 in sunlight, cubes turned 45 degrees from the sun: the checker texture draws once per face, as in the editor (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "Texture2DArray",
+   "feature": "Texture 2D array sample",
+   "status": "game",
+   "seen": "Eden, Area500: the array slice's green and blue checker draws as in the editor. Export enabled in this PR (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "TextureCube",
+   "feature": "Texture cube sample",
+   "status": "game",
+   "seen": "Eden, Area500: the cube texture's colours draw on a lit cube as in the editor. Export enabled in this PR (2026-11-08)"
+  },
+  {
+   "family": "textures",
+   "id": "VolumeTexture",
+   "feature": "Volume texture sample",
+   "status": "game",
+   "seen": "Eden, Area500: the volume texture's cyan draws on the lit cube as on the editor's. Export enabled in this PR; a volume texture is exported uncompressed, because the game makes no block-compressed volume texture (stock UVolumeTexture::ShaderPlatformSupportsCompression) and one drew black (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalAlphaComposite",
+   "feature": "Decal blend mode DecalAlphaComposite",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalAmbientOcclusion",
+   "feature": "Decal blend mode DecalAmbientOcclusion",
+   "status": "game",
+   "seen": "Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalAmbientOcclusionAttributes",
+   "feature": "Decal blend mode DecalAmbientOcclusion through Use Material Attributes (stripes)",
+   "status": "draws",
+   "seen": "Eden, Cave000_F00: through Use Material Attributes the AO decal is drawn as a darkening DBuffer colour decal, as the AO input's: the ground and rock wall in its box are 10.6 per pixel darker than without it (sky unchanged). The stripe bands were not resolved in that view (2026-11-09)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalAmbientOcclusionStripes",
+   "feature": "Decal blend mode DecalAmbientOcclusionStripes",
+   "status": "game",
+   "seen": "Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferAlphaComposite",
+   "feature": "Decal blend mode DecalDBufferAlphaComposite",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColor",
+   "feature": "Decal blend mode DecalDBufferColor",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorNormal",
+   "feature": "Decal blend mode DecalDBufferColorNormal",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorNormalRoughness",
+   "feature": "Decal blend mode DecalDBufferColorNormalRoughness",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferColorRoughness",
+   "feature": "Decal blend mode DecalDBufferColorRoughness",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferEmissive",
+   "feature": "Decal blend mode DecalDBufferEmissive",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferEmissiveAlphaComposite",
+   "feature": "Decal blend mode DecalDBufferEmissiveAlphaComposite",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormal",
+   "feature": "Decal blend mode DecalDBufferNormal",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormalRoughness",
+   "feature": "Decal blend mode DecalDBufferNormalRoughness",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (29 per pixel against 2.8 noise), and normal and roughness bands on a slab that takes both (29) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormalRoughnessStripes",
+   "feature": "Decal blend mode DecalDBufferNormalRoughnessStripes",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (29 per pixel against 2.8 noise), and normal and roughness bands on a slab that takes both (29) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferNormalStripes",
+   "feature": "Decal blend mode DecalDBufferNormalStripes",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferRoughness",
+   "feature": "Decal blend mode DecalDBufferRoughness",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (mean change 32 per pixel against 2.8 noise) and on a slab (23) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalDBufferRoughnessStripes",
+   "feature": "Decal blend mode DecalDBufferRoughnessStripes",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal (the value swings across its range every quarter): glossy bands on the game's ground (mean change 32 per pixel against 2.8 noise) and on a slab (23) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalEmissive",
+   "feature": "Decal blend mode DecalEmissive",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt adds a faint pink light with green unchanged (about +18..+24 red, +2..+5 green, +25..+33 blue), its emissive (0.3, 0, 0.2) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalNormal",
+   "feature": "Decal blend mode DecalNormal",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalNormalStripes",
+   "feature": "Decal blend mode DecalNormalStripes",
+   "status": "game",
+   "seen": "Eden, Area500, striped decal: on a slab of WorldGridMaterial a 63-degree normal draws dark and light bands (mean change 26 per pixel against 2.8 noise). The game's own ground shows none: the game's base pass applies a decal's colour and roughness only, no normal (as Kadan's creator materials do, KadanSwitchSourcePatches.inl) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalStain",
+   "feature": "Decal blend mode DecalStain",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it a darker pink than the translucent mode (+23,-7,+34 against +33,+18,+59): the stain multiplies the ground's colour (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalTranslucent",
+   "feature": "Decal blend mode DecalTranslucent",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "DecalVolumetricDistanceFunction",
+   "feature": "Decal blend mode DecalVolumetricDistanceFunction",
+   "status": "refused",
+   "error": "Volumetric distance function decals draw only in UE4's deferred renderer. The game renders forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."
+  },
+  {
+   "family": "domain",
+   "id": "DeferredDecal",
+   "feature": "Domain DeferredDecal",
+   "status": "game",
+   "seen": "Eden, Area500: a decal projected onto the dirt tints the ground green (mean shift +17,+59,+59 over the decal) and the captain standing in it, as UE projects a decal onto what it covers (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "LightFunction",
+   "feature": "Domain LightFunction",
+   "status": "game",
+   "seen": "Eden, Area500: as the sun's light function it dims the sunlit ground to about 80% (176,130,87 to 142,100,71) without tinting it: UE's light functions use the grey level of the emissive (here 0.47) (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "PostProcess",
+   "feature": "Domain PostProcess",
+   "status": "game",
+   "seen": "Eden, Area500: as the blendable of an unbound PostProcessComponent (its Settings.WeightedBlendables list; Tsuchi's reflection cannot pass AddOrUpdateBlendable's interface) the whole picture under the HUD turns (51,229,76), the emissive (0.2,0.9,0.3) written after tonemapping as UE does (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "RuntimeVirtualTexture",
+   "feature": "Domain RuntimeVirtualTexture",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
+   "id": "UI",
+   "feature": "Domain UI",
+   "status": "game",
+   "seen": "Eden, Area500: as the brush of an Image in a CarrotBaseWidget held on the viewport (modding/examples/kadan-material-panel's route) it draws a green panel over the game: (103,203,128) over a (17,44,46) background, which is 0.8 x the emissive (0.2,0.9,0.3) as display colour (124,243,149) plus 0.2 x the background, as UE converts a UI material's linear colour (2026-11-08)"
+  },
+  {
+   "family": "domain",
+   "id": "Volume",
+   "feature": "Domain Volume",
+   "status": "compiles"
+  },
+  {
+   "family": "nodes",
+   "id": "Abs",
+   "feature": "Abs node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ActorPositionWS",
+   "feature": "ActorPositionWS node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Add",
+   "feature": "Add node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "AntialiasedTextureMask",
+   "feature": "AntialiasedTextureMask node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "AppendVector",
+   "feature": "AppendVector node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Arccosine",
+   "feature": "Arccosine node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ArccosineFast",
+   "feature": "ArccosineFast node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Arcsine",
+   "feature": "Arcsine node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ArcsineFast",
+   "feature": "ArcsineFast node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent",
+   "feature": "Arctangent node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent2",
+   "feature": "Arctangent2 node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Arctangent2Fast",
+   "feature": "Arctangent2Fast node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ArctangentFast",
+   "feature": "ArctangentFast node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericFogColor",
+   "feature": "AtmosphericFogColor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericLightColor",
+   "feature": "AtmosphericLightColor node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun colour (white); the editor test scene has no atmosphere light (black); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "AtmosphericLightVector",
+   "feature": "AtmosphericLightVector node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun direction; the editor's differs; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "BentNormalCustomOutput",
+   "feature": "BentNormalCustomOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "BlackBody",
+   "feature": "BlackBody node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "BlendMaterialAttributes",
+   "feature": "BlendMaterialAttributes node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "BreakMaterialAttributes",
+   "feature": "BreakMaterialAttributes node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: black, tinted magenta by the neighbouring Camera Position cube's bloom; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "BumpOffset",
+   "feature": "BumpOffset node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a light yellow-pink; the offset follows the camera vector, so it depends on the view; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CameraPositionWS",
+   "feature": "CameraPositionWS node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CameraVectorWS",
+   "feature": "CameraVectorWS node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the direction to the game's camera (it looks along another axis than the editor's); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Ceil",
+   "feature": "Ceil node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ChannelMaskParameter",
+   "feature": "ChannelMaskParameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Clamp",
+   "feature": "Clamp node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ClearCoatNormalCustomOutput",
+   "feature": "ClearCoatNormalCustomOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CloudSampleAttribute",
+   "feature": "CloudSampleAttribute node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CollectionParameter",
+   "feature": "CollectionParameter node",
+   "status": "ue4",
+   "error": "(Node CollectionParameter) CollectionParameter has invalid Collection!"
+  },
+  {
+   "family": "nodes",
+   "id": "ComponentMask",
+   "feature": "ComponentMask node",
+   "status": "ue4",
+   "error": "(Node ComponentMask) Couldn't determine result type of component mask 0000"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant",
+   "feature": "Constant node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant2Vector",
+   "feature": "Constant2Vector node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant3Vector",
+   "feature": "Constant3Vector node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Constant4Vector",
+   "feature": "Constant4Vector node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ConstantBiasScale",
+   "feature": "ConstantBiasScale node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Cosine",
+   "feature": "Cosine node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CrossProduct",
+   "feature": "CrossProduct node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "CurveAtlasRowParameter",
+   "feature": "CurveAtlasRowParameter node",
+   "status": "ue4",
+   "error": "(Node CurveAtlasRowParameter) > The curve and atlas are not currently set."
+  },
+  {
+   "family": "nodes",
+   "id": "Custom",
+   "feature": "Custom node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DDX",
+   "feature": "DDX node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DDY",
+   "feature": "DDY node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DecalDerivative",
+   "feature": "DecalDerivative node",
+   "status": "ue4",
+   "error": "(Node DecalDerivative) Decal derivatives only available in the decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DecalLifetimeOpacity",
+   "feature": "DecalLifetimeOpacity node",
+   "status": "ue4",
+   "error": "(Node DecalLifetimeOpacity) Decal Lifetime Opacity> Node only works for the deferred decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DecalMipmapLevel",
+   "feature": "DecalMipmapLevel node",
+   "status": "ue4",
+   "error": "(Node DecalMipmapLevel) Decal Mipmap Level> Node only works for the deferred decal material domain."
+  },
+  {
+   "family": "nodes",
+   "id": "DeltaTime",
+   "feature": "DeltaTime node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, 1/60 s; the editor test's frame time is longer; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DepthFade",
+   "feature": "DepthFade node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "DepthOfFieldFunction",
+   "feature": "DepthOfFieldFunction node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DeriveNormalZ",
+   "feature": "DeriveNormalZ node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Desaturation",
+   "feature": "Desaturation node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Distance",
+   "feature": "Distance node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceCullFade",
+   "feature": "DistanceCullFade node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceFieldGradient",
+   "feature": "DistanceFieldGradient node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DistanceToNearestSurface",
+   "feature": "DistanceToNearestSurface node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Divide",
+   "feature": "Divide node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DotProduct",
+   "feature": "DotProduct node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "DynamicParameter",
+   "feature": "DynamicParameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "EyeAdaptation",
+   "feature": "EyeAdaptation node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "FeatureLevelSwitch",
+   "feature": "FeatureLevelSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Floor",
+   "feature": "Floor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Fmod",
+   "feature": "Fmod node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "FontSample",
+   "feature": "FontSample node",
+   "status": "ue4",
+   "error": "(Node FontSample) Font Sample> Missing input Font"
+  },
+  {
+   "family": "nodes",
+   "id": "FontSampleParameter",
+   "feature": "FontSampleParameter node",
+   "status": "ue4",
+   "error": "(Node FontSampleParameter) Font Param> Missing input Font"
+  },
+  {
+   "family": "nodes",
+   "id": "Frac",
+   "feature": "Frac node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Fresnel",
+   "feature": "Fresnel node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, the face seen nearly head on; depends on the view; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "GIReplace",
+   "feature": "GIReplace node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "GetMaterialAttributes",
+   "feature": "GetMaterialAttributes node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "HairAttributes",
+   "feature": "HairAttributes node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "HairColor",
+   "feature": "HairColor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "If",
+   "feature": "If node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "InverseLinearInterpolate",
+   "feature": "InverseLinearInterpolate node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanGameCustom",
+   "feature": "KadanGameCustom node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanGroundSoftAlpha",
+   "feature": "KadanGroundSoftAlpha node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanReflectionCustom",
+   "feature": "KadanReflectionCustom node",
+   "status": "ue4",
+   "error": "(Node KadanReflectionCustom) Original reflection Custom has no supported original reflection access."
+  },
+  {
+   "family": "nodes",
+   "id": "KadanSceneColor",
+   "feature": "KadanSceneColor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: translucent, it drew black; now the scene shows through the cube (mean change 5.0 per pixel over the empty scene, noise 2.3) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "KadanSceneDepth",
+   "feature": "KadanSceneDepth node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: opaque, it crashed the game; now only translucent and post process materials compile it (as stock's Scene Depth), and a translucent cube draws the scene's depth, hundreds of units, white (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeGrassOutput",
+   "feature": "LandscapeGrassOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerBlend",
+   "feature": "LandscapeLayerBlend node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerCoords",
+   "feature": "LandscapeLayerCoords node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerSample",
+   "feature": "LandscapeLayerSample node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerSwitch",
+   "feature": "LandscapeLayerSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeLayerWeight",
+   "feature": "LandscapeLayerWeight node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapePhysicalMaterialOutput",
+   "feature": "LandscapePhysicalMaterialOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LandscapeVisibilityMask",
+   "feature": "LandscapeVisibilityMask node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LightVector",
+   "feature": "LightVector node",
+   "status": "ue4",
+   "error": "(Node LightVector) LightVector can only be used in LightFunction or DeferredDecal materials"
+  },
+  {
+   "family": "nodes",
+   "id": "LightmapUVs",
+   "feature": "LightmapUVs node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LightmassReplace",
+   "feature": "LightmassReplace node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "LinearInterpolate",
+   "feature": "LinearInterpolate node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Logarithm10",
+   "feature": "Logarithm10 node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Logarithm2",
+   "feature": "Logarithm2 node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MakeMaterialAttributes",
+   "feature": "MakeMaterialAttributes node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MapARPassthroughCameraUV",
+   "feature": "MapARPassthroughCameraUV node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialAttributeLayers",
+   "feature": "MaterialAttributeLayers node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialFunctionCall",
+   "feature": "MaterialFunctionCall node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialLayerOutput",
+   "feature": "MaterialLayerOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "MaterialProxyReplace",
+   "feature": "MaterialProxyReplace node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Max",
+   "feature": "Max node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Min",
+   "feature": "Min node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Multiply",
+   "feature": "Multiply node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Noise",
+   "feature": "Noise node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a mid grey; depends on world position; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Normalize",
+   "feature": "Normalize node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectBounds",
+   "feature": "ObjectBounds node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectOrientation",
+   "feature": "ObjectOrientation node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectPositionWS",
+   "feature": "ObjectPositionWS node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ObjectRadius",
+   "feature": "ObjectRadius node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "OneMinus",
+   "feature": "OneMinus node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Panner",
+   "feature": "Panner node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Parameter",
+   "feature": "Parameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleColor",
+   "feature": "ParticleColor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleDirection",
+   "feature": "ParticleDirection node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleMacroUV",
+   "feature": "ParticleMacroUV node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: yellow, from the screen position; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleMotionBlurFade",
+   "feature": "ParticleMotionBlurFade node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticlePositionWS",
+   "feature": "ParticlePositionWS node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRadius",
+   "feature": "ParticleRadius node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: magenta from the neighbouring Particle Position cube's bloom; black in the editor; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRandom",
+   "feature": "ParticleRandom node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleRelativeTime",
+   "feature": "ParticleRelativeTime node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSize",
+   "feature": "ParticleSize node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSpeed",
+   "feature": "ParticleSpeed node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSubUV",
+   "feature": "ParticleSubUV node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ParticleSubUVProperties",
+   "feature": "ParticleSubUVProperties node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceCustomData",
+   "feature": "PerInstanceCustomData node",
+   "status": "ue4",
+   "error": "(Node PerInstanceCustomData) Invalid node used in pixel/hull/domain shader input!"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceFadeAmount",
+   "feature": "PerInstanceFadeAmount node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PerInstanceRandom",
+   "feature": "PerInstanceRandom node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PixelDepth",
+   "feature": "PixelDepth node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: it was black (the game's 1/w); now its distance, hundreds of units, blooms white as the editor's white cube (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PixelNormalWS",
+   "feature": "PixelNormalWS node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, the +Y face the game's camera sees; the editor's camera sees the -Y face (black); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Power",
+   "feature": "Power node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedLocalBounds",
+   "feature": "PreSkinnedLocalBounds node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedNormal",
+   "feature": "PreSkinnedNormal node",
+   "status": "ue4",
+   "error": "(Node PreSkinnedNormal) Pre-skinned normal is only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "PreSkinnedPosition",
+   "feature": "PreSkinnedPosition node",
+   "status": "ue4",
+   "error": "(Node PreSkinnedPosition) Pre-skinned position is only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "PrecomputedAOMask",
+   "feature": "PrecomputedAOMask node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "PreviousFrameSwitch",
+   "feature": "PreviousFrameSwitch node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark, under a bright neighbour's bloom; black in the editor; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "QualitySwitch",
+   "feature": "QualitySwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: it drew the engine's default checker (no shader map for the game's quality level High); now the 0.5 grey of the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RayTracingQualitySwitch",
+   "feature": "RayTracingQualitySwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ReflectionCapturePassSwitch",
+   "feature": "ReflectionCapturePassSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ReflectionVectorWS",
+   "feature": "ReflectionVectorWS node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, toward the game's camera; the editor's camera is on the other side; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Reroute",
+   "feature": "Reroute node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RotateAboutAxis",
+   "feature": "RotateAboutAxis node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Rotator",
+   "feature": "Rotator node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a moving rainbow, as in the editor; depends on time; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Round",
+   "feature": "Round node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: Round of a literal 0.5 drew 0 (DXC rounds halves to even); a constant is now rounded half up as UE rounds the same value from a parameter, and draws 1 (white) as in the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RoundOfParameter",
+   "feature": "Round node of a scalar parameter 0.5",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of a 0.5 parameter draws 1 (white) as in the editor (UE rounds it on the CPU, half up) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RoundOfVector",
+   "feature": "Round node of a vector constant (0.5, 1.5, 0.5)",
+   "status": "game",
+   "seen": "Eden, Cave000_F00: an unlit cube with Round of the constant (0.5, 1.5, 0.5) in its emissive draws pale mint (201, 230, 203): R and B rounded up to 1, G to 2, as UE rounds a constant on the CPU, half up. Rounded half to even it would be (0, 2, 0), pure green (2026-11-09)"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureOutput",
+   "feature": "RuntimeVirtualTextureOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureReplace",
+   "feature": "RuntimeVirtualTextureReplace node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureSample",
+   "feature": "RuntimeVirtualTextureSample node",
+   "status": "ue4",
+   "error": "(Node RuntimeVirtualTextureSample) Missing input Virtual Texture"
+  },
+  {
+   "family": "nodes",
+   "id": "RuntimeVirtualTextureSampleParameter",
+   "feature": "RuntimeVirtualTextureSampleParameter node",
+   "status": "ue4",
+   "error": "(Node RuntimeVirtualTextureSampleParameter) Missing input Virtual Texture"
+  },
+  {
+   "family": "nodes",
+   "id": "Saturate",
+   "feature": "Saturate node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ScalarParameter",
+   "feature": "ScalarParameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SceneColor",
+   "feature": "SceneColor node",
+   "status": "ue4",
+   "error": "Only translucent materials can use the scene color node."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneDepth",
+   "feature": "SceneDepth node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneDepthWithoutWater",
+   "feature": "SceneDepthWithoutWater node",
+   "status": "ue4",
+   "error": "(Node SceneDepthWithoutWater) Can only read scene depth below water when material Shading Model is Single Layer Water."
+  },
+  {
+   "family": "nodes",
+   "id": "SceneTexelSize",
+   "feature": "SceneTexelSize node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SceneTexture",
+   "feature": "SceneTexture node",
+   "status": "ue4",
+   "error": "Only translucent materials can use the scene color node. | SceneTexture expressions cannot be used in opaque materials"
+  },
+  {
+   "family": "nodes",
+   "id": "ScreenPosition",
+   "feature": "ScreenPosition node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: (0.55, 0.24): the cube's place on the screen; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SetMaterialAttributes",
+   "feature": "SetMaterialAttributes node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ShaderStageSwitch",
+   "feature": "ShaderStageSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ShadingModel",
+   "feature": "ShadingModel node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "ShadingPathSwitch",
+   "feature": "ShadingPathSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ShadowReplace",
+   "feature": "ShadowReplace node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Sign",
+   "feature": "Sign node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Sine",
+   "feature": "Sine node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SingleLayerWaterMaterialOutput",
+   "feature": "SingleLayerWaterMaterialOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkinningVertexOffsets",
+   "feature": "SkinningVertexOffsets node",
+   "status": "ue4",
+   "error": "(Node SkinningVertexOffsets) Pre Skin Offset only available in the vertex shader, pass through custom interpolators if needed."
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereAerialPerspective",
+   "feature": "SkyAtmosphereAerialPerspective node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereDistantLightScatteredLuminance",
+   "feature": "SkyAtmosphereDistantLightScatteredLuminance node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a dark blue in the game; black in the editor scene without a sky atmosphere; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightDirection",
+   "feature": "SkyAtmosphereLightDirection node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun direction, the same as Atmospheric Light Vector; the editor's differs; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightDiskLuminance",
+   "feature": "SkyAtmosphereLightDiskLuminance node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereLightIlluminance",
+   "feature": "SkyAtmosphereLightIlluminance node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the game's sun (white); the editor test scene has no sky atmosphere (black); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SkyAtmosphereViewLuminance",
+   "feature": "SkyAtmosphereViewLuminance node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SmoothStep",
+   "feature": "SmoothStep node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Sobol",
+   "feature": "Sobol node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SpeedTree",
+   "feature": "SpeedTree node",
+   "status": "ue4",
+   "error": "(Node SpeedTree) Invalid node used in pixel/hull/domain shader input!"
+  },
+  {
+   "family": "nodes",
+   "id": "SphereMask",
+   "feature": "SphereMask node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SphericalParticleOpacity",
+   "feature": "SphericalParticleOpacity node",
+   "status": "ue4",
+   "error": "Only transparent or postprocess materials can read from scene depth."
+  },
+  {
+   "family": "nodes",
+   "id": "SpriteTextureSampler",
+   "feature": "SpriteTextureSampler node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "SquareRoot",
+   "feature": "SquareRoot node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticBool",
+   "feature": "StaticBool node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "StaticBoolParameter",
+   "feature": "StaticBoolParameter node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "StaticComponentMaskParameter",
+   "feature": "StaticComponentMaskParameter node",
+   "status": "ue4",
+   "error": "(Node StaticComponentMaskParameter) Couldn't determine result type of component mask 0000"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticSwitch",
+   "feature": "StaticSwitch node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "StaticSwitchParameter",
+   "feature": "StaticSwitchParameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Step",
+   "feature": "Step node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Subtract",
+   "feature": "Subtract node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Tangent",
+   "feature": "Tangent node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TangentOutput",
+   "feature": "TangentOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TemporalSobol",
+   "feature": "TemporalSobol node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: changes each frame; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureCoordinate",
+   "feature": "TextureCoordinate node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureObject",
+   "feature": "TextureObject node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "TextureObjectParameter",
+   "feature": "TextureObjectParameter node",
+   "status": "ue4",
+   "error": "Cannot force a cast between non-numeric types."
+  },
+  {
+   "family": "nodes",
+   "id": "TextureProperty",
+   "feature": "TextureProperty node",
+   "status": "ue4",
+   "error": "(Node TextureProperty) Texture size only available for Texture2D, TextureVirtual, and VolumeTexture, not float2"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSample",
+   "feature": "TextureSample node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameter2D",
+   "feature": "TextureSampleParameter2D node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameter2DArray",
+   "feature": "TextureSampleParameter2DArray node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameter2DArray) Param2DArray> 2D array sample needs UVW input"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterCube",
+   "feature": "TextureSampleParameterCube node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameterCube) ParamCube> Cube sample needs UV input"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterSubUV",
+   "feature": "TextureSampleParameterSubUV node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TextureSampleParameterVolume",
+   "feature": "TextureSampleParameterVolume node",
+   "status": "ue4",
+   "error": "(Node TextureSampleParameterVolume) ParamVolume> Volume sample needs UVW input"
+  },
+  {
+   "family": "nodes",
+   "id": "ThinTranslucentMaterialOutput",
+   "feature": "ThinTranslucentMaterialOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Time",
+   "feature": "Time node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Transform",
+   "feature": "Transform node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the tangent-to-world colour of the face the game's camera sees; the editor sees the opposite face (black); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TransformPosition",
+   "feature": "TransformPosition node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "Truncate",
+   "feature": "Truncate node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "TwoSidedSign",
+   "feature": "TwoSidedSign node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VectorNoise",
+   "feature": "VectorNoise node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VectorParameter",
+   "feature": "VectorParameter node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexColor",
+   "feature": "VertexColor node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexInterpolator",
+   "feature": "VertexInterpolator node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexNormalWS",
+   "feature": "VertexNormalWS node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: green, the +Y face the game's camera sees; the editor's camera sees the -Y face (black); not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VertexTangentWS",
+   "feature": "VertexTangentWS node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: orange-red on the face the game's camera sees, tinted by a bright neighbour's bloom; the editor sees another face; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ViewProperty",
+   "feature": "ViewProperty node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "ViewSize",
+   "feature": "ViewSize node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VirtualTextureFeatureSwitch",
+   "feature": "VirtualTextureFeatureSwitch node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: light, under a bright neighbour's yellow bloom; a mid grey in the editor; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VolumetricAdvancedMaterialInput",
+   "feature": "VolumetricAdvancedMaterialInput node",
+   "status": "draws",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: dark blue from the neighbouring World Position cube's bloom; black in the editor; not compared with the editor (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "VolumetricAdvancedMaterialOutput",
+   "feature": "VolumetricAdvancedMaterialOutput node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "WorldPosition",
+   "feature": "WorldPosition node",
+   "status": "game",
+   "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08)"
+  }
+ ]
+}

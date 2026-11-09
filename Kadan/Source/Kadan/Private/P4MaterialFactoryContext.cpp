@@ -12,6 +12,11 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
+#include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionGetMaterialAttributes.h"
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionSetMaterialAttributes.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleEmitter.h"
 #include "Particles/ParticleLODLevel.h"
@@ -85,6 +90,157 @@ void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uint64>& Fact
         else if (Factory == BeamTrail)
             Material->bUsedWithBeamTrails = true;
     }
+}
+namespace
+{
+// Get Material Attributes over a material's attributes: output 1 + N is the Nth property asked for.
+UMaterialExpressionGetMaterialAttributes* GetAttributes(UMaterial* Material, std::initializer_list<EMaterialProperty> Properties)
+{
+    auto* Get = NewObject<UMaterialExpressionGetMaterialAttributes>(Material);
+    Get->MaterialAttributes.Expression = Material->MaterialAttributes.Expression;
+    Get->MaterialAttributes.OutputIndex = Material->MaterialAttributes.OutputIndex;
+    for (const EMaterialProperty Property : Properties)
+    {
+        Get->AttributeGetTypes.Add(FMaterialAttributeDefinitionMap::GetID(Property));
+        Get->Outputs.Add(FExpressionOutput(FName(*FMaterialAttributeDefinitionMap::GetAttributeName(Property))));
+    }
+    Material->Expressions.Add(Get);
+    return Get;
+}
+struct FAttributeValue
+{
+    EMaterialProperty Property;
+    UMaterialExpression* Expression;
+};
+// Set Material Attributes over a material's attributes, these properties set to these expressions; it becomes the
+// material's attributes.
+void SetAttributes(UMaterial* Material, std::initializer_list<FAttributeValue> Values)
+{
+    auto* Set = NewObject<UMaterialExpressionSetMaterialAttributes>(Material);
+    if (Set->Inputs.Num() == 0)
+        Set->Inputs.Add(FMaterialAttributesInput());
+    Set->Inputs[0].Expression = Material->MaterialAttributes.Expression;
+    Set->Inputs[0].OutputIndex = Material->MaterialAttributes.OutputIndex;
+    for (const FAttributeValue& Value : Values)
+    {
+        Set->AttributeSetTypes.Add(FMaterialAttributeDefinitionMap::GetID(Value.Property));
+        FExpressionInput Input;
+        Input.Expression = Value.Expression;
+        Set->Inputs.Add(Input);
+    }
+    Material->Expressions.Add(Set);
+    Material->MaterialAttributes.Expression = Set;
+    Material->MaterialAttributes.OutputIndex = 0;
+}
+void SetInput(FExpressionInput& Input, UMaterialExpression* Expression)
+{
+    Input.Expression = Expression;
+    Input.OutputIndex = 0;
+    Input.Mask = 0;
+}
+} //namespace
+
+void P4ApplyGameRenderLimits(UMaterial* Material)
+{
+    if (Material && Material->GetBlendMode() == BLEND_Modulate && Material->bEnableSeparateTranslucency)
+        Material->bEnableSeparateTranslucency = false;
+    // An ambient occlusion decal: the game's forward renderer has no ambient occlusion decal stage (UE draws one only
+    // into deferred SSAO), so it draws as a DBuffer colour decal of black at opacity (1 - AO) x opacity, which leaves
+    // base colour x lerp(1, AO, opacity): the same darkening, through the colour buffer the game's base pass reads.
+    if (!Material || Material->MaterialDomain != MD_DeferredDecal || Material->DecalBlendMode != DBM_AmbientOcclusion)
+        return;
+    const bool bAttributes = Material->bUseMaterialAttributes;
+    if (bAttributes ? !Material->MaterialAttributes.Expression : !Material->AmbientOcclusion.Expression)
+        return;
+    // AO and opacity: the material's inputs, or its attributes' (Get Material Attributes outputs 1 and 2).
+    FExpressionInput AO = Material->AmbientOcclusion;
+    FExpressionInput Opacity = Material->Opacity;
+    if (bAttributes)
+    {
+        UMaterialExpressionGetMaterialAttributes* Get = GetAttributes(Material, {MP_AmbientOcclusion, MP_Opacity});
+        AO = FExpressionInput();
+        AO.Expression = Get;
+        AO.OutputIndex = 1;
+        Opacity = FExpressionInput();
+        Opacity.Expression = Get;
+        Opacity.OutputIndex = 2;
+    }
+    auto* Covered = NewObject<UMaterialExpressionMultiply>(Material); // AO x opacity
+    Covered->A = AO;
+    if (Opacity.Expression)
+        Covered->B = Opacity;
+    else
+        Covered->ConstB = 1.f;
+    auto* Negated = NewObject<UMaterialExpressionMultiply>(Material);
+    Negated->A.Expression = Covered;
+    Negated->ConstB = -1.f;
+    auto* Left = NewObject<UMaterialExpressionAdd>(Material); // opacity - AO x opacity
+    if (Opacity.Expression)
+        Left->A = Opacity;
+    else
+        Left->ConstA = 1.f;
+    Left->B.Expression = Negated;
+    auto* Black = NewObject<UMaterialExpressionConstant3Vector>(Material);
+    Black->Constant = FLinearColor::Black;
+    Material->Expressions.Append({Covered, Negated, Left, Black});
+    // An AO decal draws nothing else (stock returns after its AO): no emissive pass of its own.
+    if (bAttributes)
+        SetAttributes(Material, {{MP_BaseColor, Black}, {MP_Opacity, Left}, {MP_EmissiveColor, Black}});
+    else
+    {
+        SetInput(Material->Opacity, Left);
+        SetInput(Material->BaseColor, Black);
+        Material->EmissiveColor.Expression = nullptr;
+    }
+    Material->DecalBlendMode = DBM_DBuffer_Color;
+}
+bool P4MarkGameSceneColorRead(UMaterial* Material)
+{
+    if (!Material || Material->MaterialDomain != MD_Surface ||
+        (Material->bUseMaterialAttributes && !Material->MaterialAttributes.Expression))
+        return false;
+    // The engine does not export the Scene Color expression's class: found by name.
+    UClass* SceneClass = FindObject<UClass>(ANY_PACKAGE, TEXT("MaterialExpressionSceneColor"));
+    if (!SceneClass)
+        return false;
+    auto* Scene = NewObject<UMaterialExpression>(Material, SceneClass);
+    auto* Zero = NewObject<UMaterialExpressionMultiply>(Material);
+    Zero->A.Expression = Scene;
+    Zero->ConstB = 0.f;
+    Material->Expressions.Add(Scene);
+    Material->Expressions.Add(Zero);
+    if (!Material->bUseMaterialAttributes && !Material->EmissiveColor.Expression)
+    {
+        SetInput(Material->EmissiveColor, Zero);
+        return true;
+    }
+    auto* Sum = NewObject<UMaterialExpressionAdd>(Material);
+    Sum->B.Expression = Zero;
+    Material->Expressions.Add(Sum);
+    if (Material->bUseMaterialAttributes)
+    {
+        // The attributes, with their emissive plus the mark: Set Material Attributes over them, its emissive the
+        // attributes' own (Get Material Attributes) plus Scene Color x 0.
+        Sum->A.Expression = GetAttributes(Material, {MP_EmissiveColor});
+        Sum->A.OutputIndex = 1;
+        SetAttributes(Material, {{MP_EmissiveColor, Sum}});
+    }
+    else
+    {
+        Sum->A = Material->EmissiveColor;
+        SetInput(Material->EmissiveColor, Sum);
+    }
+    return true;
+}
+bool P4ApplyGameRefraction(UMaterial* Material, EBlendMode Blend, FMaterialShadingModelField ShadingModels)
+{
+    // The refraction patch replaces the output of the Translucent blend mode only (BasePassPixelShader.usf
+    // MATERIALBLENDING_TRANSLUCENT); thin translucent has an output of its own. Elsewhere it draws no refraction, and
+    // the scene copy would cost a read for nothing.
+    if (!Material || !Material->bUsesDistortion || Blend != BLEND_Translucent ||
+        ShadingModels.HasShadingModel(MSM_ThinTranslucent))
+        return false;
+    return P4MarkGameSceneColorRead(Material);
 }
 bool P4MaterialUsageCovers(const UMaterial* Material, uint64 Factory)
 {

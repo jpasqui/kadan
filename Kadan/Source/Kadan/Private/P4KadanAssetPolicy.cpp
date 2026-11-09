@@ -90,6 +90,11 @@ UMaterial* CurrentMaterial(UMaterial* Original)
 void MaterialIssues(UMaterial* Material, FAssetPolicy& Out)
 {
     using namespace P4MapKit::CustomMaterial;
+    // Export compiles a creator material with UE's own material translator for the game (P4UseSwitchShaderRoute):
+    // the graph, settings and nodes UE compiles are what it compiles. The checks below are those of Kadan's older
+    // emitter, which that export no longer uses; they named settings and nodes the export takes as they are.
+    if (P4UseSwitchShaderRoute())
+        return;
     TArray<UMaterialExpression*> Pending = Material->Expressions;
     TSet<UMaterialExpression*> Visited;
     TSet<UMaterialFunctionInterface*> Functions;

@@ -135,7 +135,7 @@ FString CookedBase(const FString& Stage, const FString& Package);
 bool NoLinks(const FString& Path, FString& Error);
 bool SafeIdLeaf(const FString& Id);
 ITargetPlatform* CookTarget();
-bool CookTexture(UTexture2D* Texture, const FString& Stage, FString& Error);
+bool CookTexture(UTexture* Texture, const FString& Stage, FString& Error);
 bool CookObject(UObject* Asset, const FString& Stage, FString& Error);
 // The packages a cooked package names, from its own header.
 bool PackagesNamed(const FString& Header, TArray<FString>& Out, FString& Error);
@@ -269,7 +269,7 @@ private:
     TArray<FP4AddedLitLevel> LitLevels;
     TArray<int32> LitMaps;
     FDiscardLit DiscardLit{LitLevels};
-    TArray<UTexture2D*> Textures;
+    TArray<UTexture*> Textures;
     TArray<USoundWave*> Sounds;
     TArray<uint8> ShaderLibrary;
     FString Metadata;

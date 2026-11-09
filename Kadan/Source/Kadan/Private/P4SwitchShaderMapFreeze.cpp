@@ -1,12 +1,14 @@
 #include "P4SwitchShaderMapFreeze.h"
 #include "P4MaterialInstancePermutation.h"
 #include "P4MaterialFactoryContext.h"
+#include "P4KadanMaterialExpressions.h"
 #include "P4MaterialGameSettings.h"
 #include "P4MaterialInstanceGameSettings.h"
 #include "P4SwitchGpuFactoryParameters.h"
 #include "KadanSwitchShaderCompiler.h"
 #include "Features/IModularFeatures.h"
 #include "MaterialShared.h"
+#include "Materials/MaterialExpressionQualitySwitch.h"
 #include "Serialization/MemoryImage.h"
 #include "Serialization/MemoryImageWriter.h"
 #include "Serialization/MemoryLayout.h"
@@ -406,7 +408,22 @@ FMaterialResource* P4CacheMaterialForPlatform(
     FMaterialResource* Resource = Platform == SP_SWITCH
         ? static_cast<FMaterialResource*>(new FP4SwitchMaterialResource(Material, Instance))
         : Material->AllocateResource();
-    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform));
+    // The game renders at material quality High (r.MaterialQualityLevel 1, read live in Eden; none of the game's configs
+    // or device profiles, console or handheld, sets another). For a material whose Quality Switch uses
+    // that level, its runtime asks for a High resource only (Material.cpp FindOrCreateMaterialResource, no fallback to
+    // the default quality), so the one resource exported is compiled and named for High. Otherwise the default quality,
+    // which the game uses at every level the material does not use.
+    EMaterialQualityLevel::Type Quality = EMaterialQualityLevel::Num;
+    if (Platform == SP_SWITCH)
+    {
+        // As stock's quality level usage (not exported): a level is used when a Quality Switch has its input.
+        TArray<UMaterialExpressionQualitySwitch*> Switches;
+        Material->GetAllExpressionsInMaterialAndFunctionsOfType(Switches);
+        for (UMaterialExpressionQualitySwitch* Switch : Switches)
+            if (Switch && Switch->Inputs[EMaterialQualityLevel::High].GetTracedInput().Expression)
+                Quality = EMaterialQualityLevel::High;
+    }
+    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform), Quality);
     Resource->CacheShaders(Platform, nullptr);
     return Resource;
 }
@@ -535,6 +552,7 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
     Copy->bUsedWithStaticLighting = true;
     Copy->bUsedWithInstancedStaticMeshes = Request.Instanced;
     P4ApplyMaterialFactoryUsage(Copy.Get(), Request.Factories);
+    P4ApplyGameRenderLimits(Copy.Get());
     // Compile a private copy of the complete chain. Flattening local overrides loses inherited
     // switches, layer associations and base-property overrides from intermediate instances.
     TArray<UMaterialInstanceConstant*> Chain;
@@ -572,6 +590,32 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         Instance->UpdateOverridableBaseProperties();
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
+    }
+    // Stock 4.26 draws a volumetric distance function decal only in its deferred renderer, into the GBuffer; a forward
+    // renderer (the game's, or a forward-shading UE4 project) draws no such decal.
+    if (Copy->MaterialDomain == MD_DeferredDecal && Copy->DecalBlendMode == DBM_Volumetric_DistanceFunction)
+        return Fail(TEXT("Volumetric distance function decals draw only in UE4's deferred renderer. The game renders ")
+                    TEXT("forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."));
+    // The game's scene reads anywhere in the graph, material functions included, where the nodes cannot see the
+    // material they compile for: only translucent and post process materials, with the instance chain's blend mode.
+    {
+        TArray<UMaterialExpressionKadanSceneDepth*> Depths;
+        TArray<UMaterialExpressionKadanSceneColor*> Colors;
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Depths);
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Colors);
+        const UMaterialInterface* Effective = Parent;
+        if ((Depths.Num() || Colors.Num()) && Copy->MaterialDomain != MD_PostProcess &&
+            !IsTranslucentBlendMode(Effective->GetBlendMode()))
+            return Fail(TEXT("Only translucent and post process materials can read the game's scene depth or color."));
+        // Refraction, for the blend mode and shading models the instance chain draws with. A Game Scene Color node
+        // marks its material as reading the scene colour itself, through stock's read with its value unused. Inside a
+        // material function it cannot see its material's domain, which stock's read needs, so such a material is
+        // marked here (when refraction has not marked it already).
+        if (!P4ApplyGameRefraction(Copy.Get(), Effective->GetBlendMode(), Effective->GetShadingModels()) &&
+            Copy->MaterialDomain == MD_Surface &&
+            Colors.ContainsByPredicate([&Copy](UMaterialExpressionKadanSceneColor* Color)
+                { return !Copy->Expressions.Contains(Color); }))
+            P4MarkGameSceneColorRead(Copy.Get());
     }
     FMaterialResource* Resource = nullptr;
     {

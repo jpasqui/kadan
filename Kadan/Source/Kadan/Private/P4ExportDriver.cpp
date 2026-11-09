@@ -776,8 +776,11 @@ bool FP4ExportRun::CookOwnPackages()
                 Sounds.Add(CastChecked<USoundWave>(Asset));
                 continue;
             case EP4ExportAssetRoute::CreatorTexture:
-                Cooked = CookTexture(CastChecked<UTexture2D>(Asset), Stage, Error);
-                Textures.Add(CastChecked<UTexture2D>(Asset));
+                Cooked = CookTexture(CastChecked<UTexture>(Asset), Stage, Error);
+                Textures.Add(CastChecked<UTexture>(Asset));
+                break;
+            case EP4ExportAssetRoute::CreatorData:
+                Cooked = CookObject(Asset, Stage, Error);
                 break;
             case EP4ExportAssetRoute::CreatorStaticMesh:
             case EP4ExportAssetRoute::CreatorBlueprint:

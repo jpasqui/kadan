@@ -36,7 +36,7 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 26; // Exact float32 C4 literals and resolved instance settings.
+constexpr uint32 FormatVersion = 28; // Round of a vector constant rounded as UE's CPU rounds it too.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
@@ -59,12 +59,14 @@ const IKadanSwitchShaderCompiler* FindCompiler()
 
 // The game's changes to UE 4.26's shader source (KadanSwitchSourcePatches.inl), applied to each job's preprocessed
 // source. KADAN_SWITCH_PATCHES=<file> replaces them with a file's, for trying patches without a build.
-//   @@ <name> [requires <text>]     a patch; with requires, only for a source that holds <text>, which must hold the find text
+//   @@ <name> [requires <text>] [unless <text>]
+//                                    a patch; with requires, only for a source that holds <text>, which must hold the find
+//                                    text; with unless, never for a source that holds that <text>
 //   --- find                         the exact lines to find (every occurrence is replaced)
 //   +++ replace                      the lines that replace them, up to the next @@
 struct FSourcePatch
 {
-    FString Name, Requires, Find, Replace;
+    FString Name, Requires, Unless, Find, Replace;
 };
 
 const TCHAR* const BuiltInPatchParts[] = {
@@ -108,7 +110,13 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
             Finish();
             FSourcePatch Patch;
             FString Head = Line.Mid(3);
-            int32 At = Head.Find(TEXT(" requires "));
+            int32 At = Head.Find(TEXT(" unless "));
+            if (At != INDEX_NONE)
+            {
+                Patch.Unless = Head.Mid(At + 8);
+                Head = Head.Left(At);
+            }
+            At = Head.Find(TEXT(" requires "));
             if (At != INDEX_NONE)
             {
                 Patch.Requires = Head.Mid(At + 10);
@@ -128,6 +136,49 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
     }
     Finish();
     return Out;
+}
+
+// A Round node of a constant: UE writes a constant uniform expression's code into the shader, "round(0.50000000)".
+// UE rounds the same value given by a parameter on the CPU, half up (FMaterialUniformExpressionRound,
+// FMath::RoundToFloat), and the editor's compiler folds the literal to that value too; DXC rounds a half to even. A
+// round() whose argument holds only numbers and vector constructors is rounded half up: a vector constant's
+// MaterialFloat3(...) reaches here preprocessed, as float3 or half3. Engine code's round() always has a variable in
+// it and keeps the GPU's rounding, as the game's own programs have it.
+void RoundConstantsAsUE(FString& Source)
+{
+    static const FString Call = TEXT("round(");
+    bool bAny = false;
+    for (int32 From = 0;;)
+    {
+        const int32 At = Source.Find(Call, ESearchCase::CaseSensitive, ESearchDir::FromStart, From);
+        if (At == INDEX_NONE)
+            break;
+        From = At + Call.Len();
+        if (At > 0 && (FChar::IsAlnum(Source[At - 1]) || Source[At - 1] == TEXT('_')))
+            continue;
+        int32 Depth = 1, End = From;
+        for (; End < Source.Len() && Depth; ++End)
+            Depth += Source[End] == TEXT('(') ? 1 : Source[End] == TEXT(')') ? -1 : 0;
+        if (Depth)
+            break;
+        FString Argument = Source.Mid(From, End - 1 - From);
+        for (const TCHAR* Type : {TEXT("MaterialFloat"), TEXT("min16float"), TEXT("float"), TEXT("half")})
+            Argument.ReplaceInline(Type, TEXT(""), ESearchCase::CaseSensitive);
+        bool bConstant = !Argument.TrimStartAndEnd().IsEmpty();
+        for (const TCHAR Char : Argument)
+            bConstant &= !FChar::IsAlpha(Char) && Char != TEXT('_');
+        if (!bConstant)
+            continue;
+        Source = Source.Left(At) + TEXT("C4RoundAsUE(") + Source.Mid(From);
+        From = At + 12;
+        bAny = true;
+    }
+    if (bAny)
+        Source = TEXT("float C4RoundAsUE(float X) { return floor(X + 0.5); }\n"
+                      "float2 C4RoundAsUE(float2 X) { return floor(X + 0.5); }\n"
+                      "float3 C4RoundAsUE(float3 X) { return floor(X + 0.5); }\n"
+                      "float4 C4RoundAsUE(float4 X) { return floor(X + 0.5); }\n") +
+            Source;
 }
 
 bool ApplySourcePatches(FString& Source, FString& Error)
@@ -158,6 +209,8 @@ bool ApplySourcePatches(FString& Source, FString& Error)
             continue;
         if (!Patch.Requires.IsEmpty() && !Source.Contains(Patch.Requires, ESearchCase::CaseSensitive))
             continue;
+        if (!Patch.Unless.IsEmpty() && Source.Contains(Patch.Unless, ESearchCase::CaseSensitive))
+            continue;
         if (Source.Contains(Patch.Find, ESearchCase::CaseSensitive))
             Source.ReplaceInline(*Patch.Find, *Patch.Replace, ESearchCase::CaseSensitive);
         else if (!Patch.Requires.IsEmpty())
@@ -167,6 +220,7 @@ bool ApplySourcePatches(FString& Source, FString& Error)
             return false;
         }
     }
+    RoundConstantsAsUE(Source);
     return true;
 }
 
