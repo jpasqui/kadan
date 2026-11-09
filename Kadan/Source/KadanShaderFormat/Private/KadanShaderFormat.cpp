@@ -36,7 +36,7 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 27; // Round of a constant rounded as UE's CPU rounds it.
+constexpr uint32 FormatVersion = 28; // Round of a vector constant rounded as UE's CPU rounds it too.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
@@ -141,8 +141,9 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
 // A Round node of a constant: UE writes a constant uniform expression's code into the shader, "round(0.50000000)".
 // UE rounds the same value given by a parameter on the CPU, half up (FMaterialUniformExpressionRound,
 // FMath::RoundToFloat), and the editor's compiler folds the literal to that value too; DXC rounds a half to even. A
-// round() whose argument holds only numbers and MaterialFloat constructors is rounded half up. Engine code's round()
-// always has a variable in it and keeps the GPU's rounding, as the game's own programs have it.
+// round() whose argument holds only numbers and vector constructors is rounded half up: a vector constant's
+// MaterialFloat3(...) reaches here preprocessed, as float3 or half3. Engine code's round() always has a variable in
+// it and keeps the GPU's rounding, as the game's own programs have it.
 void RoundConstantsAsUE(FString& Source)
 {
     static const FString Call = TEXT("round(");
@@ -160,7 +161,9 @@ void RoundConstantsAsUE(FString& Source)
             Depth += Source[End] == TEXT('(') ? 1 : Source[End] == TEXT(')') ? -1 : 0;
         if (Depth)
             break;
-        const FString Argument = Source.Mid(From, End - 1 - From).Replace(TEXT("MaterialFloat"), TEXT(""));
+        FString Argument = Source.Mid(From, End - 1 - From);
+        for (const TCHAR* Type : {TEXT("MaterialFloat"), TEXT("min16float"), TEXT("float"), TEXT("half")})
+            Argument.ReplaceInline(Type, TEXT(""), ESearchCase::CaseSensitive);
         bool bConstant = !Argument.TrimStartAndEnd().IsEmpty();
         for (const TCHAR Char : Argument)
             bConstant &= !FChar::IsAlpha(Char) && Char != TEXT('_');

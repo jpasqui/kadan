@@ -586,6 +586,21 @@ TArray<FCoverageCase> SettingCases()
                 return true;
             });
     }
+    // The ambient occlusion decal through Use Material Attributes: the same stripes from Make Material Attributes.
+    Add(TEXT("domain"), TEXT("DecalAmbientOcclusionAttributes"),
+        TEXT("Decal blend mode DecalAmbientOcclusion through Use Material Attributes (stripes)"),
+        [Swing](UMaterial* G, const FCoverageContext&)
+        {
+            G->MaterialDomain = MD_DeferredDecal;
+            G->BlendMode = BLEND_Translucent;
+            G->DecalBlendMode = DBM_AmbientOcclusion;
+            G->bUseMaterialAttributes = true;
+            auto* Make = Node<UMaterialExpressionMakeMaterialAttributes>(G);
+            Make->Opacity.Expression = Scalar(G, 1.f);
+            Make->AmbientOcclusion.Expression = Swing(G, Scalar(G, 0.5f), Scalar(G, 1.f));
+            G->MaterialAttributes.Expression = Make;
+            return true;
+        });
 
     // Material inputs, each on an otherwise plain surface.
     Add(TEXT("inputs"), TEXT("Metallic"), TEXT("Metallic"),
@@ -693,6 +708,26 @@ TArray<FCoverageCase> SettingCases()
             Rounded->Material = G;
             G->Expressions.Add(Rounded);
             Rounded->GetInput(0)->Expression = Half;
+            G->EmissiveColor.Expression = Rounded;
+            return true;
+        });
+    // Round of a vector constant (0.5, 1.5, 0.5): half up, as UE rounds it on the CPU, is (1, 2, 1), white; rounded
+    // half to even it would be (0, 2, 0), green.
+    Add(TEXT("nodes"), TEXT("RoundOfVector"), TEXT("Round node of a vector constant (0.5, 1.5, 0.5)"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            G->MaterialDomain = MD_Surface;
+            G->BlendMode = BLEND_Opaque;
+            G->SetShadingModel(MSM_Unlit);
+            auto* Halves = Node<UMaterialExpressionConstant3Vector>(G);
+            Halves->Constant = FLinearColor(0.5f, 1.5f, 0.5f);
+            UClass* RoundClass = FindObject<UClass>(ANY_PACKAGE, TEXT("MaterialExpressionRound"));
+            if (!RoundClass)
+                return false;
+            UMaterialExpression* Rounded = NewObject<UMaterialExpression>(G, RoundClass);
+            Rounded->Material = G;
+            G->Expressions.Add(Rounded);
+            Rounded->GetInput(0)->Expression = Halves;
             G->EmissiveColor.Expression = Rounded;
             return true;
         });

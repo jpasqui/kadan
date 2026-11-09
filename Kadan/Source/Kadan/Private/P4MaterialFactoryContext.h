@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "Engine/EngineTypes.h"
 class UMaterialInterface;
 // The lookup checks actual compiled payload/resource references for this graph.
 using FP4MaterialFactoryLookup = TFunction<bool(UMaterialInterface*, uint64, const FString&, FString&)>;
@@ -22,13 +23,20 @@ KADAN_API void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uin
 // field only with dual-source blending, which its RHI never gives the Switch (RHISupportsDualSourceBlending), so the
 // game's own engine refuses that combination: such a material draws in the ordinary translucency pass, before depth of
 // field, as a Modulate material with Render After DOF off does.
-// An ambient occlusion decal draws as a DBuffer colour decal that darkens by its AO (the game has no AO decal stage).
+// An ambient occlusion decal draws as a DBuffer colour decal that darkens by its AO (the game has no AO decal stage),
+// from its AO input or, with Use Material Attributes, its attributes' AO.
 KADAN_API void P4ApplyGameRenderLimits(UMaterial* Material);
-// Refraction without the game's distortion pass: the game keeps it off (r.RefractionQuality 0), so a translucent
-// material with a Refraction input composites the scene behind it at UE's own distortion offset in its translucent
-// base pass (KadanSwitchSourcePatches.inl). On the copy compiled for the game only: it makes that copy read the
-// scene colour, so the game copies the scene for it.
-KADAN_API void P4ApplyGameRefraction(UMaterial* Material);
+// Makes a surface material read the scene colour (Scene Color x 0 added to its emissive, or its attributes'), so the
+// game copies the scene before its translucency for it; without that copy a read of the scene colour is black. The
+// read stays in the program: one texture read. False when the material cannot take it (another domain, or attributes
+// with nothing connected).
+KADAN_API bool P4MarkGameSceneColorRead(UMaterial* Material);
+// Refraction without the game's distortion pass: the game keeps it off (r.RefractionQuality 0), so a material with a
+// Refraction input composites the scene behind it at UE's own distortion offset in its translucent base pass
+// (KadanSwitchSourcePatches.inl), for the Translucent blend mode without thin translucency, the output the patch
+// replaces. Blend and ShadingModels are the instance chain's. On the copy compiled for the game only: it marks that
+// copy as reading the scene colour (P4MarkGameSceneColorRead). True when it marked it.
+KADAN_API bool P4ApplyGameRefraction(UMaterial* Material, EBlendMode Blend, FMaterialShadingModelField ShadingModels);
 // True when the material's usage flags cover this factory (as P4ApplyMaterialFactoryUsage sets them).
 KADAN_API bool P4MaterialUsageCovers(const UMaterial* Material, uint64 Factory);
 // True for a factory P4ApplyMaterialFactoryUsage gives a usage (or the plain static mesh's, which needs none).

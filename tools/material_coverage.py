@@ -17,6 +17,8 @@ compiles it for the editor and for the game. Its report (Saved/P4MapKit/Material
 what was seen in the game is kept across merges.
 
     py -3.11 tools/material_coverage.py merge report.json      take the test's compile results
+    py -3.11 tools/material_coverage.py merge report.json --prune  also drop the rows of the report's families that
+                                                                it no longer has (a full run's report only)
     py -3.11 tools/material_coverage.py seen ID... --note TEXT  record what was seen in the game
     py -3.11 tools/material_coverage.py seen ID... --draws --note TEXT  it draws; its effect not checked
     py -3.11 tools/material_coverage.py seen ID... --wrong --note TEXT  it draws wrong in the game
@@ -58,8 +60,14 @@ def save(table):
     TABLE.write_text(json.dumps(table, indent=1, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
 
 
-def merge(table, report):
+def merge(table, report, prune=False):
     rows = {(r['family'], r['id']): r for r in table['rows']}
+    # A case the test no longer has: with prune, its row goes, in each family the report covers. Only for a report of
+    # a whole run: KADAN_COVERAGE_ONLY and _SLICE runs report some of a family's cases.
+    if prune:
+        reported = {(entry['family'], entry['id']) for entry in report}
+        families = {family for family, _ in reported}
+        rows = {key: row for key, row in rows.items() if key[0] not in families or key in reported}
     # A node is tried with several input wirings; the last attempt UE4 compiled is the one that counts.
     latest = {}
     for entry in report:
@@ -128,6 +136,7 @@ def main(argv=None):
     sub = parser.add_subparsers(dest='action', required=True)
     m = sub.add_parser('merge')
     m.add_argument('report')
+    m.add_argument('--prune', action='store_true', help="drop rows of the report's families it no longer has")
     s = sub.add_parser('seen')
     s.add_argument('ids', nargs='+', help='family/id or id')
     s.add_argument('--note', required=True)
@@ -139,7 +148,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     table = load()
     if args.action == 'merge':
-        save(merge(table, json.loads(Path(args.report).read_text(encoding='utf-8-sig'))))
+        save(merge(table, json.loads(Path(args.report).read_text(encoding='utf-8-sig')), args.prune))
     elif args.action == 'seen':
         for wanted in args.ids:
             found = [r for r in table['rows'] if wanted in (r['id'], r['family'] + '/' + r['id'])]

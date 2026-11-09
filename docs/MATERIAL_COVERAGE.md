@@ -17,7 +17,7 @@ right. **Refused** rows name the message the export gives.
 | seen in the game | 218 |
 | draws in the game, its effect not checked yet | 69 |
 | draws wrong in the game | 0 |
-| compiles, not seen in the game yet | 2 |
+| compiles, not seen in the game yet | 4 |
 | refused | 1 |
 | UE4 refuses this setup too | 35 |
 
@@ -138,6 +138,7 @@ right. **Refused** rows name the message the export gives.
 | --- | --- | --- |
 | Decal blend mode DecalAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalAmbientOcclusion | seen in the game | Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08) |
+| Decal blend mode DecalAmbientOcclusion through Use Material Attributes (stripes) | compiles, not seen in the game yet |  |
 | Decal blend mode DecalAmbientOcclusionStripes | seen in the game | Eden, Area500: the game has no ambient occlusion decal stage (UE draws AO decals only into deferred SSAO), so Kadan draws one as a DBuffer colour decal of black at opacity (1 - AO) x opacity: base colour x lerp(1, AO, opacity). The AO 0.3 decal darkens the ground to about 0.65 of its brightness without tint, the striped one in dark bands. Unlike UE's, it darkens direct light too (2026-11-08) |
 | Decal blend mode DecalDBufferAlphaComposite | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
 | Decal blend mode DecalDBufferColor | seen in the game | Eden, Area500: a decal projected onto the dirt turns it pink (mean shift about +33..+48 red, +18..+29 green, +59..+77 blue), its base colour at opacity 0.8 (2026-11-08) |
@@ -308,6 +309,7 @@ right. **Refused** rows name the message the export gives.
 | Rotator node | draws in the game, its effect not checked yet | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: a moving rainbow, as in the editor; depends on time; not compared with the editor (2026-11-08) |
 | Round node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: fixed in this PR: Round of a literal 0.5 drew 0 (DXC rounds halves to even); a constant is now rounded half up as UE rounds the same value from a parameter, and draws 1 (white) as in the editor (2026-11-08) |
 | Round node of a scalar parameter 0.5 | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of a 0.5 parameter draws 1 (white) as in the editor (UE rounds it on the CPU, half up) (2026-11-08) |
+| Round node of a vector constant (0.5, 1.5, 0.5) | compiles, not seen in the game yet |  |
 | RuntimeVirtualTextureOutput node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RuntimeVirtualTextureReplace node | seen in the game | Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: the same colour as the editor's (mid greys render darker under the game's tone curve) (2026-11-08) |
 | RuntimeVirtualTextureSample node | UE4 refuses this setup too | (Node RuntimeVirtualTextureSample) Missing input Virtual Texture |

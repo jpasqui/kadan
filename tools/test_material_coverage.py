@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -38,6 +39,17 @@ class MaterialCoverageTest(unittest.TestCase):
         self.assertEqual(rows['Add']['status'], 'refused')
         self.assertEqual(rows['Add']['feature'], 'Add node')
         self.assertNotIn('X', rows)
+
+    def test_merge_prunes_only_when_asked_and_only_the_reported_families(self):
+        table = {'rows': [{'family': 'blend', 'id': 'Gone', 'feature': 'g', 'status': 'compiles'},
+                          {'family': 'blend', 'id': 'Kept', 'feature': 'k', 'status': 'game', 'seen': 'drawn'},
+                          {'family': 'nodes', 'id': 'Other', 'feature': 'o', 'status': 'compiles'}]}
+        report = [{'family': 'blend', 'id': 'Kept', 'feature': 'k', 'result': 'compiles'}]
+        kept = {r['id'] for r in material_coverage.merge(json.loads(json.dumps(table)), report)['rows']}
+        self.assertEqual(kept, {'Gone', 'Kept', 'Other'})
+        pruned = {r['id']: r for r in material_coverage.merge(json.loads(json.dumps(table)), report, prune=True)['rows']}
+        self.assertEqual(set(pruned), {'Kept', 'Other'})
+        self.assertEqual(pruned['Kept']['status'], 'game')
 
 
 class MaterialGalleryTest(unittest.TestCase):

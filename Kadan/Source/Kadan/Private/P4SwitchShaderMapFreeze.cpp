@@ -553,7 +553,6 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
     Copy->bUsedWithInstancedStaticMeshes = Request.Instanced;
     P4ApplyMaterialFactoryUsage(Copy.Get(), Request.Factories);
     P4ApplyGameRenderLimits(Copy.Get());
-    P4ApplyGameRefraction(Copy.Get());
     // Compile a private copy of the complete chain. Flattening local overrides loses inherited
     // switches, layer associations and base-property overrides from intermediate instances.
     TArray<UMaterialInstanceConstant*> Chain;
@@ -608,6 +607,15 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         if ((Depths.Num() || Colors.Num()) && Copy->MaterialDomain != MD_PostProcess &&
             !IsTranslucentBlendMode(Effective->GetBlendMode()))
             return Fail(TEXT("Only translucent and post process materials can read the game's scene depth or color."));
+        // Refraction, for the blend mode and shading models the instance chain draws with. A Game Scene Color node
+        // marks its material as reading the scene colour itself, through stock's read with its value unused. Inside a
+        // material function it cannot see its material's domain, which stock's read needs, so such a material is
+        // marked here (when refraction has not marked it already).
+        if (!P4ApplyGameRefraction(Copy.Get(), Effective->GetBlendMode(), Effective->GetShadingModels()) &&
+            Copy->MaterialDomain == MD_Surface &&
+            Colors.ContainsByPredicate([&Copy](UMaterialExpressionKadanSceneColor* Color)
+                { return !Copy->Expressions.Contains(Color); }))
+            P4MarkGameSceneColorRead(Copy.Get());
     }
     FMaterialResource* Resource = nullptr;
     {

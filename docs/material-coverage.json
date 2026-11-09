@@ -618,6 +618,12 @@
   },
   {
    "family": "domain",
+   "id": "DecalAmbientOcclusionAttributes",
+   "feature": "Decal blend mode DecalAmbientOcclusion through Use Material Attributes (stripes)",
+   "status": "compiles"
+  },
+  {
+   "family": "domain",
    "id": "DecalAmbientOcclusionStripes",
    "feature": "Decal blend mode DecalAmbientOcclusionStripes",
    "status": "game",
@@ -1768,6 +1774,12 @@
    "feature": "Round node of a scalar parameter 0.5",
    "status": "game",
    "seen": "Eden, Area500: an unlit cube with the node in its emissive, in a row of six, against the editor's picture of the same row: Round of a 0.5 parameter draws 1 (white) as in the editor (UE rounds it on the CPU, half up) (2026-11-08)"
+  },
+  {
+   "family": "nodes",
+   "id": "RoundOfVector",
+   "feature": "Round node of a vector constant (0.5, 1.5, 0.5)",
+   "status": "compiles"
   },
   {
    "family": "nodes",
