@@ -28,11 +28,12 @@ bool FP4ModDescriptorTest::RunTest(const FString&)
     FP4ModNames Names, Other;
     TestTrue(TEXT("Canonical descriptor accepted"), P4ValidateModDescriptor(D, Error));
     TestTrue(TEXT("Derived namespace accepted"), P4ModDerivedNames(D, Names, Error));
-    TestTrue(TEXT("Root is below own namespace"), Names.PackageRoot.StartsWith(TEXT("/Game/Mods/mycave_")));
+    TestEqual(TEXT("Root is the ID's own folder"), Names.PackageRoot, FString(TEXT("/Game/Mods/my_cave")));
+    TestEqual(TEXT("The container is named after the ID"), Names.Container, FString(TEXT("my_cave")));
     FP4ModDescriptor Collision = D;
     Collision.Id = TEXT("myc.ave");
     TestTrue(TEXT("Other dot placement accepted"), P4ModDerivedNames(Collision, Other, Error));
-    TestNotEqual(TEXT("Full identity hash avoids dot-removal collision"), Names.PackageRoot, Other.PackageRoot);
+    TestNotEqual(TEXT("Dots become underscores, so other dot placement is another folder"), Names.PackageRoot, Other.PackageRoot);
     TArray<FP4ModDescriptor> Listed;
     TestTrue(TEXT("Missing descriptor folder lists empty"), P4ListModDescriptors(Directory, Listed, Error));
     TestFalse(TEXT("List does not create folder"), IFileManager::Get().DirectoryExists(*Directory));

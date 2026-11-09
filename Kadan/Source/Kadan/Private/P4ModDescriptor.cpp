@@ -4,6 +4,7 @@
 #include "P4AuthoringRows.h"
 #include "P4NativeHash.h"
 #include "P4MapKitCore/export_contract.h"
+#include "P4ExportPublication.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/PackageName.h"
@@ -225,7 +226,7 @@ bool P4WriteModDescriptor(
     }
     // Exclusive lock serializes editor instances without trusting an overwritten stale snapshot.
     const FString Lock = File + TEXT(".lock");
-    TUniquePtr<FArchive> Guard(IFileManager::Get().CreateFileWriter(*Lock, FILEWRITE_NoReplaceExisting));
+    TUniquePtr<FArchive> Guard = P4HoldLockFile(Lock);
     if (!Guard)
     {
         Error = TEXT("Another writer holds the mod descriptor lock");

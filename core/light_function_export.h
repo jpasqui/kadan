@@ -13,6 +13,11 @@ inline bool AllowedLightFunctionFile(const Descriptor& Mod, const std::string& R
     }
     return AllowedFile(Mod, Relative, Error);
 }
+// The same for a file of this mod's earlier export, which may have the container's 0.3.1 name.
+inline bool AllowedPriorLightFunctionFile(const Descriptor& Mod, const std::string& Relative,
+    bool GeneratedRuntime, std::string& Error) {
+    return AllowedLightFunctionFile(Mod, Relative, GeneratedRuntime, Error) || AllowedPriorFile(Mod, Relative, Error);
+}
 // Forward projection requires an allocated light shadow channel even though the
 // directional light function has its own separate sampling channel. Keep that
 // sampling channel valid: -1 clears the proxy's light-function sampling mask.

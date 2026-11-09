@@ -12,8 +12,20 @@ bool P4PublishPreparedExport(const FString& Prepared, const FString& Target, boo
         return false;
     };
     const FString Previous = Target + TEXT(".previous");
-    if (IFileManager::Get().DirectoryExists(*Previous) || IFileManager::Get().FileExists(*Previous))
-        return Fail(TEXT("A previous export transaction needs recovery before another publication"));
+    if (IFileManager::Get().FileExists(*Previous))
+        return Fail(TEXT("A file is in the way of the export: ") + Previous + TEXT(". Move or delete it, then export again."));
+    if (IFileManager::Get().DirectoryExists(*Previous))
+    {
+        // An earlier export was published but could not remove the copy it replaced, often because the game had
+        // its files open. That copy is the old export, so it goes now.
+        if (!HadTarget)
+            return Fail(TEXT("An earlier export of this mod stopped while replacing ") + Target + TEXT(", and its "
+                "previous copy is in ") + Previous + TEXT(". Rename that folder back, or delete it, then export again."));
+        if (!IFileManager::Get().DeleteDirectory(*Previous, false, true))
+            return Fail(TEXT("Kadan could not remove the old copy of this mod's earlier export, ") + Previous +
+                TEXT(". Close the game if it is running, delete that folder, then export again."));
+        Told.Add(TEXT("Removed the old copy an earlier export left in ") + Previous + TEXT("."));
+    }
 #if PLATFORM_WINDOWS
     const auto MoveFailure = [](const TCHAR* Operation, DWORD Code, const FString& Source,
                                 const FString& Destination) {
@@ -52,7 +64,20 @@ bool P4PublishPreparedExport(const FString& Prepared, const FString& Target, boo
         return Fail(PublishFailure);
     }
     if (HadTarget && !IFileManager::Get().DeleteDirectory(*Previous, false, true))
-        Told.Add(TEXT("The export was published and the previous output is still in its .previous folder."));
+        Told.Add(TEXT("The export was published. Its old copy is still in ") + Previous +
+            TEXT(", probably because the game has its files open; the next export removes it."));
 #endif
     return true;
+}
+
+TUniquePtr<FArchive> P4HoldLockFile(const FString& Path)
+{
+    TUniquePtr<FArchive> Held(IFileManager::Get().CreateFileWriter(*Path, FILEWRITE_NoReplaceExisting));
+    // A held lock is open without sharing, so Windows refuses to delete it; only a stale one goes.
+    if (!Held && IFileManager::Get().FileExists(*Path) && IFileManager::Get().Delete(*Path, false, false, true))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Kadan: took over the lock %s, which an earlier session left behind."), *Path);
+        Held.Reset(IFileManager::Get().CreateFileWriter(*Path, FILEWRITE_NoReplaceExisting));
+    }
+    return Held;
 }

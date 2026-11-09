@@ -29,5 +29,8 @@ KADAN_API bool P4KadanDeclaredClass(const UClass* Class);
 KADAN_API FP4KadanProjectSetupResult P4KadanSetupProject(const FString& GamePaks, const FString& Repak);
 KADAN_API bool P4KadanProjectReady(FString& Why);
 KADAN_API bool P4KadanProjectRestartRequired();
+// Whether Set up project can get the project ready: false when the P4Stubs plugin is missing or did not load, which
+// only the creator can fix (P4KadanProjectReady says how).
+KADAN_API bool P4KadanSetupCanFinish();
 KADAN_API bool P4KadanProjectConfig(const FString& GameIni, const FString& ProjectIni,
     FString& Updated, int32& Channels, int32& Profiles, FString& Why);

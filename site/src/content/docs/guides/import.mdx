@@ -24,11 +24,14 @@ the imported content and your changes.
    page.
 2. Next to **Game**, click **Browse** and select your dump's `romfs` or `Paks` folder. If you type
    the path, press Enter. Kadan reads the game's list of maps and assets.
-3. The first time, click **Set up project**. It replaces the project's collision and navigation
-   settings with the game's and restarts Unreal. The first start after setup may take a while:
-   Unreal compiles thousands of shaders, and the loading screen stays near 39% until they're done.
+3. The first time, Kadan sets up the project by itself. It replaces the project's collision and
+   navigation settings with the game's and asks to restart Unreal. The first start after setup may
+   take a while: Unreal compiles thousands of shaders, and the loading screen stays near 39% until
+   they're done.
 4. Find what you want with the search box, the kind list and the folder tree, and tick it. The
-   list starts on Maps. Your ticks stay when you change the filters.
+   search finds text anywhere in an asset's path. In the search, `*` stands for any text and `?`
+   for one character, so `Cave0*Soil` finds the soil assets of every `Cave0` map. The list starts
+   on Maps. Your ticks stay when you change the filters.
 5. Check the line beside **Import**. It counts what your selection needs, what's already in the
    project, how much Kadan reads from the game, and the space free on the drive.
 6. Click **Import**.

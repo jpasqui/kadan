@@ -40,6 +40,21 @@ bool FKadanExportProgress::RunTest(const FString&)
             TestFalse(TEXT("Cancellation retains a readable explanation"), Why.IsEmpty());
         }
         TestFalse(TEXT("The outer observer did not cancel"), P4ExportWasCancelled());
+        TestTrue(TEXT("Between steps an export without a cancel goes on"), P4ContinueExport(Why));
+        {
+            // The creator clicked Cancel while a step ran: the next check between steps stops the export.
+            bool Clicked = false;
+            FP4ExportProgressScope Clicking(
+                [&](EP4ExportStage, const FString&, bool) { return !Clicked; }, nullptr, [&]() { return Clicked; });
+            TestFalse(TEXT("No cancel is asked for yet"), P4ExportCancelRequested());
+            TestTrue(TEXT("The export goes on before the click"), P4ContinueExport(Why));
+            Clicked = true;
+            TestTrue(TEXT("A running container tool sees the cancel"), P4ExportCancelRequested());
+            TestFalse(TEXT("The next check between steps stops the export"), P4ContinueExport(Why));
+            TestTrue(TEXT("The stop counts as a cancel"), P4ExportWasCancelled());
+            TestEqual(TEXT("The stop says it was canceled"), Why, FString(P4ExportCanceledMessage()));
+        }
+        TestFalse(TEXT("The outer observer is not canceled by the inner one"), P4ExportCancelRequested());
         TestTrue(TEXT("The outer observer is restored"),
                  P4ReportExportStage(EP4ExportStage::Publishing, TEXT("/Game/Mods/Test/Asset"), Why));
     }
@@ -48,7 +63,8 @@ bool FKadanExportProgress::RunTest(const FString&)
     TestFalse(TEXT("The observer is removed after its scope"), P4HasExportProgressObserver());
     TestEqual(TEXT("Outer observer receives its two real calls"), OuterReports, 2);
     TestEqual(TEXT("Nested observer receives only its own call"), InnerReports, 1);
-    TestEqual(TEXT("Subprocess pulses reach the active observer"), Pulses, 1);
+    // One from the subprocess pulse, one from the check between steps that repaints the window.
+    TestEqual(TEXT("Subprocess pulses reach the active observer"), Pulses, 2);
     return true;
 }
 #endif

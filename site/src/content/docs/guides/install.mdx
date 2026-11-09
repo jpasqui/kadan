@@ -96,10 +96,11 @@ The packaged plugin appears under **Installed > Pikmin 4**. A development copy a
 Open **Kadan > Import from game**, and choose your dump's `romfs` or `Paks` folder with
 **Browse**. If you type the path, press Enter. Kadan reads the game's list of maps and assets.
 
-The first time, click **Set up project**. It replaces the project's collision and navigation
-settings with the game's, so Kadan only does it when you ask, and then restarts Unreal. The first
-start after setup may take a while: Unreal compiles thousands of shaders, and the loading screen
-stays near 39% until they're done.
+The first time, Kadan sets up the project by itself. It turns on `P4Stubs` if it's off, replaces
+the project's collision and navigation settings with the game's, and asks to restart Unreal. If
+that can't finish, the Import page says why, and **Set up project** tries again. The first start
+after setup may take a while: Unreal compiles thousands of shaders, and the loading screen stays
+near 39% until they're done.
 
 Kadan finds `retoc.exe` and `repak.exe` in its `Tools` folder. If either is missing, the Import
 page shows **Choose retoc** or **Choose repak**.

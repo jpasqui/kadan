@@ -122,7 +122,12 @@ TSharedRef<SWidget> FKadanModsPage::Build()
                         [this]()
                         {
                             Host.QueueOperation(TEXT("Kadan is exporting the mod."),
-                                [this]() { P4KadanProgressOperation([this]() { ExportMod(); }); }, true);
+                                [this]()
+                                {
+                                    P4KadanProgressOperation([this]() { ExportMod(); });
+                                    ShowExportStopped();
+                                },
+                                true);
                             return FReply::Handled();
                         })] +
             SVerticalBox::Slot().AutoHeight().Padding(0, 6, 0, 0)[SNew(SHorizontalBox)

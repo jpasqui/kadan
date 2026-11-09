@@ -47,10 +47,12 @@ bool FP4ExportWorkLockTest::RunTest(const FString&)
             P4ExportMod(RequestData, Exported, Error));
         TestTrue(TEXT("The other export's prepared files are left alone"), IFileManager::Get().FileExists(*Prepared));
     }
-    IFileManager::Get().Delete(*(Working + TEXT(".lock")));
+    // The lock file is still there, as an editor that closed in the middle of an export leaves it, but nobody holds it.
+    if (!TestTrue(TEXT("A left-behind lock file stays"), IFileManager::Get().FileExists(*(Working + TEXT(".lock")))))
+        return false;
     FString Error;
     FP4ExportModResult Exported;
-    if (!TestTrue(TEXT("Once the work folder is free the export runs"), P4ExportMod(RequestData, Exported, Error)))
+    if (!TestTrue(TEXT("A lock file nobody holds does not stop the export"), P4ExportMod(RequestData, Exported, Error)))
         AddError(Error);
     TestFalse(
         TEXT("The export's own lock is gone after it"), IFileManager::Get().FileExists(*(Working + TEXT(".lock"))));

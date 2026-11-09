@@ -11,10 +11,13 @@ namespace Blueprint
 {
 using FImportIdentityBytes = std::vector<std::uint8_t>;
 using FImportIdentityHash = std::function<std::uint64_t(const std::string&)>;
+// The names of the exports of another of the game's packages, read from its converted header; empty when unknown.
+using FImportIdentityExportNames = std::function<std::vector<std::string>(const std::string&)>;
 class FVerifiedImportIdentities;
 FVerifiedImportIdentities RecoverImportIdentities(const FImportIdentityBytes&, const FImportIdentityBytes&,
                                                   const FImportIdentityBytes&, const FImportIdentityBytes&,
-                                                  const std::string&, const FImportIdentityHash&);
+                                                  const std::string&, const FImportIdentityHash&,
+                                                  const FImportIdentityExportNames& = {});
 
 namespace ImportIdentityDetail
 {
@@ -141,7 +144,8 @@ class FVerifiedImportIdentities
     }
     friend FVerifiedImportIdentities RecoverImportIdentities(const FImportIdentityBytes&, const FImportIdentityBytes&,
                                                              const FImportIdentityBytes&, const FImportIdentityBytes&,
-                                                             const std::string&, const FImportIdentityHash&);
+                                                             const std::string&, const FImportIdentityHash&,
+                                                             const FImportIdentityExportNames&);
 
   public:
     const std::string& Package() const
@@ -319,7 +323,8 @@ inline FVerifiedImportIdentities RecoverImportIdentities(const FImportIdentityBy
                                                          const FImportIdentityBytes& Body,
                                                          const FImportIdentityBytes& Raw,
                                                          const FImportIdentityBytes& MetadataBytes,
-                                                         const std::string& Name, const FImportIdentityHash& HashName)
+                                                         const std::string& Name, const FImportIdentityHash& HashName,
+                                                         const FImportIdentityExportNames& ExportNamesOf)
 {
     using namespace ImportIdentityDetail;
     Need(bool(HashName), "input-limit");
@@ -349,46 +354,71 @@ inline FVerifiedImportIdentities RecoverImportIdentities(const FImportIdentityBy
     };
     MarkReferences(Header);
     MarkReferences(Body);
-    std::set<std::pair<std::string, std::string>> Candidates;
-    std::set<std::string> ObjectNames;
-    for (const auto& Object : Names)
-        if (!Object.empty() && Object.size() <= 1024 && std::all_of(Object.begin(), Object.end(), Character))
-            ObjectNames.insert(Object);
-    for (const auto& Candidate : Names)
-        if (PackagePath(Candidate) && ImportedIds.count(HashName(Normalize(Candidate))))
-        {
-            Candidates.emplace(Candidate, Candidate + "." + Candidate.substr(Candidate.rfind('/') + 1));
-            // Export names are not necessarily the package basename: generated
-            // classes and their default objects are separate public exports.
-            // Only exact names from this original package's name map qualify;
-            // the original import hash below must identify exactly one pair.
-            Need(ObjectNames.size() <= 1000000 - std::min<std::size_t>(Candidates.size(), 1000000), "candidate-limit");
-            for (const auto& Object : ObjectNames)
-                Candidates.emplace(Candidate, Candidate + "." + Object);
-        }
+    // The hashes of the package's original imports. Only a path whose hash is one of them can name one, so only
+    // those paths are kept: the pairs of every imported package with every object name run to millions in a large
+    // Blueprint (the 2.0.0 ABP_Pikmin_EPIC), and keeping them all hit a limit.
     std::set<std::uint64_t> Wanted;
     for (const auto Index : OriginalImports)
         if ((Index >> 62) == 2)
             Wanted.insert(Index & Mask);
+    std::map<std::uint64_t, std::set<std::pair<std::string, std::string>>> Candidates;
+    std::size_t Tried = 0;
+    const auto Offer = [&](const std::string& Package, std::string Path)
+    {
+        Need(++Tried <= 400000000, "candidate-limit");
+        const auto Key = HashName(Normalize(Path)) & Mask;
+        if (Wanted.count(Key))
+            Candidates[Key].emplace(Package, std::move(Path));
+    };
+    std::set<std::string> ObjectNames;
+    for (const auto& Object : Names)
+        if (!Object.empty() && Object.size() <= 1024 && std::all_of(Object.begin(), Object.end(), Character))
+            ObjectNames.insert(Object);
+    // A Zen package keeps no import table, so the name of an object it imports is in its own name map only when
+    // something else of it uses that name. The imported package's own export names fill that gap.
+    std::map<std::string, std::set<std::string>> TheirNames;
+    for (const auto& Candidate : Names)
+        if (PackagePath(Candidate) && ImportedIds.count(HashName(Normalize(Candidate))))
+        {
+            auto& Theirs = TheirNames[Candidate];
+            if (ExportNamesOf)
+                for (const auto& Object : ExportNamesOf(Candidate))
+                    if (!Object.empty() && Object.size() <= 1024 && !ObjectNames.count(Object) &&
+                        std::all_of(Object.begin(), Object.end(), Character))
+                        Theirs.insert(Object);
+            Offer(Candidate, Candidate + "." + Candidate.substr(Candidate.rfind('/') + 1));
+            // Export names are not necessarily the package basename: generated
+            // classes and their default objects are separate public exports.
+            // Only exact names from this original package's name map or the
+            // imported package's exports qualify; the original import hash
+            // below must identify exactly one pair.
+            for (const auto& Object : ObjectNames)
+                Offer(Candidate, Candidate + "." + Object);
+            for (const auto& Object : Theirs)
+                Offer(Candidate, Candidate + "." + Object);
+        }
     std::set<std::pair<std::string, std::string>> Expanded;
     for (unsigned Depth = 0; Depth < 8; ++Depth)
     {
         std::vector<std::pair<std::string, std::string>> Parents;
-        for (const auto& Candidate : Candidates)
-            if (!Expanded.count(Candidate) && Wanted.count(HashName(Normalize(Candidate.second)) & Mask))
-            {
-                Expanded.insert(Candidate);
-                Parents.push_back(Candidate);
-            }
+        for (const auto& Each : Candidates)
+            for (const auto& Candidate : Each.second)
+                if (!Expanded.count(Candidate))
+                {
+                    Expanded.insert(Candidate);
+                    Parents.push_back(Candidate);
+                }
         if (Parents.empty())
             break;
+        // A nested export's outer must itself have a matching original
+        // import identity. Never enumerate arbitrary path combinations.
         for (const auto& Parent : Parents)
         {
-            Need(ObjectNames.size() <= 1000000 - std::min<std::size_t>(Candidates.size(), 1000000), "candidate-limit");
-            // A nested export's outer must itself have a matching original
-            // import identity. Never enumerate arbitrary path combinations.
             for (const auto& Object : ObjectNames)
-                Candidates.emplace(Parent.first, Parent.second + "." + Object);
+                Offer(Parent.first, Parent.second + "." + Object);
+            if (const auto Theirs = TheirNames.find(Parent.first); Theirs != TheirNames.end())
+                for (const auto& Object : Theirs->second)
+                    Offer(Parent.first, Parent.second + "." + Object);
         }
     }
     std::map<std::int32_t, std::string> Paths;
@@ -409,12 +439,20 @@ inline FVerifiedImportIdentities RecoverImportIdentities(const FImportIdentityBy
         const auto RawIndex = OriginalImports[I];
         Need((RawIndex >> 62) == 2, "nonnull-package-import");
         std::vector<std::pair<std::string, std::string>> Matches;
-        for (const auto& Candidate : Candidates)
-            if ((HashName(Normalize(Candidate.second)) & Mask) == (RawIndex & Mask))
-                Matches.push_back(Candidate);
+        if (const auto Found = Candidates.find(RawIndex & Mask); Found != Candidates.end())
+            Matches.assign(Found->second.begin(), Found->second.end());
         // Unreal's names ignore case, so spellings that differ only by case are one object. The hash
         // above ignores it too. The spelling of the package's own path is the one kept.
-        Need(!Matches.empty(), "candidate-ambiguity");
+        if (Matches.empty())
+        {
+            // Which import no name of the package could spell: its class and its outer, for the import report.
+            std::string Outer;
+            if (!Legacy.Imports[I].Outer || !Legacy.Reference(Legacy.Imports[I].Outer, Outer))
+                Outer = "none";
+            throw Error("import-identities-candidate-ambiguity: no name of the package spells import " +
+                        std::to_string(I) + " (" + Legacy.Imports[I].ClassPackage + "." + Legacy.Imports[I].Class +
+                        " in " + Outer + ")");
+        }
         for (const auto& Match : Matches)
             Need(Normalize(Match.second) == Normalize(Matches[0].second), "candidate-ambiguity");
         const auto Spelled = std::find_if(Matches.begin(), Matches.end(), [](const auto& Match)
