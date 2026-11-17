@@ -33,7 +33,7 @@ CORE_TESTS = (
     'static_mesh_facts_test.cpp', 'table_edit_export_test.cpp',
 )
 # Tests that link the compiler, staged as the plugin builds it (tools/native_custom_backend_sources.py).
-STAGED_TESTS = ('sage_convert_test.cpp',)
+STAGED_TESTS = ('sage_convert_test.cpp', 'maxwell_schedule_test.cpp')
 
 
 def preflight(needs_tools=True):

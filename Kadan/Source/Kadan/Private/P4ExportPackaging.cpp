@@ -314,7 +314,7 @@ bool FP4ExportRun::PackContainer()
                     !IFileManager::Get().DeleteDirectory(*Readback, false, true)))
                 return Fail(Error.IsEmpty() ? TEXT("Cannot reset this export's readback directory") : Error);
             TArray<FString> TextureFilters;
-            for (UTexture2D* Texture : Textures)
+            for (UTexture* Texture : Textures)
             {
                 // retoc uses case-sensitive substring filters. A complete
                 // mounted header path selects only this packed texture; other
@@ -325,7 +325,7 @@ bool FP4ExportRun::PackContainer()
             if (!P4ExtractExportReadback(
                     Request.Tools, Utoc, Request.GamePaksDirectory, Working, Readback, TextureFilters, Error))
                 return Fail(Error);
-            for (UTexture2D* Texture : Textures)
+            for (UTexture* Texture : Textures)
             {
                 const FString Relative = P4ContainerRelativePath(Texture->GetOutermost()->GetName()) + TEXT(".uasset");
                 if (!P4VerifyCookedTextureContent(Stage / Relative, Readback / Relative, Error))
