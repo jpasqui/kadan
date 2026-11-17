@@ -426,7 +426,7 @@ def page(summary, folder):
            'the game.</p><table>']
     kadan = next((part.get('kadan') for part in summary['parts'] if part.get('kadan')), '')
     for label, value in (('Run', summary.get('name', '')), ('Started', summary.get('started', '')),
-                         ('Finished', summary.get('finished', '')), ('Kadan', kadan),
+                         ('Finished', summary.get('finished', '')), ('Kadan.uplugin VersionName', kadan),
                          ('Source', summary.get('source', '')), ('Plugin build', summary.get('built', '')),
                          *((INPUTS[key], value) for key, value in summary.get('inputs', {}).items() if value)):
         if value:
