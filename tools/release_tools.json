@@ -1,0 +1,21 @@
+{
+ "note": "The third-party executables a release ships in Kadan/Tools. tools/build_native_release.py refuses one whose SHA-256 or size differs. To ship another build, change its entry here in a commit before tagging.",
+ "tools": {
+  "retoc": {
+   "file": "retoc.exe",
+   "sha256": "a12303853ada0b957de4d7fec951da9f61e6e303ae10971a042449a5ae0aaa2f",
+   "bytes": 6750208,
+   "licenses": ["LICENSE"],
+   "built_from": "retoc 0.1.5 (https://github.com/trumank/retoc) at commit 885a8da with tools/retoc/kadan-retoc.patch applied, built with cargo build --release -p retoc_cli",
+   "license": "MIT"
+  },
+  "repak": {
+   "file": "repak.exe",
+   "sha256": "fcd538e5994b9bb833622d425ae346f4e0692f02d4b0025114a559f9b6286022",
+   "bytes": 4541952,
+   "licenses": ["LICENSE-MIT", "LICENSE-APACHE"],
+   "built_from": "repak (https://github.com/trumank/repak); the version or commit this executable was built from is not recorded",
+   "license": "MIT or Apache-2.0"
+  }
+ }
+}

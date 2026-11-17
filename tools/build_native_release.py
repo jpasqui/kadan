@@ -1,7 +1,12 @@
-"""Package the current native plugin with Unreal's BuildPlugin command.
+"""Build the release archive on the desktop with Unreal's BuildPlugin command.
 
-Run on the authorized Unreal build machine. The reusable output is owned by this task; no game data
-or private fixtures are staged. Acceptance is performed on the resulting archive.
+    py tools/build_native_release.py [--out private/release-<version>]
+
+Started from the laptop by tools/release.py build, which sends the tag's files and the source record
+(private/release-source.json) first. The build refuses when the mirror's files differ from the record,
+when retoc.exe or repak.exe differ from the hashes pinned in tools/release_tools.json, or when the built
+P4Stubs plugin is missing. It writes Kadan-UE4-<version>.zip (-prerelease appended for a pre-release)
+and SHA256SUMS into the output folder. No game data or private fixtures are staged.
 """
 import argparse
 import hashlib
@@ -10,12 +15,14 @@ import os
 from pathlib import Path
 import re
 import shutil
+from string import Template
 import subprocess
 import sys
 import time
 import zipfile
 
 HERE = Path(__file__).resolve().parent
+REPO = HERE.parent
 sys.path.insert(0, str(HERE.parent))
 OWNER = 'kadan-native-release-build-v1'
 MODULES = {'Kadan', 'KadanShaderFormat', 'P4BlueprintImport'}
@@ -23,6 +30,18 @@ MODULES = {'Kadan', 'KadanShaderFormat', 'P4BlueprintImport'}
 # P4KadanPathDefaults looks first. Each needs its executable and its license files.
 TOOLS = {'retoc': ('retoc.exe', ('LICENSE',)),
          'repak': ('repak.exe', ('LICENSE-MIT', 'LICENSE-APACHE'))}
+# Their pinned SHA-256 and size, and what each is built from.
+PINS = HERE / 'release_tools.json'
+README = HERE / 'release_readme.txt'
+# The source record tools/release.py sends, and the folders whose tracked files it lists: every
+# folder the build reads.
+RECORD = REPO / 'private/release-source.json'
+RECORD_FORMAT = 'kadan-release-source'
+SOURCE_FOLDERS = ('Kadan', 'core', 'compiler', 'own_shaders', 'navigation', 'tools')
+# Where tools/stubs/regenerate.py --build leaves the built P4Stubs plugin (its default --host).
+STUBS = REPO / 'private/stubs/Plugins/P4Stubs'
+STUB_MODULES = ('P4StubsCore', 'Carrot4', 'AkAudio', 'EasyParticle', 'UIParticle', 'SwitchRuntimeSettings')
+STUB_REBUILD = 'py -3.11 tools/stubs/regenerate.py --build'
 
 
 def compiler_from_log(log):
@@ -74,10 +93,74 @@ def runtime_files(plugin):
     return files
 
 
-def release_tools(folders):
-    """The tool files to ship, as (source, member below Kadan/). Refuses a missing executable or license."""
+def archive_name(version, prerelease):
+    """The published name of the archive, as the releases on GitHub name it."""
+    return 'Kadan-UE4-' + version + ('-prerelease' if prerelease else '') + '.zip'
+
+
+def plugin_version(repo):
+    return json.loads((Path(repo) / 'Kadan/Kadan.uplugin').read_text(encoding='utf-8-sig'))['VersionName']
+
+
+def read_source_record(path):
+    """The source record tools/release.py wrote. Refuses a missing or malformed one."""
+    path = Path(path)
+    if not path.is_file():
+        raise ValueError('No source record at ' + str(path) + ': start the release from the laptop with '
+                         'py -3.11 tools/release.py build, which writes and sends it')
+    try:
+        record = json.loads(path.read_text(encoding='utf-8'))
+    except ValueError as error:
+        raise ValueError('The source record ' + str(path) + ' is not JSON: run tools/release.py build again') from error
+    if not isinstance(record, dict):
+        record = {}
+    files, version = record.get('files'), record.get('kadan_version')
+    if record.get('format') != RECORD_FORMAT or \
+            not isinstance(record.get('commit'), str) or not re.fullmatch(r'[0-9a-f]{40}', record['commit']) or \
+            not isinstance(version, str) or not re.fullmatch(r'[0-9A-Za-z.+-]+', version) or \
+            record.get('tag') != 'v' + version or not isinstance(record.get('prerelease'), bool) or \
+            not isinstance(files, dict) or not files:
+        raise ValueError('The source record ' + str(path) + ' is incomplete: run tools/release.py build again')
+    for name, digest in files.items():
+        parts = Path(name).parts
+        if not isinstance(digest, str) or not re.fullmatch(r'[0-9a-f]{64}', digest) or '\\' in name or \
+                not parts or parts[0] not in SOURCE_FOLDERS or '..' in parts or Path(name).is_absolute():
+            raise ValueError('The source record ' + str(path) + ' lists a file outside the release folders: ' + name)
+    return record
+
+
+def check_source(record, repo):
+    """Refuse a mirror whose files differ from the tag's: a listed file missing or with other bytes."""
+    repo = Path(repo)
+    missing, changed = [], []
+    for name, digest in sorted(record['files'].items()):
+        path = repo / name
+        if not path.is_file():
+            missing.append(name)
+        elif sha256(path) != digest:
+            changed.append(name)
+    if missing or changed:
+        listed = ['missing ' + name for name in missing] + ['changed ' + name for name in changed]
+        raise ValueError('The mirror is not the content of tag {} (commit {}): {} of its files differ, {}{}. Run '
+                         'tools/release.py build again from a clean checkout of the tag; it sends the files.'.format(
+                             record['tag'], record['commit'][:12], len(listed), ', '.join(listed[:5]),
+                             ', ...' if len(listed) > 5 else ''))
+    if plugin_version(repo) != record['kadan_version']:
+        raise ValueError('Kadan/Kadan.uplugin in the mirror is not version ' + record['kadan_version'] +
+                         ': run tools/release.py build again')
+    return record
+
+
+def pinned_tools(path=PINS):
+    return json.loads(Path(path).read_text(encoding='utf-8'))['tools']
+
+
+def release_tools(folders, pins=None):
+    """The tool files to ship, as (source, member below Kadan/). Refuses a missing executable or license,
+    and an executable whose SHA-256 or size is not the one pinned in tools/release_tools.json."""
     if set(folders) != set(TOOLS):
         raise ValueError('Expected the folders of ' + ' and '.join(sorted(TOOLS)))
+    pins = pinned_tools() if pins is None else pins
     files = []
     for name, (executable, licenses) in sorted(TOOLS.items()):
         folder = Path(folders[name])
@@ -85,29 +168,112 @@ def release_tools(folders):
             source = folder / file
             if not source.is_file() or source.stat().st_size == 0:
                 raise ValueError('Missing ' + name + ' file for the release: ' + str(source))
+            if file == executable:
+                pin = pins[name]
+                if pin['file'] != executable:
+                    raise ValueError('tools/release_tools.json names ' + pin['file'] + ' for ' + name + ', not ' + executable)
+                digest, size = sha256(source), source.stat().st_size
+                if (digest, size) != (pin['sha256'], pin['bytes']):
+                    raise ValueError('{} has SHA-256 {} ({} bytes), not the pinned {} ({} bytes) in tools/release_tools.json: '
+                                     'put the pinned build there, or, to ship another build, change its entry in '
+                                     'tools/release_tools.json in a commit before tagging.'.format(
+                                         source, digest, size, pin['sha256'], pin['bytes']))
             # The layout the 0.1.0 test archive used, so an update replaces the same files.
             member = 'Tools/' + (file if file == executable else 'licenses/' + name + '/' + file)
             files.append((source, member))
     return files
 
 
-def archive_runtime(plugin, archive, declarations=None, tools=None):
+def stub_files(folder, build_id=None):
+    """The built P4Stubs plugin's files to ship, as (source, member): its descriptor, module list and
+    DLLs, never its PDBs or Source. Refuses a plugin that is not built, not enabled by default, or built
+    for another Unreal build than Kadan."""
+    folder = Path(folder)
+    descriptor = folder / 'P4Stubs.uplugin'
+    binary = folder / 'Binaries/Win64'
+    mapping = binary / 'UE4Editor.modules'
+    if not descriptor.is_file() or not mapping.is_file():
+        raise ValueError('No built P4Stubs plugin at ' + str(folder) + ': build it on this desktop with ' +
+                         STUB_REBUILD + ', or name the built plugin with --stubs')
+    try:
+        data = json.loads(descriptor.read_text(encoding='utf-8-sig'))
+        installed = json.loads(mapping.read_text(encoding='utf-8-sig'))
+    except ValueError as error:
+        raise ValueError('The P4Stubs descriptor or module list in ' + str(folder) + ' is not JSON: rebuild it with ' +
+                         STUB_REBUILD) from error
+    rows = data.get('Modules', [])
+    if sorted(row.get('Name', '') for row in rows) != sorted(STUB_MODULES) or \
+            any((row.get('Type'), row.get('LoadingPhase')) != ('Runtime', 'PreDefault') for row in rows) or \
+            data.get('CanContainContent') is not False:
+        raise ValueError(str(descriptor) + ' does not declare exactly the six runtime modules of the game types: '
+                         'regenerate and rebuild it with ' + STUB_REBUILD)
+    if data.get('EnabledByDefault') is not True:
+        raise ValueError(str(descriptor) + ' is not enabled by default: it was written before the generator set '
+                         'EnabledByDefault. Regenerate and rebuild it with ' + STUB_REBUILD)
+    category = json.loads((REPO / 'Kadan/Kadan.uplugin').read_text(encoding='utf-8-sig')).get('Category')
+    if data.get('Category') != category:
+        raise ValueError('{} has the category {!r}, Kadan/Kadan.uplugin {!r}: regenerate and rebuild it with {}'.format(
+            descriptor, data.get('Category'), category, STUB_REBUILD))
+    if installed.get('Modules') != {name: 'UE4Editor-' + name + '.dll' for name in STUB_MODULES}:
+        raise ValueError(str(mapping) + ' does not list the six P4Stubs modules: rebuild it with ' + STUB_REBUILD)
+    if build_id is not None and installed.get('BuildId') != build_id:
+        raise ValueError('P4Stubs in {} was built for Unreal build {}, Kadan for {}: rebuild it on this desktop with {}'.format(
+            folder, installed.get('BuildId'), build_id, STUB_REBUILD))
+    files = [(descriptor, 'P4Stubs/P4Stubs.uplugin'), (mapping, 'P4Stubs/Binaries/Win64/UE4Editor.modules')]
+    for name in sorted(STUB_MODULES):
+        path = binary / ('UE4Editor-' + name + '.dll')
+        if not path.is_file() or path.stat().st_size == 0:
+            raise ValueError('Missing built P4Stubs module ' + str(path) + ': rebuild it with ' + STUB_REBUILD)
+        files.append((path, 'P4Stubs/Binaries/Win64/' + path.name))
+    return files
+
+
+def readme_text(record, pins=None):
+    """README.txt at the archive's root, from tools/release_readme.txt."""
+    pins = pinned_tools() if pins is None else pins
+    tools = '\n'.join('    {}: {}. License: {}, in Kadan/Tools/licenses/{}.'.format(
+        name, pins[name]['built_from'], pins[name]['license'], name) for name in sorted(TOOLS))
+    return Template(README.read_text(encoding='utf-8')).substitute(
+        version=record['kadan_version'] + (' (pre-release)' if record['prerelease'] else ''),
+        commit=record['commit'], tag=record['tag'], tools=tools)
+
+
+def build_record(record, build_id):
+    """Kadan/BUILD.json: the commit and tag the archive was built from, machine-readable."""
+    return json.dumps(dict(version=record['kadan_version'], tag=record['tag'], commit=record['commit'],
+                           prerelease=record['prerelease'], unreal_build_id=build_id), indent=1) + '\n'
+
+
+def write_sums(archive):
+    """SHA256SUMS beside the archive, in the format sha256sum -c reads."""
+    archive = Path(archive)
+    sums = archive.with_name('SHA256SUMS')
+    sums.write_text(sha256(archive) + '  ' + archive.name + '\n', encoding='ascii', newline='\n')
+    return sums
+
+
+def archive_runtime(plugin, archive, tools=None, stubs=None, record=None):
+    """Write the archive: Kadan/ and, given them, its tools, P4Stubs/, README.txt and Kadan/BUILD.json.
+    The audit runs on the finished archive before it takes its name. Returns each member's SHA-256."""
     files = runtime_files(plugin)
-    extra = release_tools(tools) if tools is not None else []
-    if declarations is not None:
-        from declaration_archive import inspect_declaration_archive
+    extra = [(source, 'Kadan/' + member) for source, member in release_tools(tools)] if tools is not None else []
+    written = {}
+    if stubs is not None or record is not None:
         build_id = json.loads((plugin / 'Binaries/Win64/UE4Editor.modules').read_text(encoding='utf-8'))['BuildId']
-        # The generated SDK is a private acceptance input. Validate its editor
-        # identity without including any game-derived files in this archive.
-        inspect_declaration_archive(declarations, build_id)
+        if stubs is not None:
+            extra += stub_files(stubs, build_id)
+        if record is not None:
+            written = {'README.txt': readme_text(record), 'Kadan/BUILD.json': build_record(record, build_id)}
     temporary = archive.with_suffix('.pending.zip')
     try:
         with zipfile.ZipFile(temporary, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as output:
+            for member, text in written.items():
+                output.writestr(member, text.encode('utf-8'))
             for path in files:
                 member = 'Kadan/' + path.relative_to(plugin).as_posix()
                 output.write(path, member)
             for source, member in extra:
-                output.write(source, 'Kadan/' + member)
+                output.write(source, member)
         if __package__:
             from .native_release_publish import audit_archive
         else:
@@ -119,19 +285,22 @@ def archive_runtime(plugin, archive, declarations=None, tools=None):
     finally:
         if temporary.exists():
             temporary.unlink()
-    members = {path.relative_to(plugin).as_posix(): sha256(path) for path in files}
+    members = {'Kadan/' + path.relative_to(plugin).as_posix(): sha256(path) for path in files}
     members.update({member: sha256(source) for source, member in extra})
+    members.update({member: hashlib.sha256(text.encode('utf-8')).hexdigest() for member, text in written.items()})
     return members
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--out', type=Path, help='output folder (default private/release-<version>)')
     parser.add_argument('--engine', type=Path, default=Path(os.environ.get('P4_UE_ROOT', 'C:/UE_4.26')))
     parser.add_argument('--timeout', type=int, default=2400)
     parser.add_argument('--max-parallel-actions', type=int, default=4)
-    parser.add_argument('--declarations', type=Path,
-                        help='optional private test SDK to check against this editor; never bundled')
+    parser.add_argument('--source-record', type=Path, default=RECORD,
+                        help='the source record tools/release.py sent (default private/release-source.json)')
+    parser.add_argument('--stubs', type=Path, default=STUBS,
+                        help='the built P4Stubs plugin folder (default private/stubs/Plugins/P4Stubs)')
     parser.add_argument('--retoc', type=Path, default=HERE.parent / 'private/retoc',
                         help='folder with retoc.exe and its LICENSE')
     parser.add_argument('--repak', type=Path, default=HERE.parent / 'private/repak',
@@ -139,7 +308,9 @@ def main():
     args = parser.parse_args()
     tools = dict(retoc=args.retoc, repak=args.repak)
     try:
+        source = check_source(read_source_record(args.source_record), REPO)
         release_tools(tools)
+        stub_files(args.stubs)
     except ValueError as error:
         parser.error(str(error))
     if not 1 <= args.timeout <= 7200:
@@ -151,7 +322,7 @@ def main():
     sys.path.insert(0, str(HERE))
     from native_core_sources import source_plan
     production_dependency_files = len(source_plan())
-    folder = args.out.resolve()
+    folder = (args.out or REPO / 'private' / ('release-' + source['kadan_version'])).resolve()
     marker = folder / 'native-release-build.json'
     if folder.exists() and any(folder.iterdir()):
         if not marker.is_file() or json.loads(marker.read_text(encoding='utf-8')).get('owner') != OWNER:
@@ -165,7 +336,9 @@ def main():
             parser.error('Owned release output path escapes its folder')
     folder.mkdir(parents=True, exist_ok=True)
     record = dict(owner=OWNER, status='started', automation_tests=False, commands=[],
-                  production_dependency_files=production_dependency_files)
+                  production_dependency_files=production_dependency_files,
+                  source=dict(commit=source['commit'], tag=source['tag'], version=source['kadan_version'],
+                              prerelease=source['prerelease'], files=len(source['files'])))
     marker.write_text(json.dumps(record), encoding='utf-8')
     sys.path.insert(0, str(HERE))
     from dev_build import sync
@@ -257,11 +430,22 @@ def main():
             target = packaged / path.relative_to(host_plugin)
             if path.suffix != '.uplugin' and (not target.is_file() or sha256(target) != sha256(path)):
                 raise ValueError('Canonical BuildPlugin package differs from its compiled host: ' + path.name)
-        archive = folder / 'Kadan-UE4.zip'
-        members = archive_runtime(packaged, archive, args.declarations, tools)
+        archive = folder / archive_name(source['kadan_version'], source['prerelease'])
+        members = archive_runtime(packaged, archive, tools, args.stubs, source)
+        sums = write_sums(archive)
+        # The stub plugin's build does not trim source paths as Kadan's does. Report what its DLLs keep.
+        record['stub_source_label_audits'] = {}
+        for path, member in stub_files(args.stubs):
+            if path.suffix == '.dll':
+                audit = labels.audit_dll_source_labels(path, prefixes)
+                record['stub_source_label_audits'][path.name] = audit
+                if not audit['ok']:
+                    print('Notice: {} keeps {} absolute path strings, which ship in the release.'.format(
+                        member, audit['counts']['utf8'] + audit['counts']['utf16']), flush=True)
         record.update(status='built', exit=0, archive=archive.name,
-                      archive_sha256=sha256(archive), members=members, acceptance_required=True)
-        print('Packaged native candidate:', archive, flush=True)
+                      archive_sha256=sha256(archive), members=members)
+        print('Packaged release:', archive, flush=True)
+        print('Checksums:', sums, flush=True)
         return 0
     except (OSError, ValueError, subprocess.TimeoutExpired):
         record.update(status='failed')
