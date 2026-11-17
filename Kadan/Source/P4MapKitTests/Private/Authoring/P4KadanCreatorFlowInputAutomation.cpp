@@ -329,8 +329,13 @@ bool FFlow::Menu(const FString& Entry, const FString& Heading)
 
 bool FFlow::SetField(const FString& Name, const FString& Value)
 {
-    auto Input = Name == TEXT("Search") ? StaticCastSharedPtr<SEditableTextBox>(Tagged(TEXT("KadanSearch")))
-                                        : Field(Name);
+    return TypeInto(
+        Name == TEXT("Search") ? StaticCastSharedPtr<SEditableTextBox>(Tagged(TEXT("KadanSearch"))) : Field(Name), Name,
+        Value);
+}
+
+bool FFlow::TypeInto(const TSharedPtr<SEditableTextBox>& Input, const FString& Name, const FString& Value)
+{
     if (!Prepare(Input))
         return false;
     // SetText replaces the live Text_Lambda attribute. Type through Slate so
