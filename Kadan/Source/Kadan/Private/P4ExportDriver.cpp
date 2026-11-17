@@ -165,14 +165,34 @@ bool FP4ExportRun::ReadLevelEdits()
                 Edit.Navigation = !Request.Native;
                 Edit.NavigationWhy = TEXT("The whole level");
                 // The level keeps the game's built lighting only while nothing drawn with it changed. A mesh added
-                // to it or a lit actor of the game's moved or taken out has no baked lighting there (it draws black
-                // in a cave), so the map's lighting is built again with the level as it is and ships with it, as the
-                // export of a list of changes does for the game's lit actors. A level whose changes cannot be read
-                // is built again too.
+                // to it or a lit actor of the game's moved, changed or taken out has no baked lighting there (it
+                // draws black in a cave), so the map's lighting is built again with the level as it is and ships
+                // with it. As in the export of a list of changes, a gameplay object the game builds from a row of its
+                // placement lists is only the editor's picture in the level: moving or removing one changes nothing
+                // the game draws with the level's lighting. When those lists cannot be read, every lit actor counts.
+                // A level whose changes cannot be read is built again too.
                 {
                     const FP4LevelChangesResult Changes = P4AnalyzeOriginalLevelChanges(World);
-                    Edit.RebuildLighting =
-                        !Changes.IsValid() || Changes.LitByGame.Num() > 0 || Changes.AddedUnlit.Num() > 0;
+                    Edit.RebuildLighting = !Changes.IsValid() || Changes.AddedUnlit.Num() > 0;
+                    if (!Edit.RebuildLighting && Changes.LitByGame.Num())
+                    {
+                        const FString ListFolder = P4MapPlacementFolder(Request.ExtractedGameDirectory, Package);
+                        if (!ListFolder.IsEmpty() && !GameRows.Contains(ListFolder))
+                        {
+                            TArray<FP4GamePlacementRow> Rows;
+                            FString Unread;
+                            if (P4ReadGamePlacementLists(ListFolder, Rows, Unread))
+                                GameRows.Add(ListFolder, MoveTemp(Rows));
+                        }
+                        TMap<FString, FP4GameRowEdit> RowEdits;
+                        FString Unread;
+                        const TArray<FP4GamePlacementRow>* Rows = GameRows.Find(ListFolder);
+                        const bool RowsRead = Rows && P4GameRowsOfLevelEdit(World, Changes, Rows, RowEdits, Unread);
+                        for (const FString& Lit : Changes.LitByGame)
+                            Edit.RebuildLighting = Edit.RebuildLighting || !RowsRead || !RowEdits.Contains(Lit) ||
+                                Changes.OtherChanged.ContainsByPredicate(
+                                    [&](const FP4LevelActorChanges& Changed) { return Changed.Actor == Lit; });
+                    }
                 }
                 // The creator's assets the level names (an added cube's mesh, the materials set on it), so they
                 // are staged and cooked as an added actor's would be.
@@ -739,7 +759,10 @@ bool FP4ExportRun::CookWholeLevels()
         if (!P4ReportExportStage(EP4ExportStage::Cooking, Package, Error))
             return Fail(Error);
         UWorld* World = LoadObject<UWorld>(nullptr, *P4ObjectPathOf(Package));
-        if (!World || !Materials->Remap(World, Error, false))
+        // This is the creator's own level, not a copy: the cook sees the runtime copies of the creator's materials,
+        // and the release of those copies at the end of the export puts back each reference it changed and the
+        // level's unsaved state, before the copies go.
+        if (!World || !Materials->Remap(World, Error))
             return Fail(Error.IsEmpty() ? TEXT("Selected original World could not be loaded") : Error);
         const FString Base = CookedBase(Stage, Package);
         if (!P4CookWholeOriginalLevel(World, Base, Error) || !Follow(Package, Base + TEXT(".umap")))
