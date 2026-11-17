@@ -553,6 +553,11 @@ def main(argv=None, environment=None):
     parser.add_argument('--page', type=Path, help='only write walkthrough.html again from a fetched results folder')
     args = parser.parse_args(argv)
     values = inputs(args, os.environ if environment is None else environment)
+    for key in ('map', 'earlier_map'):
+        if values[key] and not re.fullmatch(r'/Game/[A-Za-z0-9_/-]+', values[key]):
+            # Git Bash turns /Game/... into a Windows path before Python sees it: MSYS_NO_PATHCONV=1 stops it.
+            parser.error('--{} must be a /Game package path, not {} (in Git Bash, set MSYS_NO_PATHCONV=1)'.format(
+                key.replace('_', '-'), values[key]))
     if args.page:
         summary = json.loads((args.page / 'walkthrough.json').read_text(encoding='utf-8'))
         (args.page / 'walkthrough.html').write_text(page(summary, args.page), encoding='utf-8')

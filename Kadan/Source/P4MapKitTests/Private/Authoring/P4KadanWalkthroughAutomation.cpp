@@ -279,7 +279,9 @@ private:
     int32 Current = 0;
     int32 Settle = 0, RestartTicks = 0, ResumeAt = 0;
     bool SetupNotNeeded = false, RestartAnswered = false, Restarting = false, LevelHadLighting = false;
-    FDateTime SavedBefore;
+    // The files Unreal reported saving during the last Save Current Level. A file's time cannot tell: Unreal rounds
+    // it to the second, and two saves of the walkthrough can fall in one.
+    TArray<FString> SavedFiles;
     FString Started = FDateTime::UtcNow().ToIso8601();
 
     void Step(const TCHAR* Id, const TCHAR* Title, EView View, TArray<TFunction<bool()>> Parts, double Limit = 60);
@@ -840,12 +842,15 @@ bool FWalkthroughStage::SaveLevel()
     ULevel* Level = Open ? Open->GetCurrentLevel() : nullptr;
     if (!Level)
         return Fail(TEXT("No level is open to save."));
-    const FString File = FPackageName::LongPackageNameToFilename(
-        Level->GetOutermost()->GetName(), FPackageName::GetMapPackageExtension());
-    SavedBefore = IFileManager::Get().GetTimeStamp(*File);
     LevelHadLighting = Level->MapBuildData != nullptr;
+    SavedFiles.Reset();
+    const FDelegateHandle Watch = UPackage::PackageSavedEvent.AddLambda(
+        [this](const FString& File, UObject*) { SavedFiles.Add(FPaths::ConvertRelativePathToFull(File)); });
     FLevelEditorModule& LevelEditor = FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
-    if (!LevelEditor.GetGlobalLevelEditorActions()->ExecuteAction(FLevelEditorCommands::Get().Save.ToSharedRef()))
+    const bool Ran =
+        LevelEditor.GetGlobalLevelEditorActions()->ExecuteAction(FLevelEditorCommands::Get().Save.ToSharedRef());
+    UPackage::PackageSavedEvent.Remove(Watch);
+    if (!Ran)
         return Fail(TEXT("The level editor did not run Save Current Level."));
     return true;
 }
@@ -858,10 +863,13 @@ bool FWalkthroughStage::LevelSaved()
     if (!Level || Open->GetOutermost()->GetName() != Map)
         return Fail(TEXT("The map is no longer open after Save Current Level."));
     const FString Package = Level->GetOutermost()->GetName();
-    const FString File = FPackageName::LongPackageNameToFilename(Package, FPackageName::GetMapPackageExtension());
-    const FDateTime Now = IFileManager::Get().GetTimeStamp(*File);
-    if (Now <= SavedBefore)
-        return Fail(TEXT("Save Current Level did not write ") + File + TEXT("."));
+    const FString File = FPaths::ConvertRelativePathToFull(
+        FPackageName::LongPackageNameToFilename(Package, FPackageName::GetMapPackageExtension()));
+    if (!SavedFiles.ContainsByPredicate([&](const FString& Saved) { return FPaths::IsSamePath(Saved, File); }))
+        return Fail(TEXT("Save Current Level did not write ") + File + TEXT(". Unreal saved: ") +
+            (SavedFiles.Num() ? FString::Join(SavedFiles, TEXT(", ")) : FString(TEXT("nothing"))) + TEXT("."));
+    if (!IFileManager::Get().FileExists(*File))
+        return Fail(TEXT("The saved level's file is not there: ") + File);
     if (Level->GetOutermost()->IsDirty())
         return Fail(TEXT("The level still has unsaved changes after Save Current Level."));
     if (LevelHadLighting && !Level->MapBuildData)

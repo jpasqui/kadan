@@ -58,6 +58,13 @@ class InputsTest(unittest.TestCase):
         self.assertEqual(said.getvalue().count(walk.NOT_RUN), 2)
         self.assertIn('P4_KADAN_WALK_GAME', said.getvalue())
 
+    def test_a_map_that_is_not_a_game_package_is_refused_before_anything_runs(self):
+        for option in ('--map', '--earlier-map'):
+            with self.assertRaises(SystemExit) as stopped, contextlib.redirect_stderr(io.StringIO()) as said:
+                walk.main(['--game', 'G', option, 'C:/Program Files/Git/Game/Maps/Small_P'], {})
+            self.assertEqual(stopped.exception.code, 2)
+            self.assertIn('MSYS_NO_PATHCONV', said.getvalue())
+
     def test_the_desktop_gets_the_same_inputs_and_parts(self):
         arguments = walk.argparse.Namespace(name='walk', built=walk.BUILT, stubs=walk.STUBS, timeout=600.0,
                                             parts=['first-hour'])
