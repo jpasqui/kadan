@@ -445,6 +445,7 @@ FP4KadanProjectSetupResult P4KadanSetupProject(const FString& GamePaks, const FS
     }
     if (!P4KadanProjectConfig(GameIni, Before, After, Result.Channels, Result.Profiles, Result.Message))
         return Result;
+    FString Kept;
     if (Before != After)
     {
         if (IFileManager::Get().IsReadOnly(*Config))
@@ -463,6 +464,20 @@ FP4KadanProjectSetupResult P4KadanSetupProject(const FString& GamePaks, const FS
         const bool StillSame = !IFileManager::Get().FileExists(*Config)
             ? Before.IsEmpty()
             : FFileHelper::LoadFileToString(Current, *Config) && Current == Before;
+        // The setup replaces whole sections of the creator's file (the collision profiles among them), so the file as
+        // it was before Kadan first changed it is kept beside it, byte for byte. A later setup keeps that first copy.
+        const FString Backup = Config + TEXT(".before-kadan");
+        const bool BackUp = StillSame && IFileManager::Get().FileExists(*Config) &&
+            !IFileManager::Get().FileExists(*Backup);
+        if (BackUp && IFileManager::Get().Copy(*Backup, *Config, false) != COPY_OK)
+        {
+            IFileManager::Get().Delete(*Temporary);
+            Result.Message = TEXT("Kadan could not keep a copy of the project configuration, ") + Backup +
+                TEXT(", so it left the configuration as it is.");
+            return Result;
+        }
+        if (BackUp)
+            Kept = TEXT(" Your earlier engine configuration is kept as ") + Backup + TEXT(".");
         if (!StillSame || !IFileManager::Get().Move(*Config, *Temporary, true, false))
         {
             IFileManager::Get().Delete(*Temporary);
@@ -474,9 +489,9 @@ FP4KadanProjectSetupResult P4KadanSetupProject(const FString& GamePaks, const FS
     }
     Result.Ok = true;
     Result.RestartRequired = ChangedThisSession || !P4KadanProjectReady(Why);
-    Result.Message = Result.RestartRequired
+    Result.Message = (Result.RestartRequired
         ? TEXT("Project setup is saved. Restart Unreal Editor before importing game content.")
-        : TEXT("This project already uses the game collision channels and world settings.");
+        : TEXT("This project already uses the game collision channels and world settings.")) + Kept;
     return Result;
 }
 
