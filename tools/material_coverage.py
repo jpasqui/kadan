@@ -5,7 +5,8 @@ material input, texture type or expression node). docs/MATERIAL_COVERAGE.md is m
 status:
 
     game       seen drawing in the game (Eden) through Kadan's export, the feature's own effect included; `seen`
-               says what was seen and when
+               says what was seen and when, `commit` the checkout's short git commit (when git has one) and
+               `shader_format` the shader format version (KadanShaderFormat.cpp) the mark was made with
     draws      a material using it draws in the game, but the feature's own effect was not checked there
     wrong      it compiles and exports, but draws wrong in the game (`seen` says how)
     compiles   compiles for the game through Kadan's export, not yet seen in the game
@@ -29,11 +30,16 @@ import argparse
 import datetime
 import json
 from pathlib import Path
+import re
+import subprocess
 import sys
 
 REPO = Path(__file__).resolve().parent.parent
 TABLE = REPO / 'docs/material-coverage.json'
 PAGE = REPO / 'docs/MATERIAL_COVERAGE.md'
+SHADER_FORMAT = REPO / 'Kadan/Source/KadanShaderFormat/Private/KadanShaderFormat.cpp'
+# What a mark in the game was made with; it goes when the mark does.
+PROVENANCE = ('commit', 'shader_format')
 FAMILIES = [
     ('translucency', 'Translucency settings'),
     ('blend', 'Blend modes'),
@@ -60,6 +66,36 @@ def save(table):
     TABLE.write_text(json.dumps(table, indent=1, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
 
 
+def git_commit():
+    """The checkout's short commit, or None without git."""
+    try:
+        done = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=REPO, capture_output=True, text=True,
+                              timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if done.returncode:
+        return None
+    return done.stdout.strip() or None
+
+
+def shader_format_version(path=None):
+    """The shader format version (FormatVersion in KadanShaderFormat.cpp), part of the game compile's cache key."""
+    path = Path(path or SHADER_FORMAT)
+    try:
+        found = re.search(r'constexpr\s+uint32\s+FormatVersion\s*=\s*(\d+)\s*;', path.read_text(encoding='utf-8'))
+    except OSError as error:
+        raise ValueError('cannot read the shader format version from %s: %s' % (path, error))
+    if not found:
+        raise ValueError('no FormatVersion constant in ' + str(path))
+    return int(found.group(1))
+
+
+def forget_seen(row):
+    row.pop('seen', None)
+    for key in PROVENANCE:
+        row.pop(key, None)
+
+
 def merge(table, report, prune=False):
     rows = {(r['family'], r['id']): r for r in table['rows']}
     # A case the test no longer has: with prune, its row goes, in each family the report covers. Only for a report of
@@ -84,7 +120,7 @@ def merge(table, report, prune=False):
         if result == 'compiles' and entry.get('export_refused'):
             row['status'] = 'refused'
             row['error'] = 'Compiles; export refuses ' + entry['export_refused']
-            row.pop('seen', None)
+            forget_seen(row)
         elif result == 'compiles':
             if row.get('status') not in ('game', 'draws', 'wrong'):
                 row['status'] = 'compiles'
@@ -92,11 +128,11 @@ def merge(table, report, prune=False):
         elif result == 'game-refuses':
             row['status'] = 'refused'
             row['error'] = entry.get('game_error', '')
-            row.pop('seen', None)
+            forget_seen(row)
         else:
             row['status'] = 'ue4'
             row['error'] = entry.get('editor_errors', '')
-            row.pop('seen', None)
+            forget_seen(row)
     table['rows'] = list(rows.values())
     return table
 
@@ -125,6 +161,10 @@ def render(table):
         lines += ['## ' + title, '', '| Feature | Status | Notes |', '| --- | --- | --- |']
         for r in members:
             note = r.get('seen') or r.get('error') or ''
+            made = ['commit ' + r['commit']] if r.get('seen') and r.get('commit') else []
+            made += ['shader format %d' % r['shader_format']] if r.get('seen') and 'shader_format' in r else []
+            if made:
+                note += ' [%s]' % ', '.join(made)
             note = ' '.join(note.split()).replace('|', '\\|')
             lines.append('| %s | %s | %s |' % (r.get('feature', r['id']), STATUS.get(r.get('status'), '?'), note))
         lines.append('')
@@ -150,6 +190,12 @@ def main(argv=None):
     if args.action == 'merge':
         save(merge(table, json.loads(Path(args.report).read_text(encoding='utf-8-sig')), args.prune))
     elif args.action == 'seen':
+        try:
+            version = shader_format_version()
+        except ValueError as error:
+            print(error, file=sys.stderr)
+            return 1
+        commit = git_commit()
         for wanted in args.ids:
             found = [r for r in table['rows'] if wanted in (r['id'], r['family'] + '/' + r['id'])]
             if not found:
@@ -161,6 +207,11 @@ def main(argv=None):
                     return 1
                 r['status'] = 'wrong' if args.wrong else 'draws' if args.draws else 'game'
                 r['seen'] = '%s (%s)' % (args.note, args.date)
+                for key in PROVENANCE:
+                    r.pop(key, None)
+                if commit:
+                    r['commit'] = commit
+                r['shader_format'] = version
         save(table)
     if args.action in ('merge', 'seen', 'render'):
         PAGE.write_text(render(load()) + '\n', encoding='utf-8', newline='\n')

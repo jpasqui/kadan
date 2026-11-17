@@ -11,8 +11,13 @@
 // KADAN_COVERAGE_EXPORT=1: also export a mod with a cube and every material that compiled for the game, for the
 // in-game gallery (tools/material_gallery.lua). The report and the gallery's layout go to
 // Saved/P4MapKit/MaterialCoverage.
+//
+// P4MapKit.Materials.CoverageFixes compiles the survey's own cases for the features the game compile was fixed for,
+// with no export and no pictures, and fails when one of them stops compiling for the game.
 #include "P4ExportDriverTestShared.h"
 #include "P4CreatorMaterialFactories.h"
+#include "P4MaterialFactoryContext.h"
+#include "P4SwitchShaderMapFreeze.h"
 #include "Engine/Texture2DArray.h"
 #include "Engine/TextureCube.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -1103,6 +1108,17 @@ bool EditorGalleryShots(FAutomationTestBase& Test, UStaticMesh* Cube, const TArr
     return true;
 }
 
+// A test mod's content folder, where its creator materials are made. Nothing is exported.
+bool ModFolder(FAutomationTestBase& Test, const FString& Id, const FString& Name, FString& Root)
+{
+    FP4ExportModRequest RequestData;
+    FP4ModNames Names;
+    if (!P4ExportDriverTest::Request(Test, Id, Name, RequestData, Names))
+        return false;
+    Root = Names.PackageRoot;
+    return true;
+}
+
 FString Joined(const TArray<FString>& Lines)
 {
     FString Out;
@@ -1353,6 +1369,97 @@ bool FP4MaterialCoverageTest::RunTest(const FString&)
     FJsonSerializer::Serialize(Layout.ToSharedRef(), Writer);
     FFileHelper::SaveStringToFile(Text, *(Out / TEXT("gallery.json")), FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
     AddInfo(TEXT("Gallery mod ") + Exported.Directory);
+    return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4MaterialCoverageFixesTest, "P4MapKit.Materials.CoverageFixes",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FP4MaterialCoverageFixesTest::RunTest(const FString&)
+{
+    using namespace P4ExportDriverTest;
+    if (!P4UseSwitchShaderRoute())
+    {
+        AddWarning(TEXT("P4MapKit test not run. Creator materials are exported through UE's shaders only."));
+        return true;
+    }
+    FString Root;
+    if (!ModFolder(*this, TEXT("kadan.material.fixes"), TEXT("Material coverage fixes"), Root))
+        return false;
+    // A survey case by its id; a node's (NodeCases) with its input wiring: 0 unconnected, 1 a scalar. What the fix
+    // depends on, where the compile shows it: a refraction material is marked as reading the scene colour (without the
+    // mark the game copies no scene for it), and a Quality Switch with its High input compiles for quality High.
+    const struct
+    {
+        const TCHAR* Id;
+        int32 Attempt;
+        bool bReadsSceneColor, bQualityHigh;
+    } Fixes[] = {{TEXT("Refraction"), -1, true, false}, {TEXT("RefractionUnlit"), -1, true, false},
+        {TEXT("RefractionAttributes"), -1, true, false}, {TEXT("DecalAmbientOcclusion"), -1, false, false},
+        {TEXT("DecalAmbientOcclusionStripes"), -1, false, false},
+        {TEXT("DecalAmbientOcclusionAttributes"), -1, false, false}, {TEXT("RoundOfParameter"), -1, false, false},
+        {TEXT("RoundOfVector"), -1, false, false}, {TEXT("Round"), 1, false, false},
+        {TEXT("PixelDepthOffset"), -1, false, false}, {TEXT("PixelDepth"), 0, false, false},
+        {TEXT("QualitySwitch"), 1, false, true}, {TEXT("ThinTranslucent"), -1, false, false}};
+    const TArray<FCoverageCase> Settings = SettingCases();
+    const TArray<FCoverageCase> Nodes = NodeCases();
+    FCoverageContext Context; // none of these cases reads a texture or a parameter collection
+    auto& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+    TStrongObjectPtr<UP4CreatorMaterialFactory> Factory(NewObject<UP4CreatorMaterialFactory>());
+    for (const auto& Fix : Fixes)
+    {
+        const FString Id = Fix.Id;
+        const FCoverageCase* Case = nullptr;
+        if (Fix.Attempt < 0)
+            Case = Settings.FindByPredicate([&Id](const FCoverageCase& Each) { return Each.Id == Id; });
+        else
+        {
+            const int32 First = Nodes.IndexOfByPredicate([&Id](const FCoverageCase& Each) { return Each.Id == Id; });
+            if (First != INDEX_NONE && Nodes.IsValidIndex(First + Fix.Attempt) && Nodes[First + Fix.Attempt].Id == Id)
+                Case = &Nodes[First + Fix.Attempt];
+        }
+        if (!TestNotNull(TEXT("The survey has the case ") + Id, Case))
+            continue;
+        UMaterial* Graph = Cast<UMaterial>(
+            Tools.CreateAsset(TEXT("M_Fix_") + Id, Root, UMaterial::StaticClass(), Factory.Get()));
+        if (!TestNotNull(Case->Feature + TEXT(": the material is made"), Graph))
+            continue;
+        Graph->Expressions.Empty();
+        Graph->BaseColor.Expression = nullptr;
+        Graph->EmissiveColor.Expression = nullptr;
+        if (!TestTrue(Case->Feature + TEXT(": the case is built"), Case->Setup(Graph, Context)))
+            continue;
+        Graph->PostEditChange();
+        FP4CreatorMaterialCompileRequest Compile;
+        Compile.CreatorMaterial = Graph;
+        Compile.RuntimeObjectPath = Graph->GetPathName();
+        const FP4CreatorMaterialCompileResult Result = P4CompileCreatorMaterial(Compile);
+        TestTrue(Case->Feature + TEXT(": compiles for the game (") + Result.Error + TEXT(")"), Result.Succeeded);
+        if (Fix.bReadsSceneColor)
+        {
+            // As the game compile marks its copy (P4CompileCreatorMaterialSwitch).
+            TStrongObjectPtr<UMaterial> Copy(DuplicateObject<UMaterial>(Graph, GetTransientPackage()));
+            if (TestTrue(Case->Feature + TEXT(": the material is copied"), Copy.IsValid()))
+            {
+                Copy->ClearFlags(RF_Public | RF_Standalone);
+                TestTrue(Case->Feature + TEXT(": marked as reading the scene colour"),
+                    P4ApplyGameRefraction(Copy.Get(), Copy->GetBlendMode(), Copy->GetShadingModels()));
+            }
+        }
+        if (Fix.bQualityHigh)
+        {
+            FP4SwitchShadersInEditorProcess InEditor;
+            FMaterialResource* Resource = P4CacheMaterialForPlatform(Graph, SP_SWITCH);
+            if (TestNotNull(Case->Feature + TEXT(": a Switch resource is made"), Resource))
+            {
+                if (GShaderCompilingManager)
+                    GShaderCompilingManager->FinishAllCompilation();
+                Resource->FinishCompilation();
+                TestEqual(Case->Feature + TEXT(": compiled for quality High"), int32(Resource->GetQualityLevel()),
+                    int32(EMaterialQualityLevel::High));
+                P4ReleaseMaterialResource(Resource);
+            }
+        }
+    }
     return !HasAnyErrors();
 }
 #endif
