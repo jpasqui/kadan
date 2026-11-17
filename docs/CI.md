@@ -30,9 +30,11 @@ python tools/check.py --ci --report build/ci/checks.json
 ```
 
 The gate compiles and runs the portable C++ programs and discovers the Python tool tests,
-including the stubs generator tests. The Lua preview-controller checks use Lupa. Tests use
-authored fixtures and require no game dump, private receipt, licensed editor, or desktop
-connection. Required dependencies are checked before the suite runs, and unexpected skips fail
+including the stubs generator tests. Every `tests/*_test.cpp` is either run or named in
+`EXCLUDED_TESTS` in `tools/check.py` with the reason it is not, such as a private game file it
+reads as an argument; a test in neither fails the gate, and the report lists the excluded ones.
+The Lua preview-controller checks use Lupa. Tests use authored fixtures and require no game
+dump, private receipt, licensed editor, or desktop connection. Required dependencies are checked before the suite runs, and unexpected skips fail
 the gate. The report records what ran and the result.
 
 Use `python tools/check.py --core` or `python tools/check.py --tools` for a focused local run.
