@@ -36,7 +36,8 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 28; // Round of a vector constant rounded as UE's CPU rounds it too.
+constexpr uint32 FormatVersion = 29; // Round of a vector constant rounded as UE's CPU rounds it too; an instruction's
+                                     // read barrier no longer releases the write barrier it just took.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
