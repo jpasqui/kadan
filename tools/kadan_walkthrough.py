@@ -511,6 +511,9 @@ def laptop(args, values, call=remote):
         for step in part.get('steps', []):
             if step['result'] not in ('passed', 'not reached'):
                 print('  {:02d} {}: {} - {}'.format(step['number'], step['id'], step['result'], step.get('error', '')))
+            elif step['result'] == 'passed' and not step.get('picture'):
+                print('  {:02d} {}: passed without a picture - {}'.format(step['number'], step['id'], ' '.join(
+                    note for note in step.get('notes', []) if note.startswith('No picture'))))
     print('page:', target)
     return exit_code(summary)
 

@@ -77,18 +77,20 @@ class InputsTest(unittest.TestCase):
             (results / 'first-hour/01-open.png').write_bytes(PNG)
             summary = dict(name='walk', inputs=dict(game='G'), recording=dict(recorded=False, reason='no ffmpeg'), parts=[
                 dict(name='first-hour', title='First', test='T', state='passed', sessions=[dict(exit=0)],
-                     steps=[step(1, 'open')])])
+                     steps=[step(1, 'open'), step(2, 'save', picture='', notes=['No picture: its window was minimized.'])])])
             (results / 'walkthrough.json').write_text(json.dumps(summary), encoding='utf-8')
             arguments = walk.argparse.Namespace(name='walk', built=walk.BUILT, stubs=walk.STUBS, timeout=600.0,
                                                 parts=['first-hour'], mirror=2)
             repo, walk.REPO = walk.REPO, Path(folder)
+            said = io.StringIO()
             try:
-                with contextlib.redirect_stdout(io.StringIO()):
+                with contextlib.redirect_stdout(said):
                     code = walk.laptop(arguments, dict(game='G', retoc='', repak='', earlier_project='', map=''),
                                        call=lambda words, mirror=None: calls.append((words, mirror)) or 0)
             finally:
                 walk.REPO = repo
             self.assertEqual(code, 0)
+            self.assertIn('02 save: passed without a picture - No picture: its window was minimized.', said.getvalue())
             self.assertEqual([call[0][0] for call in calls], ['run', 'wait', 'fetch'])
             self.assertEqual(calls[0][0][1:5], ['--background', 'walk', '--session', '--'])
             self.assertTrue(all(mirror == 2 for _, mirror in calls))

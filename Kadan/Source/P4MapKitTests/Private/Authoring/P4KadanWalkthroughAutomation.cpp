@@ -41,6 +41,8 @@ namespace
 // fewest placed objects of the caves in the last sweep of every map.
 const TCHAR* const DefaultMap = TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave013/Cave013_F00/Cave013_F00_P");
 const TCHAR* const AddedActor = TEXT("KadanWalkthroughMesh");
+// How long a step's picture is tried again before the step goes on without one.
+const double PictureSeconds = 30;
 
 FString Variable(const TCHAR* Name)
 {
@@ -272,7 +274,7 @@ private:
     FStepLogErrors LogErrors;
     TWeakPtr<SWindow> Dialog;
     FDelegateHandle RestartTick, ShutdownHandle;
-    double PartBegan = 0;
+    double PartBegan = 0, PictureTried = 0;
     // The step that is running. The flow's own index has moved past a step by the time its failure is recorded.
     int32 Current = 0;
     int32 Settle = 0, RestartTicks = 0, ResumeAt = 0;
@@ -284,7 +286,8 @@ private:
 
     bool Run(int32 Number);
 
-    bool Capture(int32 Number);
+    // Saves the step's picture. Empty when it was saved, else why it was not.
+    FString Capture(int32 Number);
 
     void Write();
 
@@ -356,7 +359,8 @@ void FWalkthroughStage::Step(const TCHAR* Id, const TCHAR* Title, EView View, TA
     Record.View = View;
     Record.Parts = MoveTemp(Parts);
     Records.Add(MoveTemp(Record));
-    Flow.Add(Title, [this, Number]() { return Run(Number); }, Limit);
+    // Time beside the step's own for its picture's tries.
+    Flow.Add(Title, [this, Number]() { return Run(Number); }, Limit + PictureSeconds + 10);
 }
 
 // One call per frame while the step is the flow's. A part that returns true is over; the step is over after its
@@ -393,8 +397,25 @@ bool FWalkthroughStage::Run(int32 Number)
     }
     if (Flow.Frame < Settle)
         return false;
-    if (Record.Picture.IsEmpty() && !Capture(Number))
-        return Fail(TEXT("The step finished, but its picture could not be saved."));
+    // A picture is the step's record, not its result: one the editor will not draw is tried again for a while, then
+    // the step goes on without it and says why.
+    if (Record.Picture.IsEmpty())
+    {
+        const FString Why = Capture(Number);
+        if (!Why.IsEmpty())
+        {
+            if (!PictureTried)
+                PictureTried = FPlatformTime::Seconds();
+            if (FPlatformTime::Seconds() - PictureTried < PictureSeconds)
+            {
+                Flow.ReadyFrame = Flow.Frame + 10;
+                return false;
+            }
+            Record.Notes.Add(TEXT("No picture: ") + Why);
+            Flow.Test.AddWarning(TEXT("Walkthrough step ") + Record.Id + TEXT(" has no picture: ") + Why);
+        }
+    }
+    PictureTried = 0;
     Record.Seconds = FPlatformTime::Seconds() - Record.Began;
     Record.LogErrors = LogErrors.Take();
     Record.Result = TEXT("passed");
@@ -402,7 +423,7 @@ bool FWalkthroughStage::Run(int32 Number)
     return true;
 }
 
-bool FWalkthroughStage::Capture(int32 Number)
+FString FWalkthroughStage::Capture(int32 Number)
 {
     FWalkStep& Record = Records[Number];
     TSharedPtr<SWidget> Content;
@@ -415,11 +436,28 @@ bool FWalkthroughStage::Capture(int32 Number)
             Content = Panel->GetContent();
     if (!Content)
         Content = FGlobalTabmanager::Get()->GetRootWindow();
+    if (!Content)
+        return TEXT("the editor has no window to take a picture of.");
+    const TSharedPtr<SWindow> Window = FSlateApplication::Get().FindWidgetWindow(Content.ToSharedRef());
+    if (!Window)
+        return TEXT("what the step shows is in no window of the editor.");
+    // Slate draws no minimized window, and on Windows a minimized main window hides the windows that belong to it.
+    bool Restored = false;
+    for (const TSharedPtr<SWindow>& Shown : {FGlobalTabmanager::Get()->GetRootWindow(), Window})
+        if (Shown && Shown->IsWindowMinimized())
+        {
+            Shown->Restore();
+            Restored = true;
+        }
+    if (Restored)
+        return TEXT("its window was minimized.");
+    if (!Window->IsVisible())
+        return TEXT("its window is hidden.");
     TArray<FColor> Pixels;
     FIntVector Size;
-    if (!Content || !FSlateApplication::Get().TakeScreenshot(Content.ToSharedRef(), Pixels, Size) || Size.X < 100 ||
-        Size.Y < 100)
-        return false;
+    if (!FSlateApplication::Get().TakeScreenshot(Content.ToSharedRef(), Pixels, Size) || Size.X < 100 || Size.Y < 100)
+        return FString::Printf(TEXT("the editor drew no picture of its %.0f by %.0f window titled %s."),
+            Window->GetSizeInScreen().X, Window->GetSizeInScreen().Y, *Window->GetTitle().ToString());
     for (FColor& Pixel : Pixels)
         Pixel.A = 255;
     int32 Width = Size.X, Height = Size.Y;
@@ -436,9 +474,9 @@ bool FWalkthroughStage::Capture(int32 Number)
     FImageUtils::CompressImageArray(Width, Height, Pixels, Png);
     const FString Name = FString::Printf(TEXT("%02d-%s.png"), Number + 1, *Record.Id);
     if (!FFileHelper::SaveArrayToFile(Png, *(Folder / Name)))
-        return false;
+        return TEXT("Kadan could not write ") + (Folder / Name) + TEXT(".");
     Record.Picture = Name;
-    return true;
+    return FString();
 }
 
 void FWalkthroughStage::Write()
@@ -537,7 +575,9 @@ void FWalkthroughStage::Finish()
         Record.Seconds = Record.Began ? FPlatformTime::Seconds() - Record.Began : 0;
         Record.LogErrors = LogErrors.Take();
         Record.Picture.Reset();
-        Capture(Current);
+        const FString Why = Capture(Current);
+        if (!Why.IsEmpty())
+            Record.Notes.Add(TEXT("No picture: ") + Why);
     }
     State = Flow.Failed ? TEXT("failed") : TEXT("passed");
     Write();
