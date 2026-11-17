@@ -61,6 +61,10 @@ on at the next step.
 `steps.json` is written after every step. A step that was running when the editor ended is shown as where
 the run stopped. Errors that the Output Log had during a step are listed with it. They do not fail the step.
 
+A picture is a step's record, not its result. When the editor draws none (its window minimized or hidden,
+or nothing drawn), the step tries for 30 seconds, then goes on with the reason among its notes. The page
+and the runner's output show a step that passed without a picture.
+
 ## Recording
 
 With `ffmpeg` on the desktop's PATH, the desktop's screen is recorded for the whole run as
@@ -73,6 +77,10 @@ runner installs nothing.
 - **Release ZIP**: the tests are in the development build only. A run against the archive needs the
   archive's DLLs with the separate test module, as `tools/dev_tests.py --release-archive` installs them.
   The runner does not do that yet.
-- **Earlier release**: make a project with that release's ZIP, set it up and import the map by hand, close
-  the editor, and pass its folder as `--earlier-project`. No import records the Kadan version that made
-  it, so the page can only show the folder it was given.
+- **Earlier release**: make a project with that release's ZIP, set it up, import the map, close the editor,
+  and pass its folder as `--earlier-project`. 0.3.1 has no scripted project setup, but its import has one:
+  a project with the game's settings in `Config` (copied from a project that setup made), 0.3.1's
+  `Kadan` folder from its ZIP, P4Stubs, and the Python plugin can import the map with
+  `unreal.KadanBlender.import_game_packages(paks, retoc, [map], False, repak)` in an editor started with
+  `-ExecutePythonScript`. No import records the Kadan version that made it, so the page can only show the
+  folder it was given.

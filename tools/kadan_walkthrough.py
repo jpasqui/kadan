@@ -41,6 +41,7 @@ import html
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import stat
 import subprocess
@@ -161,12 +162,25 @@ def plugin_identity(project):
     return {path.name: hashlib.sha256(path.read_bytes()).hexdigest()[:16] for path in sorted(folder.glob('UE4Editor-*.dll'))}
 
 
+# A person's editor is the window in front. Another editor on the desktop can take the front, and Unreal then runs
+# this one at a fraction of its speed ("Use Less CPU when in Background"), so the walkthrough turns that off.
+UNTHROTTLED = '-ini:EditorSettings:[/Script/UnrealEd.EditorPerformanceSettings]:bThrottleCPUWhenNotForeground=False'
+THROTTLE_READBACK = 'GetAll EditorPerformanceSettings bThrottleCPUWhenNotForeground SHOWDEFAULTS'
+
+
 def editor_command(editor, project, test, log, deadline):
     """One editor start that runs one test and exits, as tools/dev_tests.py starts it."""
     return [str(editor), str(project), '-unattended', '-nop4', '-nosplash', '-UTF8Output', '-d3d11', '-NoHMD',
             '-ini:Engine:[/Script/AutomationController.AutomationControllerSettings]:GameInstanceLostTimerSeconds='
-            + str(int(deadline)),
-            '-ExecCmds=Automation RunTests ' + test, '-TestExit=Automation Test Queue Empty', '-AbsLog=' + str(log)]
+            + str(int(deadline)), UNTHROTTLED,
+            '-ExecCmds=Automation RunTests ' + test + ',' + THROTTLE_READBACK, '-TestExit=Automation Test Queue Empty',
+            '-AbsLog=' + str(log)]
+
+
+def unthrottled(text):
+    """Whether the editor's log reads back the background throttle as off; None when it has no readback."""
+    values = set(re.findall(r'Default__EditorPerformanceSettings.*?bThrottleCPUWhenNotForeground\s*=\s*(\w+)', text))
+    return None if not values else values == {'False'}
 
 
 def read_steps(folder):
@@ -258,7 +272,7 @@ def run_part(name, project, values, results, timeout, editor, start=run_editor, 
         text = session_log.read_text(encoding='utf-8', errors='replace') if session_log.is_file() else ''
         if session_log.is_file():
             shutil.copyfile(session_log, target / session_log.name)
-        row['sessions'].append(dict(log=session_log.name, exit=code, timed_out=code == -1))
+        row['sessions'].append(dict(log=session_log.name, exit=code, timed_out=code == -1, unthrottled=unthrottled(text)))
         row['reason'] = not_run_reason(text)
         steps = read_steps(saved)
         if row['reason'] or code == -1 or not steps or steps.get('state') != 'restarting':
@@ -416,8 +430,9 @@ def page(summary, folder):
         state = part['state']
         out.append('<h2>{} <span class="badge {}">{}</span></h2>'.format(text(part['title']), state.replace(' ', '-'), state))
         out.append('<p class="soft"><code>{}</code>{}</p>'.format(text(part['test']), ''.join(
-            ' · editor start {} ended with exit code {}{}'.format(
-                number, session['exit'], ' (stopped at its time limit)' if session.get('timed_out') else '')
+            ' · editor start {} ended with exit code {}{}{}'.format(
+                number, session['exit'], ' (stopped at its time limit)' if session.get('timed_out') else '',
+                {True: '', False: ', with the background throttle on', None: ''}[session.get('unthrottled')])
             for number, session in enumerate(part.get('sessions', []), 1))))
         if part.get('plugin'):
             out.append('<p class="soft">Tested plugin files: {}</p>'.format(', '.join(

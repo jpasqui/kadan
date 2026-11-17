@@ -209,7 +209,9 @@ class EditorTest(unittest.TestCase):
                                       self.root / 'a.log', 600)
         self.assertEqual(command[1], str(self.project))
         self.assertIn('-unattended', command)
-        self.assertIn('-ExecCmds=Automation RunTests P4MapKit.Kadan.WalkthroughFirstHour', command)
+        self.assertIn('-ExecCmds=Automation RunTests P4MapKit.Kadan.WalkthroughFirstHour,' + walk.THROTTLE_READBACK, command)
+        self.assertIn('-ini:EditorSettings:[/Script/UnrealEd.EditorPerformanceSettings]:bThrottleCPUWhenNotForeground=False',
+                      command)
         self.assertIn('-TestExit=Automation Test Queue Empty', command)
         self.assertEqual(command[-1], '-AbsLog=' + str(self.root / 'a.log'))
         self.assertLess(len(subprocess.list2cmdline(command)), 16384)
@@ -284,6 +286,16 @@ class EditorTest(unittest.TestCase):
         self.assertEqual(walk.step_lines(document, told), [])
         document['steps'][1].update(result='failed', error='The import stopped.')
         self.assertEqual(walk.step_lines(document, told), ['  02 import: failed - The import stopped.'])
+
+    def test_the_background_throttle_is_read_back_from_the_editor_s_own_settings(self):
+        line = 'Cmd: GetAll EditorPerformanceSettings bThrottleCPUWhenNotForeground SHOWDEFAULTS\n'
+        self.assertIsNone(walk.unthrottled(line))
+        off = line + ('0) EditorPerformanceSettings /Script/UnrealEd.Default__EditorPerformanceSettings.'
+                      'bThrottleCPUWhenNotForeground = False\n')
+        self.assertTrue(walk.unthrottled(off))
+        self.assertFalse(walk.unthrottled(off.replace('= False', '= True')))
+        row = self.run_part([self.session('passed', [step(1, 'open')], log=off)])
+        self.assertTrue(row['sessions'][0]['unthrottled'])
 
     def test_the_tested_plugin_files_are_named_by_their_bytes(self):
         binaries = self.project.parent / 'Plugins/Kadan/Binaries/Win64'
