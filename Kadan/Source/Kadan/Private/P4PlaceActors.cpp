@@ -200,17 +200,19 @@ void FKadanModule::AfterEngineInit()
         PreSaveHandle = FEditorDelegates::PreSaveWorld.AddLambda(
             [](uint32, UWorld* World)
             {
+                // A level that lent the game's built lighting to the editor's last save has it again for this one.
+                P4ReturnGameBuiltLighting();
                 P4SetNativePreviewsSuspended(true);
                 P4GiveNavigationBoundsForSave(World, true);
             });
     if (!PostSaveHandle.IsValid())
         PostSaveHandle = FEditorDelegates::PostSaveWorld.AddLambda(
-            [](uint32, UWorld* World, bool)
+            [](uint32 SaveFlags, UWorld* World, bool Saved)
             {
                 P4GiveNavigationBoundsForSave(World, false);
                 P4SetNativePreviewsSuspended(false);
                 // Last, once the previews are back: Unreal saves the level's built lighting right after this.
-                P4KeepGameBuiltLightingOutOfSave(World);
+                P4KeepGameBuiltLightingOutOfSave(SaveFlags, World, Saved);
             });
     // Startup lists loaded actor classes. The explicit refresh discovers saved Blueprints
     // after the editor is ready rather than loading their entire dependency closures here.

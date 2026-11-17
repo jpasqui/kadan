@@ -330,6 +330,17 @@ void P4SetNativePreviewsSuspended(bool Suspended)
         SwapAll();
 }
 
+bool P4NativePreviewsSuspended()
+{
+    return SuspendDepth > 0;
+}
+
+bool P4IsNativePreviewValue(const UObject* Object, const FProperty* Property)
+{
+    return Object && Property && Remembered().ContainsByPredicate([&](const FRemembered& Value)
+        { return Value.Object.Get() == Object && Value.Property == Property; });
+}
+
 int32 P4ApplyNativeConstructionPreviews(UWorld* World)
 {
     if (!World || SuspendDepth)
