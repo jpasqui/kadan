@@ -38,6 +38,8 @@ namespace
 const TCHAR* ImportTag = TEXT("P4BlueprintImportVersion");
 const TCHAR* ImportVersion = TEXT("2");
 const TCHAR* SourceTag = TEXT("P4BlueprintSourceMembers");
+// Kadan's record of a creator edit (P4RecordGameBlueprintEdit) holds the Blueprint's package name under this key.
+const TCHAR* EditedTag = TEXT("P4KadanEditedGameBlueprint");
 struct FEntry
 {
     UObject* Asset = nullptr;
@@ -318,6 +320,16 @@ bool P4BlueprintReconstructionIncomplete(const UObject* Asset)
         if (UMetaData* Metadata=Cast<UMetaData>(Object))
             return FString(Metadata->GetValue(Asset,ImportTag))==ImportVersion
                 &&FString(Metadata->GetValue(Asset,TEXT("P4BlueprintReconstructionIncomplete")))==TEXT("1");
+    return false;
+}
+bool P4BlueprintEditedSinceImport(const UObject* Asset)
+{
+    if (!Asset||!Asset->IsA<UBlueprint>()) return false;
+    TArray<UObject*> Objects; GetObjectsWithOuter(Asset->GetOutermost(),Objects,false);
+    for (UObject* Object:Objects)
+        if (UMetaData* Metadata=Cast<UMetaData>(Object))
+            return FString(Metadata->GetValue(Asset,ImportTag))==ImportVersion
+                &&FString(Metadata->GetValue(Asset,EditedTag))==Asset->GetOutermost()->GetName();
     return false;
 }
 bool P4Reimport::IsFreshBlueprint(UBlueprint* Blueprint)
