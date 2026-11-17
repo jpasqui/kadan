@@ -7,7 +7,7 @@ Nothing in it runs the exported mod in the game.
 ```
 py -3.11 tools/remote_unreal.py run --background build -- py tools/dev_build.py --tests
 py -3.11 tools/remote_unreal.py wait build
-py -3.11 tools/kadan_walkthrough.py --game private/game-paks --retoc private/retoc/retoc.exe --repak private/repak/repak.exe --earlier-project private/kadan-walkthrough-earlier
+py -3.11 tools/kadan_walkthrough.py --mirror 2 --game private/game-paks --retoc private/retoc/retoc.exe --repak private/repak/repak.exe --earlier-project private/pr6-savetest --earlier-map /Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/Cave000_F00_P
 ```
 
 The page is `private/desktop-results/private/kadan-walkthrough/<name>/results/walkthrough.html`, with the
@@ -35,6 +35,7 @@ option or from the environment variable the tests read.
 | `--retoc`, `--repak` | `P4_KADAN_WALK_RETOC`, `P4_KADAN_WALK_REPAK` | The tools. A development build has no `Tools` folder, so the Import page asks for them |
 | `--earlier-project` | `P4_KADAN_WALK_EARLIER_PROJECT` | The folder of a project that the earlier release imported the map into. It is copied, never changed |
 | `--map` | `P4_KADAN_WALK_MAP` | The map's package. The default is `Cave013_F00_P`, a one-floor cave whose levels all have built lighting |
+| `--earlier-map` | `P4_KADAN_WALK_EARLIER_MAP` | The earlier project's map, when it is not `--map` |
 
 `--parts` chooses the parts, `--name` the run's folder and background run name, `--mirror` the desktop
 mirror, and `--built` the build host whose plugin is tested.

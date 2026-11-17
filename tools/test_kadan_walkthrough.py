@@ -30,7 +30,7 @@ def steps_document(state, rows, **more):
 
 
 class Arguments:
-    game = retoc = repak = earlier_project = map = None
+    game = retoc = repak = earlier_project = map = earlier_map = None
 
 
 class InputsTest(unittest.TestCase):
@@ -178,7 +178,8 @@ class EditorTest(unittest.TestCase):
         self.project.parent.mkdir()
         self.project.write_text('{}', encoding='utf-8')
         self.saved = self.project.parent / 'Saved/KadanWalkthrough'
-        self.values = dict(game='C:/dump/Paks', retoc='C:/tools/retoc.exe', repak='', earlier_project='', map='/Game/Maps/Small_P')
+        self.values = dict(game='C:/dump/Paks', retoc='C:/tools/retoc.exe', repak='', earlier_project='',
+                           map='/Game/Maps/Small_P', earlier_map='')
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -232,6 +233,16 @@ class EditorTest(unittest.TestCase):
         self.assertTrue((self.root / 'results/first-hour/01-open.png').is_file())
         self.assertTrue((self.root / 'results/first-hour/steps.json').is_file())
         self.assertTrue((self.root / 'results/first-hour/walkthrough-first-hour-1.log').is_file())
+
+    def test_the_earlier_project_s_own_map_is_the_map_its_test_reads(self):
+        self.values.update(earlier_project='C:/kept', earlier_map='/Game/Maps/Kept_P')
+        self.run_part([self.session('passed', [step(1, 'open')])], name='earlier-project')
+        environment = self.environments[0]
+        self.assertEqual(environment['P4_KADAN_WALK_MAP'], '/Game/Maps/Kept_P')
+        self.assertEqual(environment['P4_KADAN_WALK_EARLIER_PROJECT'], str(self.project))
+        self.assertNotIn('P4_KADAN_WALK_EARLIER_MAP', environment)
+        self.run_part([self.session('passed', [step(1, 'open')])])
+        self.assertEqual(self.environments[0]['P4_KADAN_WALK_MAP'], '/Game/Maps/Small_P')
 
     def test_a_restart_for_project_setup_goes_on_in_another_editor_start(self):
         row = self.run_part([self.session('restarting', [step(1, 'setup'), step(2, 'import', 'not reached')]),
@@ -463,7 +474,8 @@ class TierTest(unittest.TestCase):
     def test_the_tests_read_the_variables_the_runner_sets(self):
         source = (walk.REPO / 'Kadan/Source/P4MapKitTests/Private/Authoring/P4KadanWalkthroughAutomation.cpp').read_text(
             encoding='utf-8')
-        for variable in list(walk.INPUTS.values()) + [part['variable'] for part in walk.PARTS.values()]:
+        read = [variable for key, variable in walk.INPUTS.items() if key not in walk.RUNNER_ONLY]
+        for variable in read + [part['variable'] for part in walk.PARTS.values()]:
             self.assertIn('"' + variable + '"', source.replace('TEXT("P4_KADAN_WALK_")) + FString(Tool).ToUpper()',
                                                                '"P4_KADAN_WALK_RETOC" "P4_KADAN_WALK_REPAK"'))
         self.assertIn(walk.NOT_RUN.rstrip('.'), 'P4MapKit test not run')

@@ -27,6 +27,7 @@ option or, without it, from the environment variable of the same name the tests 
 --retoc, --repak   P4_KADAN_WALK_RETOC, _REPAK    the tools, when Kadan's own Tools folder has neither
 --earlier-project  P4_KADAN_WALK_EARLIER_PROJECT  the folder of a project the earlier release imported --map into
 --map              P4_KADAN_WALK_MAP              the map's package (the tests have a small cave as the default)
+--earlier-map      P4_KADAN_WALK_EARLIER_MAP      the earlier project's map, when it is not --map
 
 A part whose input is missing is not run: the page and the output say "P4MapKit test not run." for it, and the
 exit code is 2. A step that fails makes it 1. It is 0 only when every chosen part ran and passed.
@@ -61,7 +62,10 @@ PARTS = {
                             title='Open, save and export in a project an earlier release imported'),
 }
 INPUTS = dict(game='P4_KADAN_WALK_GAME', retoc='P4_KADAN_WALK_RETOC', repak='P4_KADAN_WALK_REPAK',
-              earlier_project='P4_KADAN_WALK_EARLIER_PROJECT', map='P4_KADAN_WALK_MAP')
+              earlier_project='P4_KADAN_WALK_EARLIER_PROJECT', map='P4_KADAN_WALK_MAP',
+              earlier_map='P4_KADAN_WALK_EARLIER_MAP')
+# Inputs the runner reads itself. The earlier project's map is handed to its test as P4_KADAN_WALK_MAP.
+RUNNER_ONLY = ('earlier_project', 'earlier_map')
 # Of an earlier project, what Unreal makes again is not copied. Its Saved folder is: Kadan's settings and what it
 # keeps of the game for the project's exports are there.
 LEFT_OUT = ('Intermediate', 'DerivedDataCache')
@@ -253,8 +257,10 @@ def run_part(name, project, values, results, timeout, editor, start=run_editor, 
     environment = dict(os.environ)
     for key, variable in INPUTS.items():
         environment.pop(variable, None)
-        if values.get(key) and key != 'earlier_project':
+        if values.get(key) and key not in RUNNER_ONLY:
             environment[variable] = str(on_desktop(values[key])) if key != 'map' else values[key]
+    if name == 'earlier-project' and values.get('earlier_map'):
+        environment[INPUTS['map']] = values['earlier_map']
     environment[part['variable']] = str(project)
     target = Path(results) / name
     remove_tree(target)
