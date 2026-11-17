@@ -7,7 +7,8 @@ Writes the plugin's source to <host>/Plugins/P4Stubs (only the files that change
 only those) with its receipt, unified-stubs.json: the inputs' SHA-256 and every generated file's. The
 inputs are the ones inputs.json pins; an absent or different input stops the run before anything is
 written. --compare lists the generated files that differ from another receipt (the shipped plugin's
-is shipped-0.2.0.json). --build then builds the plugin with UnrealBuildTool (build_plugin.py); on the
+is shipped-0.2.0.json; P4Stubs.uplugin differs from it, because the plugin is now enabled by default,
+and test_regenerate.py pins its new hash). --build then builds the plugin with UnrealBuildTool (build_plugin.py); on the
 desktop, run it through remote_unreal.py after pushing private/stub-inputs once.
 """
 import argparse

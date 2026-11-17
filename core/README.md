@@ -181,16 +181,12 @@ with the unsanitized test result. Output stays under the owned private quality f
 
 The runner inventories all handwritten core sources, including ones that did
 not appear in instrumentation, and reports line and branch coverage against the
-90% targets. Coverage does not decide a release; the acceptance chain does.
-`native_quality_policy.json` separately inventories the editor and owned runtime
-sources. Core coverage never counts as measured editor/runtime coverage.
+90% targets. Coverage does not decide a release. Core coverage never counts as
+measured editor/runtime coverage.
 
-`native_release_publish.py` accepts only exact qualified native archives. It
-checks current source hashes, all required evidence and the archive hash, audits
-members, stages the new file and rechecks before atomic replacement. Rejection
-preserves the previous release. Native editor actions and remaining processing
-ports still need qualification before that gate can pass.
+`native_release_publish.py` audits the members of a release archive: it refuses
+game containers and assets, sources, PDBs, Python and private folders.
 
 Native UE automation is compiled only by an explicit candidate build with
-`--automation-tests`; normal production builds omit it. The native publisher
+`--automation-tests`; normal production builds omit it. The release audit
 also rejects an authoring DLL carrying those test registrations.

@@ -51,7 +51,7 @@ npm --prefix site run build
 
 The native plugin requires licensed Unreal Engine 4.26.2. Keep editor and game test inputs
 outside Git. [CI](docs/CI.md) separates the hosted checks from editor automation, and
-[Releases](docs/RELEASING.md) describes the native qualification and publication gate.
+[Releases](docs/RELEASING.md) describes how a release is built on the desktop and uploaded.
 
 ## Pull requests
 

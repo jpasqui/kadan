@@ -46,6 +46,7 @@ YourProject/
       Binaries/
       Config/
       Tools/
+      BUILD.json
       Kadan.uplugin
     P4Stubs/
       Binaries/
@@ -65,7 +66,8 @@ establish compatibility, so review the packages and their outcomes during repair
 <Steps>
 
 1. Close Unreal Editor, then replace both `Kadan` and `P4Stubs` with the folders from the new
-   download. Use the same `Plugins` folder as before, and keep your project's `Content`,
+   download. Every download has both, built together, so replace both even if only Kadan changed.
+   Use the same `Plugins` folder as before, and keep your project's `Content`,
    `Config`, and `.uproject` file.
 2. Open your project, choose **Kadan > Import from game**, and select your dump next to **Game**.
    If Kadan asks to set up the project, let it restart Unreal before importing.
