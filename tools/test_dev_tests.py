@@ -1,6 +1,7 @@
 """Boundary tests for the actual owned native test runner and stock controller deadline."""
 import contextlib
 import io
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -38,7 +39,7 @@ class TestManagedLogNames(unittest.TestCase):
 
 
 class TestNativeControllerDeadline(unittest.TestCase):
-    def run_runner(self, readback, extra=(), selected=1, completed=1):
+    def run_runner(self, readback, extra=(), selected=1, completed=1, not_run=(), output=None):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             project = root / 'Owned.uproject'
@@ -52,6 +53,10 @@ class TestNativeControllerDeadline(unittest.TestCase):
                 log = project.parent / 'Saved/dev-tests.log'
                 lines = ["Found {} Automation Tests, based on 'P4MapKit'".format(selected)]
                 lines += ['Test Completed. Result={Passed} Name={RealFixture} Path={P4MapKit.RealFixture' + str(index) + '}' for index in range(completed)]
+                for index in not_run:
+                    lines += ['LogAutomationController: BeginEvents: P4MapKit.RealFixture' + str(index),
+                              'LogAutomationController: Warning: P4MapKit test not run. Set P4_X.',
+                              'LogAutomationController: EndEvents: P4MapKit.RealFixture' + str(index)]
                 if readback is not None:
                     lines += ['LogEngine: 0) AutomationControllerSettings /Script/AutomationController.Default__AutomationControllerSettings GameInstanceLostTimerSeconds = ' + str(readback)]
                 # An echoed expected ini value is never independent configuration proof.
@@ -65,7 +70,7 @@ class TestNativeControllerDeadline(unittest.TestCase):
                 install=lambda archive, project: calls.append(('shipping-installed', {})) or {'exact': 'binding'},
                 verify=lambda binding: calls.append(('shipping-verified', binding)))
             argv = ['dev_tests.py', '--project', str(project), '--built', str(root), '--timeout', '1800'] + list(extra)
-            with patch.dict(sys.modules, {'ue_bake': bake, 'dev_build': build, 'native_release_test_runtime': overlay}), patch.object(dev_tests, 'fixtures', return_value={}), patch.object(dev_tests.subprocess, 'Popen', side_effect=popen), patch.object(sys, 'argv', argv), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            with patch.dict(sys.modules, {'ue_bake': bake, 'dev_build': build, 'native_release_test_runtime': overlay}), patch.object(dev_tests, 'fixtures', return_value={}), patch.object(dev_tests.subprocess, 'Popen', side_effect=popen), patch.object(sys, 'argv', argv), contextlib.redirect_stdout(output if output is not None else io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 result = dev_tests.main()
             return result, calls
 
@@ -147,6 +152,60 @@ class TestCommandLineLimit(unittest.TestCase):
         ran = [item for command in commands for arg in command if arg.startswith('-ExecCmds=Automation RunTests ')
                for item in arg.split(' ', 2)[2].split(',', 1)[0].split('+')]
         self.assertEqual(ran, names)
+
+
+class TestMeshCensus(unittest.TestCase):
+    def test_absent_census_leaves_the_mesh_variables_unset_and_says_so(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(dev_tests.fixtures(folder), {})
+            self.assertEqual(len(output.getvalue().splitlines()), 1)
+            self.assertIn('P4_NATIVE_CYLINDER_SOURCE', output.getvalue())
+
+    def test_present_census_names_the_recorded_sources(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            census = root / dev_tests.CENSUS
+            census.parent.mkdir(parents=True)
+            census.write_text(json.dumps(dict(records=[
+                dict(name='SM_stg_Cylinder01', source_path='game/Cylinder.uasset'),
+                dict(name='SM_stg_ShizaiBF01', source_path='game/Shizai.uasset')])), encoding='utf-8')
+            found = dev_tests.fixtures(root)
+        self.assertEqual(found, {'P4_NATIVE_CYLINDER_SOURCE': str(root / 'game/Cylinder.uasset'),
+                                 'P4_NATIVE_SHIZAI_SOURCE': str(root / 'game/Shizai.uasset')})
+
+
+class TestNotRunExit(unittest.TestCase):
+    def test_a_named_test_that_did_not_run_fails_the_run_and_is_named(self):
+        output = io.StringIO()
+        runner = TestNativeControllerDeadline()
+        result, _ = runner.run_runner('900', extra=('--only', 'P4MapKit.RealFixture0', 'P4MapKit.RealFixture1'),
+                                      selected=2, completed=2, not_run=(1,), output=output)
+        self.assertEqual(result, 1)
+        self.assertIn('1 tests did not run', output.getvalue())
+        self.assertIn('Named tests that did not run (--allow-not-run accepts this): P4MapKit.RealFixture1', output.getvalue())
+
+    def test_allow_not_run_restores_the_earlier_exit_for_named_tests(self):
+        runner = TestNativeControllerDeadline()
+        result, _ = runner.run_runner('900', extra=('--only', 'P4MapKit.RealFixture0', 'P4MapKit.RealFixture1', '--allow-not-run'),
+                                      selected=2, completed=2, not_run=(1,))
+        self.assertEqual(result, 0)
+
+    def test_named_tests_that_all_ran_still_pass(self):
+        runner = TestNativeControllerDeadline()
+        result, _ = runner.run_runner('900', extra=('--only', 'P4MapKit.RealFixture0'))
+        self.assertEqual(result, 0)
+
+    def test_a_tier_run_counts_tests_that_did_not_run_without_failing(self):
+        self.assertEqual(dev_tests.not_run_verdict(['P4MapKit.A', 'P4MapKit.B'], []), (['2 tests did not run'], False))
+        self.assertEqual(dev_tests.not_run_verdict([], []), ([], False))
+        self.assertEqual(dev_tests.not_run_verdict([], ['P4MapKit.A']), ([], False))
+        lines, fails = dev_tests.not_run_verdict(['P4MapKit.A'], ['P4MapKit.A'])
+        self.assertTrue(fails)
+        self.assertEqual(lines[0], '1 tests did not run')
+        self.assertEqual(dev_tests.not_run_verdict(['P4MapKit.A'], ['P4MapKit.A'], allow_not_run=True),
+                         (['1 tests did not run'], False))
 
 
 class TestNotRunCount(unittest.TestCase):
