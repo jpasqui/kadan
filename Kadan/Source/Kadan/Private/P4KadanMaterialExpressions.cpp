@@ -261,10 +261,21 @@ const UMaterial* OwningMaterial(const UMaterialExpression* Expression)
 {
     return Expression->Material ? Expression->Material : Expression->GetTypedOuter<UMaterial>();
 }
+
+// The game binds its scene textures only for Surface materials drawn translucent and for post process materials.
+// Stock's blend mode check lets a translucent UI, decal or volume material through, which the game draws where none
+// are bound, so another domain is refused here (an instance cannot change the domain).
+bool SceneReadDomain(const UMaterial* Owner)
+{
+    return !Owner || Owner->MaterialDomain == MD_Surface || Owner->MaterialDomain == MD_PostProcess;
+}
 } //namespace
 
 int32 UMaterialExpressionKadanSceneDepth::Compile(FMaterialCompiler* Compiler, int32 OutputIndex)
 {
+    if (!SceneReadDomain(OwningMaterial(this)))
+        return Compiler->Errorf(TEXT("Only Surface materials drawn translucent and post process materials can read ")
+                                    TEXT("the game's scene with Game Scene Depth."));
     if (Compiler->GetCurrentShaderFrequency() == SF_Pixel &&
         Compiler->SceneDepth(Compiler->Constant2(0.f, 0.f), INDEX_NONE, true) == INDEX_NONE)
         return INDEX_NONE;
@@ -290,17 +301,18 @@ int32 UMaterialExpressionKadanSceneColor::Compile(FMaterialCompiler* Compiler, i
 {
     // Stock's own Scene Color read is for surfaces only. It also marks the material as reading the scene color, so
     // the game copies the scene for it (without the mark the read is black). Inside a material function the domain
-    // isn't known here: the game compile checks and marks such a material (P4CompileCreatorMaterialSwitch). Another
-    // domain keeps the rule with the material's own blend mode.
+    // isn't known here: the game compile checks and marks such a material (P4CompileCreatorMaterialSwitch). A post
+    // process material reads it too; any other domain is refused.
     const UMaterial* Owner = OwningMaterial(this);
+    if (!SceneReadDomain(Owner))
+        return Compiler->Errorf(TEXT("Only Surface materials drawn translucent and post process materials can read ")
+                                    TEXT("the game's scene with Game Scene Color."));
     if (Owner && Owner->MaterialDomain == MD_Surface)
     {
         if (Compiler->GetCurrentShaderFrequency() == SF_Pixel &&
             Compiler->SceneColor(Compiler->Constant2(0.f, 0.f), INDEX_NONE, true) == INDEX_NONE)
             return INDEX_NONE;
     }
-    else if (Owner && Owner->MaterialDomain != MD_PostProcess && !IsTranslucentBlendMode(Owner->BlendMode))
-        return Compiler->Errorf(TEXT("Only translucent and post process materials can read the game's scene color."));
     if (ForTheGame(Compiler))
         return CompileGameSceneRead(Compiler, this, CompileExpression, MaterialExpressionGuid, InputMode, Input,
             ConstInput, TEXT("DecodeSceneColorForMaterialNode"), CMOT_Float3);

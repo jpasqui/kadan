@@ -19,13 +19,15 @@ class UMaterial;
 // sprite particles, beams and trails.
 KADAN_API void P4ApplyMaterialFactoryUsage(UMaterial* Material, const TArray<uint64>& Factories);
 // What the game's renderer cannot draw as set, changed to what it draws closest, on a copy compiled for the game and
-// on the runtime material that ships (both get the same settings). UE 4.26 draws a Modulate material after depth of
-// field only with dual-source blending, which its RHI never gives the Switch (RHISupportsDualSourceBlending), so the
-// game's own engine refuses that combination: such a material draws in the ordinary translucency pass, before depth of
-// field, as a Modulate material with Render After DOF off does.
-// An ambient occlusion decal draws as a DBuffer colour decal that darkens by its AO (the game has no AO decal stage),
-// from its AO input or, with Use Material Attributes, its attributes' AO.
+// on the runtime material that ships (both get the same settings). An ambient occlusion decal draws as a DBuffer colour
+// decal that darkens by its AO (the game has no AO decal stage), from its AO input or, with Use Material Attributes,
+// its attributes' AO.
 KADAN_API void P4ApplyGameRenderLimits(UMaterial* Material);
+// UE 4.26 draws a Modulate material after depth of field only with dual-source blending, which its RHI never gives the
+// Switch (RHISupportsDualSourceBlending), so the game's own engine refuses that combination: a material drawn with
+// the Modulate blend mode (DrawnWith, an instance's override included) has Render After DOF turned off and draws in the
+// ordinary translucency pass, before depth of field. The setting is the base material's, shared by its instances.
+KADAN_API void P4ApplyGameModulateLimit(UMaterial* Material, EBlendMode DrawnWith);
 // Makes a surface material read the scene colour (Scene Color x 0 added to its emissive, or its attributes'), so the
 // game copies the scene before its translucency for it; without that copy a read of the scene colour is black. The
 // read stays in the program: one texture read. False when the material cannot take it (another domain, or attributes

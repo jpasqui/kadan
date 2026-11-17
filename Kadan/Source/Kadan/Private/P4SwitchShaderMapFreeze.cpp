@@ -591,22 +591,31 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
     }
+    // Render After DOF with the blend mode the instance chain draws with.
+    P4ApplyGameModulateLimit(Copy.Get(), Parent->GetBlendMode());
     // Stock 4.26 draws a volumetric distance function decal only in its deferred renderer, into the GBuffer; a forward
     // renderer (the game's, or a forward-shading UE4 project) draws no such decal.
     if (Copy->MaterialDomain == MD_DeferredDecal && Copy->DecalBlendMode == DBM_Volumetric_DistanceFunction)
         return Fail(TEXT("Volumetric distance function decals draw only in UE4's deferred renderer. The game renders ")
                     TEXT("forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."));
     // The game's scene reads anywhere in the graph, material functions included, where the nodes cannot see the
-    // material they compile for: only translucent and post process materials, with the instance chain's blend mode.
+    // material they compile for: only Surface materials drawn translucent (with the instance chain's blend mode) and
+    // post process materials. The game binds its scene textures only for those passes; a UI, decal, light function,
+    // volume or virtual texture material is drawn where none are bound, whatever its blend mode.
     {
         TArray<UMaterialExpressionKadanSceneDepth*> Depths;
         TArray<UMaterialExpressionKadanSceneColor*> Colors;
         Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Depths);
         Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Colors);
         const UMaterialInterface* Effective = Parent;
-        if ((Depths.Num() || Colors.Num()) && Copy->MaterialDomain != MD_PostProcess &&
-            !IsTranslucentBlendMode(Effective->GetBlendMode()))
-            return Fail(TEXT("Only translucent and post process materials can read the game's scene depth or color."));
+        const bool bReadsScene = Copy->MaterialDomain == MD_PostProcess ||
+            (Copy->MaterialDomain == MD_Surface && IsTranslucentBlendMode(Effective->GetBlendMode()));
+        if ((Depths.Num() || Colors.Num()) && !bReadsScene)
+            return Fail(FString(TEXT("Only Surface materials drawn translucent and post process materials can ")
+                                TEXT("read the game's scene. This material uses ")) +
+                (Depths.Num() && Colors.Num() ? TEXT("Game Scene Depth and Game Scene Color.")
+                    : Depths.Num()            ? TEXT("Game Scene Depth.")
+                                              : TEXT("Game Scene Color.")));
         // Refraction, for the blend mode and shading models the instance chain draws with. A Game Scene Color node
         // marks its material as reading the scene colour itself, through stock's read with its value unused. Inside a
         // material function it cannot see its material's domain, which stock's read needs, so such a material is

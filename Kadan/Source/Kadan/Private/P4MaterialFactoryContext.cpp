@@ -140,10 +140,14 @@ void SetInput(FExpressionInput& Input, UMaterialExpression* Expression)
 }
 } //namespace
 
+void P4ApplyGameModulateLimit(UMaterial* Material, EBlendMode DrawnWith)
+{
+    if (Material && DrawnWith == BLEND_Modulate && Material->bEnableSeparateTranslucency)
+        Material->bEnableSeparateTranslucency = false;
+}
+
 void P4ApplyGameRenderLimits(UMaterial* Material)
 {
-    if (Material && Material->GetBlendMode() == BLEND_Modulate && Material->bEnableSeparateTranslucency)
-        Material->bEnableSeparateTranslucency = false;
     // An ambient occlusion decal: the game's forward renderer has no ambient occlusion decal stage (UE draws one only
     // into deferred SSAO), so it draws as a DBuffer colour decal of black at opacity (1 - AO) x opacity, which leaves
     // base colour x lerp(1, AO, opacity): the same darkening, through the colour buffer the game's base pass reads.

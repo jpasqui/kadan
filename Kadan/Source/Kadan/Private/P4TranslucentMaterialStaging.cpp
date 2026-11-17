@@ -574,6 +574,7 @@ bool FP4TranslucentMaterialStaging::Prepare(const FString& Root, const TArray<UO
             Material->bUsedWithInstancedStaticMeshes = Plan.Instanced;
             P4ApplyMaterialFactoryUsage(Material, Plan.Factories);
             P4ApplyGameRenderLimits(Material);
+            P4ApplyGameModulateLimit(Material, Material->GetBlendMode());
         }
         if (auto* Instance = Cast<UMaterialInstanceConstant>(Runtime))
         {
@@ -596,6 +597,12 @@ bool FP4TranslucentMaterialStaging::Prepare(const FString& Root, const TArray<UO
             if (UMaterialInterface* const* Parent = Replacements.Find(Instance->Parent))
                 Instance->Parent = *Parent;
             Instance->UpdateOverridableBaseProperties();
+            // An instance drawn Modulate turns Render After DOF off on the runtime base material it draws with (the
+            // setting is the base's), when that base ships in this transaction.
+            UMaterial* Base = Instance->GetBlendMode() == BLEND_Modulate ? Instance->GetMaterial() : nullptr;
+            if (Base && Materials.ContainsByPredicate([Base](const TStrongObjectPtr<UMaterialInterface>& Other)
+                    { return Other.Get() == Base; }))
+                P4ApplyGameModulateLimit(Base, BLEND_Modulate);
         }
     // An original can be reparented to a creator material. That parent ships at
     // its generated runtime identity, while the original instance keeps its path.

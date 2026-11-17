@@ -1,9 +1,9 @@
 #if P4_MAPKIT_TESTS
-// Kadan's game scene reads (Game Scene Depth, Game Scene Color) compile for the game only in translucent and post
-// process materials, as stock's Scene Depth and Scene Color: the game's opaque passes bind no scene textures, and an
-// opaque material reading the scene depth crashed the game. The rule is the blend mode the material draws with, an
-// instance's override included. Inside a material function the node cannot see the material, so the game compile
-// checks the whole graph.
+// Kadan's game scene reads (Game Scene Depth, Game Scene Color) compile for the game only in Surface materials drawn
+// translucent and in post process materials: the game's other passes bind no scene textures, and an opaque material
+// reading the scene depth crashed the game. For a surface the rule is the blend mode the material draws with, an
+// instance's override included; a UI, decal or volume material is refused whatever its blend mode. Inside a material
+// function the node cannot see the material, so the game compile checks the whole graph.
 #include "P4ExportDriverTestShared.h"
 #include "P4CreatorMaterialFactories.h"
 #include "P4KadanMaterialExpressions.h"
@@ -36,10 +36,10 @@ enum class ERead
     Color
 };
 
-// An unlit surface whose emissive is the scene depth or colour, read directly or through a material function.
-// A creator's material in the mod's folder, made as Kadan's material action makes one.
+// An unlit material (a surface unless told otherwise) whose emissive is the scene depth or colour, read directly or
+// through a material function. A creator's material in the mod's folder, made as Kadan's material action makes one.
 UMaterial* SceneReadMaterial(const FString& Root, const TCHAR* Leaf, EBlendMode Blend, bool bInFunction, ERead Read,
-    TArray<TStrongObjectPtr<UObject>>& Keep)
+    TArray<TStrongObjectPtr<UObject>>& Keep, EMaterialDomain Domain = MD_Surface)
 {
     auto& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
     TStrongObjectPtr<UP4CreatorMaterialFactory> Factory(NewObject<UP4CreatorMaterialFactory>());
@@ -47,7 +47,7 @@ UMaterial* SceneReadMaterial(const FString& Root, const TCHAR* Leaf, EBlendMode 
     if (!Graph)
         return nullptr;
     Keep.Emplace(Graph);
-    Graph->MaterialDomain = MD_Surface;
+    Graph->MaterialDomain = Domain;
     Graph->BlendMode = Blend;
     Graph->SetShadingModel(MSM_Unlit);
     auto* One = Node<UMaterialExpressionConstant>(Graph);
@@ -129,7 +129,8 @@ bool FP4SceneReadRefusalTest::RunTest(const FString&)
     if (!Request(*this, TEXT("kadan.scene.read"), TEXT("Scene read"), RequestData, Names))
         return false;
     TArray<TStrongObjectPtr<UObject>> Keep;
-    const TCHAR* const Refusal = TEXT("Only translucent and post process materials can read the game's scene");
+    const TCHAR* const Refusal =
+        TEXT("Only Surface materials drawn translucent and post process materials can read the game's scene");
     const auto Refused = [this, Refusal](const FString& What, const FP4CreatorMaterialCompileResult& Result)
     {
         TestFalse(What + TEXT(": refused"), Result.Succeeded);
@@ -167,6 +168,19 @@ bool FP4SceneReadRefusalTest::RunTest(const FString&)
             BlendInstance(Clear, Root / Leaf(TEXT("MI_OpaqueChild")), BLEND_Opaque, Keep, Error);
         if (TestNotNull(Say(TEXT("opaque instance made: ")) + Error, Solid))
             Refused(Say(TEXT("a translucent material's opaque instance")), Compile(Clear, Solid));
+        // Only a surface's blend mode decides: the game draws UI, decal and volume materials where no scene texture
+        // is bound, though their blend modes are translucent (a volume's additive).
+        Refused(Say(TEXT("translucent UI material")),
+            Compile(SceneReadMaterial(
+                Root, *Leaf(TEXT("M_UserInterface")), BLEND_Translucent, false, Read, Keep, MD_UI)));
+        Refused(Say(TEXT("translucent UI material, read in a material function")),
+            Compile(SceneReadMaterial(
+                Root, *Leaf(TEXT("M_UserInterfaceInFunction")), BLEND_Translucent, true, Read, Keep, MD_UI)));
+        Refused(Say(TEXT("translucent deferred decal")),
+            Compile(SceneReadMaterial(
+                Root, *Leaf(TEXT("M_DeferredDecal")), BLEND_Translucent, false, Read, Keep, MD_DeferredDecal)));
+        Refused(Say(TEXT("additive volume material")),
+            Compile(SceneReadMaterial(Root, *Leaf(TEXT("M_Volume")), BLEND_Additive, false, Read, Keep, MD_Volume)));
     }
     return true;
 }
