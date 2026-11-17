@@ -45,7 +45,7 @@ bool FP4SaveLeavesGameBuiltLightingTest::RunTest(const FString&)
         Map = TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/Cave000_F00_P");
     if (!FPackageName::DoesPackageExist(Map))
     {
-        AddInfo(Map + TEXT(" is not imported in this project, so there is nothing to save."));
+        AddWarning(TEXT("P4MapKit test not run. ") + Map + TEXT(" is not imported in this project, so there is nothing to save."));
         return true;
     }
     UWorld* World = UEditorLoadingAndSavingUtils::LoadMap(Map);
