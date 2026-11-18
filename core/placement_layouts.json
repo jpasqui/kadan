@@ -351,6 +351,66 @@
       "item": "NavLinkPoint"
     },
     {
+      "name": "LinearColor",
+      "kind": "struct",
+      "members": [
+        {"name": "R", "type": "f32"},
+        {"name": "G", "type": "f32"},
+        {"name": "B", "type": "f32"},
+        {"name": "A", "type": "f32"}
+      ]
+    },
+    {
+      "name": "Vector2D",
+      "kind": "struct",
+      "members": [
+        {"name": "X", "type": "f32"},
+        {"name": "Y", "type": "f32"}
+      ]
+    },
+    {
+      "name": "IntPoint",
+      "kind": "struct",
+      "members": [
+        {"name": "X", "type": "i32"},
+        {"name": "Y", "type": "i32"}
+      ]
+    },
+    {
+      "name": "ExcavationInitialWarper",
+      "kind": "struct",
+      "members": [
+        {"name": "Offset", "type": "Vector2D"},
+        {"name": "Radius", "type": "f32"},
+        {"name": "CentralAngle", "type": "f32"},
+        {"name": "Height", "type": "f32"},
+        {"name": "LimitLevel", "type": "f32"},
+        {"name": "LimitRadius", "type": "f32"},
+        {"name": "LimitPenumbra", "type": "f32"},
+        {"name": "LinerShape", "type": "name"},
+        {"name": "BitmapShape", "type": "name"},
+        {"name": "CellSize", "type": "f32"},
+        {"name": "RotateAngle", "type": "f32"}
+      ]
+    },
+    {
+      "name": "ExcavationInitialWarperArray",
+      "kind": "array",
+      "item": "ExcavationInitialWarper"
+    },
+    {
+      "name": "CrystalLife",
+      "kind": "struct",
+      "members": [
+        {"name": "Life", "type": "f32"}
+      ]
+    },
+    {
+      "name": "CrystalLifeArray",
+      "kind": "array",
+      "item": "CrystalLife"
+    },
+    {
       "name": "SplinePoint",
       "kind": "struct",
       "members": [
@@ -380,6 +440,20 @@
       "name": "NameMap",
       "kind": "array",
       "item": "NamePair"
+    },
+    {
+      "name": "SplineAreaInfo",
+      "kind": "struct",
+      "members": [
+        {"name": "Key", "type": "i32"},
+        {"name": "Radius", "type": "f32"},
+        {"name": "Name", "type": "name"}
+      ]
+    },
+    {
+      "name": "SplineAreaInfoArray",
+      "kind": "array",
+      "item": "SplineAreaInfo"
     }
   ],
   "lists": [
@@ -731,6 +805,13 @@
         {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000"},
         {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000"}
       ]
+    },
+    {
+      "row": "ActorParameter",
+      "half": "Dynamic",
+      "id": "ActorDynamic",
+      "chain": "actor",
+      "owner": {}
     },
     {
       "row": "PortalTrigger",
@@ -1716,6 +1797,240 @@
         {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
         {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
         {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
+      ]
+    },
+    {
+      "class": "ExcavationAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "ExcavationParam.SaveSlotInterval", "type": "f32"},
+        {"name": "ExcavationParam.ItemRadius", "type": "f32"},
+        {"name": "ExcavationParam.SaveSlotRadiusRatio", "type": "f32"},
+        {"name": "ExcavationParam.SaveLaunchVelZ", "type": "f32"},
+        {"name": "runtime_0x7c", "type": "i32", "derived": true},
+        {"name": "unused_vector", "type": "vec", "derived": true},
+        {"name": "ExcavationParam.bWorkEndKill", "type": "bool", "gate": ">0x202110049"},
+        {"name": "runtime_name_0x80", "type": "name", "gate": ">0x202208029", "derived": true},
+        {"name": "runtime_bool_0x88", "type": "bool", "gate": ">0x202208169", "derived": true}
+      ]
+    },
+    {
+      "class": "ExcavationActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ExcavationActor.HeightOffset", "type": "f32", "gate": ">0x202111259"},
+        {"name": "drawer_terrain_tag", "type": "u32", "derived": true, "runtime_default": "0x80400002"},
+        {"name": "ExcavationActor.EffectColor", "type": "LinearColor"},
+        {"name": "ExcavationActor.bCastDynamicShadow", "type": "bool"},
+        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true, "from_actor": true}
+      ]
+    },
+    {
+      "class": "ExcavationActor",
+      "slot": "ActorParameter.Dynamic",
+      "base": "replace",
+      "fields": [
+        {"name": "ExcavationActor.WarperCount", "type": "i32"},
+        {"name": "ExcavationActor.InitialWarpers", "type": "ExcavationInitialWarperArray"},
+        {"name": "PlacedActor.HMC.Material", "type": "name"},
+        {"name": "PlacedActor.HMC.Extent", "type": "vec"},
+        {"name": "PlacedActor.HMC.GridStep", "type": "IntPoint"}
+      ]
+    },
+    {
+      "class": "TamagoMushiAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TamagoMushiAIParameter.SearchObjectRadius", "type": "f32", "gate": ">0x202203189"},
+        {"name": "TamagoMushiAIParameter.SearchType", "type": "u8", "gate": ">0x202203189"},
+        {"name": "TamagoMushiAIParameter.bMultiTarget", "type": "bool", "gate": ">0x202203189"}
+      ]
+    },
+    {
+      "class": "KingChappyBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KingChappyBaseAIParameter.HideParameter.NoticeRadius2DForNearOtakaraCarry", "type": "f32"},
+        {"name": "KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio", "type": "f32"},
+        {"name": "KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", "type": "bool", "gate": ">0x202211049"},
+        {"name": "KingChappyBaseAIParameter.WarCryParameter.bTriggerByAppear", "type": "bool"},
+        {"name": "KingChappyBaseAIParameter.PressParameter.bSinkFloor", "type": "bool"},
+        {"name": "KingChappyBaseAIParameter.AppearParameter.bSinkFloor", "type": "bool"}
+      ]
+    },
+    {
+      "class": "KingChappyBaseAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "KingChappyBaseAIComponent.bAppear", "type": "bool", "gate": ">0x202207049"}
+      ]
+    },
+    {
+      "class": "KumaChappyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KumaChappyAIParameter.SearchTagName", "type": "name"},
+        {"name": "KumaChappyAIParameter.GiveupDistance", "type": "f32", "gate": ">0x202203049"}
+      ]
+    },
+    {
+      "class": "FollowKochappyBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "FollowKochappyBaseAIParameter.LeaderParam.SearchTagName", "type": "name"},
+        {"name": "FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum", "type": "i32"},
+        {"name": "FollowKochappyBaseAIComponent.bLeader", "type": "bool"}
+      ]
+    },
+    {
+      "class": "NightKochappyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TekiAIParameter.SearchAreaCaution", "type": "Sphere", "gate": ">0x20221215c"}
+      ]
+    },
+    {
+      "class": "KurageAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KurageAIParameter.EatOnBirthRange", "type": "f32"},
+        {"name": "KurageAIParameter.bFallStart", "type": "bool"},
+        {"name": "TekiAIParameter.SearchAreaRest", "type": "Sphere"},
+        {"name": "owner_component_bool_0x238", "type": "bool", "gate": ">0x202203049", "derived": true, "runtime_default": "0x1"}
+      ]
+    },
+    {
+      "class": "KurageAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_bool_0x1098", "type": "bool", "gate": ">0x202210279", "derived": true}
+      ]
+    },
+    {
+      "class": "TobinkoAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TobinkoAIParameter.bNoBurrowType", "type": "bool"}
+      ]
+    },
+    {
+      "class": "FrogAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TekiAIParameter.SearchAreaRest", "type": "Sphere"},
+        {"name": "TekiAIParameter.EatArea", "type": "CakeArea"},
+        {"name": "FrogAIParameter.bNoSearchOuterTerritory", "type": "bool", "gate": ">0x202201149"}
+      ]
+    },
+    {
+      "class": "KanitamaAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KanitamaAIParameter.bAmbush", "type": "bool"}
+      ]
+    },
+    {
+      "class": "KanitamaAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "from_actor": true}
+      ]
+    },
+    {
+      "class": "QueenAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "QueenAIParameter.QueenAIType", "type": "u8"},
+        {"name": "QueenAIParameter.RockBallHeightMin", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMax", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnRadius", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnOffsetY", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMinInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMaxInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnRadiusInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabyHeightMin", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabyHeightMax", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabySpawnRadius", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabySpawnNum", "type": "i32"},
+        {"name": "QueenAIParameter.FlickDistXY", "type": "f32"}
+      ]
+    },
+    {
+      "class": "RusherAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "RusherAIParameter.Rush.DistMin", "type": "f32"},
+        {"name": "RusherAIParameter.Rush.DistMax", "type": "f32"}
+      ]
+    },
+    {
+      "class": "KurioneAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KurioneAIParameter.bGoFaceDir", "type": "bool"},
+        {"name": "KurioneAIParameter.bFixedHeight", "type": "bool", "gate": ">0x20211227a"},
+        {"name": "KurioneAIParameter.bDropHotExtractOnly", "type": "bool", "gate": ">0x202204289"}
+      ]
+    },
+    {
+      "class": "MiniMochiAIComponent",
+      "slot": "AI.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "TekiAIParameter.Territory", "type": "Cylinder"},
+        {"name": "MiniMochiAIParameter.bSpawnFromEgg", "type": "bool", "gate": "<0x20210927c"}
+      ]
+    },
+    {
+      "class": "MitsuMochiAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_bool_0x13a8", "type": "bool", "gate": ">0x20220623a", "derived": true}
+      ]
+    },
+    {
+      "class": "KoganeBaseAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_0x70", "type": "i32", "gate": ">0x202203249", "derived": true}
+      ]
+    },
+    {
+      "class": "HikariKinokoAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "HikariKinokoAIParameter.bLightUp", "type": "bool", "gate": ">0x202206299"}
+      ]
+    },
+    {
+      "class": "RouteSplineActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "spline_points", "type": "SplinePoints", "derived": true, "from_actor": true},
+        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true, "from_actor": true},
+        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true, "from_actor": true},
+        {"name": "Actor.Tags", "type": "NameArray"}
       ]
     },
     {

@@ -261,8 +261,9 @@ static void Own()
             Got.ComponentTransform);
         CHECK(FieldOf(Slot::ActorStatic, None, "GActor.DemoBindName", Got) && !Got.Derived && Got.CountOf.empty());
         Slot Found = Slot::ActorStatic;
-        CHECK(Slots().size() >= 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
+        CHECK(Slots().size() >= 14 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
             !SlotOf("Hash", true, Found));
+        CHECK(SlotOf("ActorParameter", false, Found) && Found == Slot::ActorDynamic);
         // The object each blob is read from, and how drops are numbered.
         for (const auto& One : Slots())
         {
@@ -754,6 +755,182 @@ static void Own()
         CHECK(Fresh(Slot::AIStatic, Happy, RowVersion, Options));
         *Path(Options, "HappyDoorAIParameter.HappyDoorID") = NameFromUtf8("door00");
         CHECK(Same(Slot::AIStatic, Happy, Options, RowVersion));
+    }
+    // A dirt mound: its component's dynamic blob takes the save-slot values after the object's, and its actor
+    // writes its height offset, color and shadow (static) and its warpers and height map (dynamic).
+    Context Mound;
+    Mound.ActorChain = {"ExcavationActor", "GActor"};
+    Mound.ComponentChain = {"ExcavationAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    for (const std::uint64_t V : {UINT64_C(0x202110049), UINT64_C(0x20211004a), UINT64_C(0x202208029),
+             UINT64_C(0x20220802a), UINT64_C(0x202208169), RowVersion})
+    {
+        Blob Saved;
+        CHECK(Fresh(Slot::AIDynamic, Mound, V, Saved));
+        CHECK(bool(Path(Saved, "ExcavationParam.bWorkEndKill")) == (V > UINT64_C(0x202110049)));
+        CHECK(bool(Path(Saved, "runtime_name_0x80")) == (V > UINT64_C(0x202208029)));
+        CHECK(bool(Path(Saved, "runtime_bool_0x88")) == (V > UINT64_C(0x202208169)));
+        Path(Saved, "ExcavationParam.SaveSlotInterval")->SetFloat(2.5f);
+        Path(Saved, "ExcavationParam.SaveLaunchVelZ")->SetFloat(3.f);
+        CHECK(Encode(Slot::AIDynamic, Mound, Saved, V, Bytes, Error));
+        CHECK(Decode(Slot::AIDynamic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Saved) == Lines(Back));
+    }
+    for (const std::uint64_t V : {UINT64_C(0x202111259), UINT64_C(0x20211125a), UINT64_C(0x202207059), RowVersion})
+    {
+        Blob Look;
+        CHECK(Fresh(Slot::ActorStatic, Mound, V, Look));
+        CHECK(bool(Path(Look, "ExcavationActor.HeightOffset")) == (V > UINT64_C(0x202111259)));
+        CHECK(bool(Path(Look, "drawer_terrain_material")) == (V > UINT64_C(0x202207059)));
+        Path(Look, "ExcavationActor.EffectColor")->Find("A")->SetFloat(1.f);
+        Path(Look, "ExcavationActor.bCastDynamicShadow")->Bits = 1;
+        CHECK(Encode(Slot::ActorStatic, Mound, Look, V, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Look) == Lines(Back));
+    }
+    bool TerrainTag = false;
+    const auto MoundLayouts = Layouts(Slot::ActorStatic, Mound);
+    for (const Field& F : MoundLayouts[0].Fields)
+        TerrainTag = TerrainTag || (F.Name == "drawer_terrain_tag" && F.Derived && F.RuntimeDefault == 0x80400002);
+    CHECK(TerrainTag);
+    Blob Dug;
+    CHECK(Fresh(Slot::ActorDynamic, Mound, RowVersion, Dug));
+    Path(Dug, "ExcavationActor.WarperCount")->Bits = 16;
+    const Type* Warpers = FieldType(Slot::ActorDynamic, Mound, "ExcavationActor.InitialWarpers");
+    CHECK(Warpers && Warpers->Is == Kind::Array && Warpers->Item);
+    if (Warpers && Warpers->Item)
+    {
+        Value Warper = EmptyOf(*Warpers->Item, RowVersion);
+        Warper.Find("Radius")->SetFloat(100.f);
+        Warper.Find("Offset")->Find("Y")->SetFloat(-20.f);
+        *Warper.Find("LinerShape") = NameFromUtf8("None");
+        Path(Dug, "ExcavationActor.InitialWarpers")->Items.push_back(Warper);
+    }
+    *Path(Dug, "PlacedActor.HMC.Material") = NameFromUtf8("/Game/Soil.Soil");
+    Path(Dug, "PlacedActor.HMC.GridStep")->Find("X")->Bits = 18;
+    CHECK(Encode(Slot::ActorDynamic, Mound, Dug, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 8 && Bytes[0] == 16 && Bytes[4] == 1); // the warper count, then one warper
+    CHECK(Decode(Slot::ActorDynamic, Mound, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Dug) == Lines(Back));
+    // An actor without a dynamic part has no layout for that blob.
+    Context Bare;
+    Bare.ActorChain = {"GActor"};
+    CHECK(Layouts(Slot::ActorDynamic, Bare).empty());
+    // Creatures whose AI components add their own fields after the enemy's: each one written and read back, and
+    // each part's version gate.
+    struct Creature
+    {
+        std::vector<std::string> Chain;
+        Slot S;
+        std::string Gated; // a field only above Above
+        std::uint64_t Above;
+        std::string Set; // a float field to set
+    };
+    const std::vector<Creature> Creatures = {
+        {{"TamagoMushiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "TamagoMushiAIParameter.bMultiTarget", UINT64_C(0x202203189), "TamagoMushiAIParameter.SearchObjectRadius"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", UINT64_C(0x202211049),
+            "KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "KingChappyBaseAIComponent.bAppear", UINT64_C(0x202207049), ""},
+        {{"KumaChappyAIComponent", "ChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KumaChappyAIParameter.GiveupDistance", UINT64_C(0x202203049), "KumaChappyAIParameter.GiveupDistance"},
+        {{"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "", 0, ""},
+        {{"NightKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "TekiAIParameter.SearchAreaCaution", UINT64_C(0x20221215c), ""},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "owner_component_bool_0x238",
+            UINT64_C(0x202203049), "KurageAIParameter.EatOnBirthRange"},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x1098",
+            UINT64_C(0x202210279), ""},
+        {{"TobinkoAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"FrogAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "FrogAIParameter.bNoSearchOuterTerritory", UINT64_C(0x202201149), ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "CrystalComponent.CrystalParameters", UINT64_C(0x202207079), ""},
+        {{"QueenAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "QueenAIParameter.FlickDistXY"},
+        {{"RusherAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "RusherAIParameter.Rush.DistMax"},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bFixedHeight", UINT64_C(0x20211227a), ""},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bDropHotExtractOnly", UINT64_C(0x202204289), ""},
+        {{"MitsuMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x13a8",
+            UINT64_C(0x20220623a), ""},
+        {{"KoganeAIComponent", "KoganeBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "runtime_0x70", UINT64_C(0x202203249), ""},
+        {{"HikariKinokoAIComponent", "ObjectAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "HikariKinokoAIParameter.bLightUp", UINT64_C(0x202206299), ""},
+    };
+    for (const Creature& One : Creatures)
+    {
+        Context C;
+        C.ComponentChain = One.Chain;
+        for (const std::uint64_t V : {One.Above, One.Above + 1, RowVersion})
+        {
+            if (!V)
+                continue;
+            Blob Options;
+            CHECK(Fresh(One.S, C, V, Options));
+            if (!One.Gated.empty())
+                CHECK(bool(Path(Options, One.Gated)) == (V > One.Above));
+            if (!One.Set.empty() && Path(Options, One.Set))
+                Path(Options, One.Set)->SetFloat(250.f);
+            CHECK(Encode(One.S, C, Options, V, Bytes, Error));
+            CHECK(Decode(One.S, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Options) == Lines(Back));
+        }
+    }
+    {
+        Context C;
+        C.ComponentChain = {"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        Blob Leader;
+        CHECK(Fresh(Slot::AIStatic, C, RowVersion, Leader));
+        *Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.SearchTagName") = NameFromUtf8("RootPoint");
+        Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum")->Bits = 4;
+        Path(Leader, "FollowKochappyBaseAIComponent.bLeader")->Bits = 1;
+        CHECK(Encode(Slot::AIStatic, C, Leader, RowVersion, Bytes, Error));
+        // The leader's tag name, its child count and the leader flag end the blob.
+        CHECK(Bytes.size() > 22 && Bytes[Bytes.size() - 8] == 4 && Bytes[Bytes.size() - 4] == 1);
+        CHECK(Decode(Slot::AIStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Leader) == Lines(Back));
+    }
+    // A Mamuta's young (MiniMochi) writes only its territory, and before 0x20210927c also whether it came from an egg.
+    {
+        Context C;
+        C.ComponentChain = {"MiniMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        for (const std::uint64_t V : {UINT64_C(0x20210927b), UINT64_C(0x20210927c), RowVersion})
+        {
+            Blob Young;
+            CHECK(Fresh(Slot::AIStatic, C, V, Young));
+            CHECK(bool(Path(Young, "MiniMochiAIParameter.bSpawnFromEgg")) == (V < UINT64_C(0x20210927c)));
+            CHECK(!Path(Young, "TekiAIParameter.DropParameter.DropItemParameter"));
+            Path(Young, "TekiAIParameter.Territory")->Find("Radius")->SetFloat(180.f);
+            CHECK(Encode(Slot::AIStatic, C, Young, V, Bytes, Error));
+            CHECK(Bytes.size() == (V < UINT64_C(0x20210927c) ? 24u : 20u));
+            CHECK(Decode(Slot::AIStatic, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Young) == Lines(Back));
+        }
+    }
+    // A route spline: its spline's points, its areas and jump keys, then the actor's tags, after the actor's fields.
+    {
+        Context C;
+        C.ActorChain = {"RouteSplineActor", "GActor"};
+        Blob Route;
+        CHECK(Fresh(Slot::ActorStatic, C, RowVersion, Route));
+        const Type* Points = FieldType(Slot::ActorStatic, C, "spline_points");
+        CHECK(Points && Points->Is == Kind::Array && Points->Item);
+        if (Points && Points->Item)
+            for (int I = 0; I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                Point.Find("Type")->Bits = 4;
+                Path(Route, "spline_points")->Items.push_back(Point);
+            }
+        Value Tag;
+        Tag.Is = Kind::Name;
+        Tag = NameFromUtf8("RootPoint");
+        Path(Route, "Actor.Tags")->Items.push_back(Tag);
+        CHECK(Encode(Slot::ActorStatic, C, Route, RowVersion, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Route) == Lines(Back));
+        CHECK(Back.Root.Find("spline_points") && Back.Root.Find("spline_points")->Items.size() == 2);
     }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
