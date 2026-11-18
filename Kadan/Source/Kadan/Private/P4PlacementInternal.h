@@ -32,6 +32,18 @@ FString Wide(const std::string& Text);
 bool Derives(const UClass* Class, const TCHAR* Native);
 UObject* OwnerOf(AActor* Actor, const P::SlotName& Slot);
 UActorComponent* ChainComponentOf(AActor* Actor);
+bool Writable(UObject* Owner, const P::SlotName& Slot, const P::Context& Context);
+// The property of Object a field's path starts with, by the rules Resolve follows; null for a path through the actor's
+// components (PlacedActor) or one Object has no property for.
+FProperty* TopOption(UObject* Object, const FString& Path);
+// The properties of one of the actor's objects (the actor or a component) that the blobs of its placement row hold,
+// with whether Kadan reads and writes the whole blob that holds each (the slot is complete for the object's class), so
+// a change to it can reach the game.
+TArray<TPair<FProperty*, bool>> HeldOptions(AActor* Actor, UObject* Object, const P::Context& Context);
+// A property of the game's (its native classes' or its Blueprints'), not the engine's.
+bool GameProperty(const FProperty* Property);
+// A setting of the actor that Kadan writes into a row of its own: its generator settings, team and versions.
+bool RowSetting(const FProperty* Property);
 bool NotAProperty(const P::Field& Field);
 std::vector<P::Field> LayoutFields(P::Slot Slot, const P::Context& Context, int Variant = 0);
 const P::Field* FieldNamed(const std::vector<P::Field>& Fields, const std::string& Name);

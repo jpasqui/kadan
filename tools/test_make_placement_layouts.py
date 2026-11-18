@@ -22,6 +22,22 @@ class PlacementLayouts(unittest.TestCase):
         self.assertIn('{"AI", true, Slot::AIStatic, \'c\', 2, 0, "", "X,Y", ""},', made)
         self.assertIn('{"X", Slot::AIStatic, true, 0, 2, 2},', made)
         self.assertIn('{"T", "bool", \'>\', UINT64_C(0x5),', made)
+        marked = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
+                                                           fields=[dict(name='L', type='i32', derived=True, from_actor=True)])]))
+        self.assertIn('"", "", false, false, "", "", true},', marked)
+
+    def test_complete_owners_are_listed_and_checked(self):
+        base = dict(types=[], lists=[], classes=[],
+                    slots=[dict(row='AI', half='Static', id='AIStatic', chain='component', owner=dict(classes=['X']))])
+        self.assertIn('return {Rows, 0};', layouts.generate(base))
+        made = layouts.generate(dict(base, complete=[dict(slot='AI.Static', classes=['XAIComponent', 'YAIComponent'])]))
+        self.assertIn('{Slot::AIStatic, "XAIComponent"},', made)
+        self.assertIn('return {Rows, 2};', made)
+        for complete in ([dict(slot='Life.Dynamic', classes=['X'])], [dict(slot='AI.Static', classes=['X', 'X'])],
+                         [dict(slot='AI.Static', classes=['X'], why='checked')],
+                         [dict(slot='AI.Static', classes=['X']), dict(slot='AI.Static', classes=['X'])]):
+            with self.assertRaises(ValueError):
+                layouts.generate(dict(base, complete=complete))
 
     def test_refuses_unknown_keys_lists_and_slots(self):
         base = dict(types=[], lists=[], slots=[dict(row='AI', half='Static', id='AIStatic', owner={})])

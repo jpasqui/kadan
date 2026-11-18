@@ -108,6 +108,72 @@ UActorComponent* ChainComponentOf(AActor* Actor)
     return nullptr;
 }
 
+// Whether Kadan can write the whole blob of a slot for its owner: the layout data lists the owner's most derived
+// native class for the slot, as the game's placement lists were checked, and no field of it is one the game takes
+// from the actor that Kadan does not fill.
+bool Writable(UObject* Owner, const P::SlotName& Slot, const P::Context& Context)
+{
+    return Owner && P::Writable(Slot.S, Context, NativeChain(Owner->GetClass()));
+}
+
+FProperty* TopOption(UObject* Object, const FString& Path)
+{
+    TArray<FString> Parts;
+    Path.ParseIntoArray(Parts, TEXT("."), true);
+    if (!Object || !Parts.Num() || Parts[0] == TEXT("PlacedActor"))
+        return nullptr;
+    UClass* Class = Object->GetClass();
+    if (FProperty* First = Class->FindPropertyByName(FName(*Parts[0])))
+        return First;
+    if (Parts.Num() > 1 && Derives(Class, *Parts[0]))
+        return Class->FindPropertyByName(FName(*Parts[1]));
+    for (TFieldIterator<FStructProperty> It(Class); It; ++It)
+        if (It->Struct->GetName() == Parts[0])
+            return *It;
+    return nullptr;
+}
+
+TArray<TPair<FProperty*, bool>> HeldOptions(AActor* Actor, UObject* Object, const P::Context& Context)
+{
+    TArray<TPair<FProperty*, bool>> Out;
+    for (const P::SlotName& Slot : P::Slots())
+    {
+        if (!Object || OwnerOf(Actor, Slot) != Object || NotAnOption(SlotKey(Slot)))
+            continue;
+        const bool Can = P::Complete(Slot.S, NativeChain(Object->GetClass()));
+        for (const P::Field& Field : LayoutFields(Slot.S, Context))
+        {
+            FProperty* Property = NotAProperty(Field) ? nullptr : TopOption(Object, Wide(Field.Name));
+            if (!Property)
+                continue;
+            TPair<FProperty*, bool>* Had = Out.FindByPredicate(
+                [&](const TPair<FProperty*, bool>& One) { return One.Key == Property; });
+            if (Had)
+                Had->Value = Had->Value && Can;
+            else
+                Out.Add(TPair<FProperty*, bool>(Property, Can));
+        }
+    }
+    return Out;
+}
+
+bool GameProperty(const FProperty* Property)
+{
+    const UClass* Owner = Property ? Property->GetOwnerClass() : nullptr;
+    return Owner && (!Owner->HasAnyClassFlags(CLASS_Native) ||
+        Owner->GetOutermost()->GetName() == TEXT(P4_GAME_SCRIPT_PACKAGE));
+}
+
+bool RowSetting(const FProperty* Property)
+{
+    static const FName Names[] = {TEXT("GenerateInfo"), TEXT("RebirthInfo"), TEXT("CarriedInfo"), TEXT("TeamIdEditor"),
+        TEXT("GenerateFlags"), TEXT("OriginalPhysicsRadiusZ"), TEXT("ActorVersion")};
+    for (const FName& Name : Names)
+        if (Property && Property->GetFName() == Name)
+            return true;
+    return false;
+}
+
 // A field the creator's values do not set: one no property holds, or a count of the actor's.
 bool NotAProperty(const P::Field& Field)
 {

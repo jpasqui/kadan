@@ -261,8 +261,9 @@ static void Own()
             Got.ComponentTransform);
         CHECK(FieldOf(Slot::ActorStatic, None, "GActor.DemoBindName", Got) && !Got.Derived && Got.CountOf.empty());
         Slot Found = Slot::ActorStatic;
-        CHECK(Slots().size() == 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
+        CHECK(Slots().size() >= 14 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
             !SlotOf("Hash", true, Found));
+        CHECK(SlotOf("ActorParameter", false, Found) && Found == Slot::ActorDynamic);
         // The object each blob is read from, and how drops are numbered.
         for (const auto& One : Slots())
         {
@@ -533,6 +534,404 @@ static void Own()
         }
         CHECK(Read && Back.Exact() && Lines(Options) == Lines(Back));
     }
+    // A fence: its switch, then the sound emitter's place and the nav links. The game writes an escape point only
+    // for each component tagged EscapePoint the actor has, so the second layout has the counter and no points.
+    Context Fence;
+    Fence.ComponentChain = {"FenceFallAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    CHECK(Layouts(Slot::AIStatic, Fence).size() == 2);
+    for (int Variant : {0, 1})
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Fence, RowVersion, Options, Variant));
+        CHECK(bool(Path(Options, "EscapePoints")) == (Variant == 0));
+        *Path(Options, "FenceFallAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "FenceFallAIParameter.bEnableLockOtakara")->Bits = 1;
+        Path(Options, "ObjectAIParameter.EscapePointSerializeNum")->Bits = 2;
+        if (Variant == 0)
+        {
+            Value Point;
+            Point.Is = Kind::Vec;
+            Point.Words[0] = Value::FloatBits(400.f);
+            Path(Options, "EscapePoints")->Items = {Point, Point};
+        }
+        const Type* Links = FieldType(Slot::AIStatic, Fence, "NavLinkComponent.Links");
+        CHECK(Links && Links->Is == Kind::Array && Links->Item);
+        if (Links && Links->Item)
+        {
+            Value Link = EmptyOf(*Links->Item, RowVersion);
+            Link.Find("Left")->Words[1] = Value::FloatBits(-60.f);
+            Link.Find("Right")->Words[1] = Value::FloatBits(60.f);
+            Link.Find("MaxFallDownLength")->SetFloat(1000.f);
+            Link.Find("SnapRadius")->SetFloat(15.f);
+            Link.Find("SupportsAgentBits")->Bits = 0xffffffff;
+            Link.Find("bUseSnapHeight")->Bits = 1;
+            Path(Options, "NavLinkComponent.Links")->Items.push_back(Link);
+        }
+        CHECK(Encode(Slot::AIStatic, Fence, Options, RowVersion, Bytes, Error));
+        CHECK(Bytes.size() > 2 && Bytes[Bytes.size() - 2] == 1 && Bytes.back() == 0);
+        CHECK(Decode(Slot::AIStatic, Fence, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+            Back.Variant == Variant && Lines(Options) == Lines(Back));
+    }
+    // Before 0x20221124a the sniff points have no priorities: four bytes fewer.
+    {
+        Blob New, Old;
+        std::vector<std::uint8_t> NewBytes, OldBytes;
+        CHECK(Fresh(Slot::AIStatic, Fence, UINT64_C(0x20221124a), New) &&
+            Fresh(Slot::AIStatic, Fence, UINT64_C(0x202211249), Old));
+        CHECK(Encode(Slot::AIStatic, Fence, New, UINT64_C(0x20221124a), NewBytes, Error) &&
+            Encode(Slot::AIStatic, Fence, Old, UINT64_C(0x202211249), OldBytes, Error));
+        CHECK(NewBytes.size() == OldBytes.size() + 4);
+    }
+    {
+        Blob Fallen;
+        CHECK(Fresh(Slot::AIDynamic, Fence, RowVersion, Fallen) && Path(Fallen, "runtime_0x9f9"));
+        Path(Fallen, "runtime_0x9f9")->Bits = 1;
+        CHECK(Encode(Slot::AIDynamic, Fence, Fallen, RowVersion, Bytes, Error) && Bytes.size() == 16 && Bytes[12] == 1);
+        CHECK(Decode(Slot::AIDynamic, Fence, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+            Lines(Fallen) == Lines(Back));
+    }
+    // Gimmicks and camps of the object AI: a blob filled by name reads back to the same values, and each
+    // version gate takes its field in or out.
+    const auto Same = [&](Slot S, const Context& C, const Blob& In, std::uint64_t V)
+    {
+        std::vector<std::uint8_t> Out;
+        Blob Read;
+        std::string Why;
+        return Encode(S, C, In, V, Out, Why) && Decode(S, C, Out, V, Read, Why) && Read.Exact() &&
+            Read.Variant == In.Variant && Lines(In) == Lines(Read);
+    };
+    const auto Gated = [&](Slot S, const Context& C, const std::string& Name, std::uint64_t Without,
+                           std::uint64_t With)
+    {
+        Blob Old, New;
+        return Fresh(S, C, Without, Old) && Fresh(S, C, With, New) && !Path(Old, Name) && Path(New, Name);
+    };
+    Context Vent;
+    Vent.ComponentChain = {"HibaBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Vent, RowVersion, Options));
+        Path(Options, "HibaAIParameter.WaitAddTime")->SetFloat(2.f);
+        CHECK(Encode(Slot::AIStatic, Vent, Options, RowVersion, Bytes, Error) && Bytes.size() > 4 &&
+            Bytes[Bytes.size() - 1] == 0x40 && Same(Slot::AIStatic, Vent, Options, RowVersion));
+    }
+    Context Geyser;
+    Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Geyser, RowVersion, Options));
+        Path(Options, "GeyserAIParameter.bSetCrystal")->Bits = 1;
+        Path(Options, "GeyserAIParameter.StopQueenDistXY")->SetFloat(-1.f);
+        const Type* Links = FieldType(Slot::AIStatic, Geyser, "NavLinkComponent.Links");
+        CHECK(Links && Links->Item);
+        if (Links && Links->Item)
+            Path(Options, "NavLinkComponent.Links")->Items.push_back(EmptyOf(*Links->Item, RowVersion));
+        CHECK(Same(Slot::AIStatic, Geyser, Options, RowVersion));
+    }
+    Context Belt;
+    Belt.ComponentChain = {"ConveyorAAIComponent", "ConveyorBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Belt, RowVersion, Options));
+        *Path(Options, "ConveyorBaseAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "ConveyorBaseAIParameter.DriveSpeed")->SetFloat(100.f);
+        CHECK(Same(Slot::AIStatic, Belt, Options, RowVersion));
+    }
+    Context NavBelt;
+    NavBelt.ComponentChain = {"ConveyorNavAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, NavBelt, RowVersion, Options));
+        *Path(Options, "ConveyorNavAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "NavModifierALocation")->Words[1] = Value::FloatBits(120.f);
+        const Type* Place = FieldType(Slot::AIStatic, NavBelt, "NavLinkA");
+        CHECK(Place && Place->Is == Kind::Struct);
+        if (Place)
+            for (const Field& F : Place->Members)
+                if (F.Name == "Links" && F.Of->Item)
+                {
+                    Value End = EmptyOf(*F.Of->Item, RowVersion);
+                    End.Find("Direction")->Bits = 1;
+                    Path(Options, "NavLinkA")->Find("Links")->Items.push_back(End);
+                }
+        CHECK(Path(Options, "NavLinkA")->Find("Links")->Items.size() == 1);
+        Path(Options, "TriggerBox")->Find("BoxExtent")->Words[0] = Value::FloatBits(25.f);
+        CHECK(Same(Slot::AIStatic, NavBelt, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, NavBelt, "NavModifierALocation", UINT64_C(0x202207299), UINT64_C(0x20220729a)));
+        CHECK(Gated(Slot::AIStatic, NavBelt, "TriggerBox", UINT64_C(0x202210189), UINT64_C(0x20221018a)));
+    }
+    Context Jelly;
+    Jelly.ComponentChain = {"CrushJellyAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Jelly, RowVersion, Options) && !Path(Options, "legacy_word"));
+        Path(Options, "CrushJellyAIParameter.bFreezeStart")->Bits = 1;
+        Value Cid = NameFromUtf8("BRANCH");
+        Cid.Is = Kind::Name;
+        Path(Options, "CrushJellyAIParameter.SearchCIDList")->Items.push_back(Cid);
+        CHECK(Same(Slot::AIStatic, Jelly, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Jelly, "CrushJellyAIParameter.SearchCIDList", UINT64_C(0x202208039),
+            UINT64_C(0x20220803a)));
+        Blob Old;
+        CHECK(Fresh(Slot::AIStatic, Jelly, UINT64_C(0x202201319), Old) && Path(Old, "legacy_word"));
+    }
+    Context Camp;
+    Camp.ComponentChain = {"AreaBaseCampComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Camp, RowVersion, Options));
+        Path(Options, "AreaBaseCampComponent.BaseCampId")->Bits = 3;
+        Path(Options, "AreaBaseCampParameter.SafeAreaBound.Radius")->SetFloat(150.f);
+        Path(Options, "AreaBaseCampParameter.ForceFloweringRadius")->SetFloat(1000.f);
+        Value Cid = NameFromUtf8("ElecMushi");
+        Cid.Is = Kind::Name;
+        Path(Options, "AreaBaseCampParameter.CIDList")->Items.push_back(Cid);
+        CHECK(Same(Slot::AIStatic, Camp, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Camp, "AreaBaseCampParameter.GuruguruDist", UINT64_C(0x202207069),
+            UINT64_C(0x20220706a)));
+        Blob State;
+        CHECK(Fresh(Slot::AIDynamic, Camp, RowVersion, State) && !Path(State, "legacy_base_camp_id") &&
+            !Path(State, "legacy_guruguru"));
+        Path(State, "AreaBaseCampComponent.CampState")->Bits = 4;
+        CHECK(Encode(Slot::AIDynamic, Camp, State, RowVersion, Bytes, Error) && Bytes.size() == 17 && Bytes[12] == 4);
+        CHECK(Same(Slot::AIDynamic, Camp, State, RowVersion));
+        // Between 0x20220628b and 0x202207369 the dynamic blob also has the circling distance.
+        for (const std::uint64_t V : {UINT64_C(0x20220628a), UINT64_C(0x20220628b), UINT64_C(0x202207369),
+                 UINT64_C(0x20220736a)})
+        {
+            Blob Window;
+            CHECK(Fresh(Slot::AIDynamic, Camp, V, Window));
+            CHECK(Encode(Slot::AIDynamic, Camp, Window, V, Bytes, Error));
+            const bool Has = V > UINT64_C(0x20220628a) && V < UINT64_C(0x20220736a);
+            CHECK(Bytes.size() == (V < UINT64_C(0x20220629b) ? 20u : 17u) + (Has ? 4u : 0u));
+        }
+    }
+    Context Switch;
+    Switch.ComponentChain = {
+        "TwinSwitchAIComponent", "SwitchBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Switch, RowVersion, Options));
+        *Path(Options, "SwitchBaseAIParameter.SwitchID") = NameFromUtf8("switch01");
+        CHECK(Same(Slot::AIStatic, Switch, Options, RowVersion));
+    }
+    Context Door;
+    Door.ComponentChain = {"TriggerDoorAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Door, RowVersion, Options));
+        *Path(Options, "TriggerDoorAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "TriggerDoorAIParameter.OpenWaitTime")->SetFloat(1.5f);
+        Path(Options, "TriggerDoorAIParameter.bEnableAirWall")->Bits = 1;
+        Path(Options, "SearchBox")->Find("Scale3D")->Words[2] = Value::FloatBits(1.f);
+        CHECK(Same(Slot::AIStatic, Door, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Door, "TriggerDoorAIParameter.CompleteUIType", UINT64_C(0x20230116a),
+            UINT64_C(0x20230116b)));
+        CHECK(Gated(Slot::AIStatic, Door, "TriggerDoorAIParameter.bNoCollisionAirWall", UINT64_C(0x202301239),
+            UINT64_C(0x20230123a)));
+        Blob Open;
+        CHECK(Fresh(Slot::AIDynamic, Door, RowVersion, Open));
+        Path(Open, "TriggerDoorAIParameter.bIsAlreadyOpen")->Bits = 1;
+        CHECK(Same(Slot::AIDynamic, Door, Open, RowVersion));
+    }
+    Context Valve;
+    Valve.ComponentChain = {"ValveAIComponent", "BuildObjectAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Valve, RowVersion, Options));
+        *Path(Options, "ValveAIParam.ValveID") = NameFromUtf8("valve00");
+        Path(Options, "ValveAIParam.DemoID")->Bits = 2;
+        CHECK(Same(Slot::AIStatic, Valve, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Valve, "ValveAIParam.DemoID", UINT64_C(0x20211223a), UINT64_C(0x20211223b)));
+        Blob Turned;
+        CHECK(Fresh(Slot::AIDynamic, Valve, RowVersion, Turned));
+        Path(Turned, "ValveAIParam.WorkType")->Bits = 1;
+        CHECK(Same(Slot::AIDynamic, Valve, Turned, RowVersion));
+    }
+    Context Happy;
+    Happy.ComponentChain = {"HappyDoorAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Happy, RowVersion, Options));
+        *Path(Options, "HappyDoorAIParameter.HappyDoorID") = NameFromUtf8("door00");
+        CHECK(Same(Slot::AIStatic, Happy, Options, RowVersion));
+    }
+    // A dirt mound: its component's dynamic blob takes the save-slot values after the object's, and its actor
+    // writes its height offset, color and shadow (static) and its warpers and height map (dynamic).
+    Context Mound;
+    Mound.ActorChain = {"ExcavationActor", "GActor"};
+    Mound.ComponentChain = {"ExcavationAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    for (const std::uint64_t V : {UINT64_C(0x202110049), UINT64_C(0x20211004a), UINT64_C(0x202208029),
+             UINT64_C(0x20220802a), UINT64_C(0x202208169), RowVersion})
+    {
+        Blob Saved;
+        CHECK(Fresh(Slot::AIDynamic, Mound, V, Saved));
+        CHECK(bool(Path(Saved, "ExcavationParam.bWorkEndKill")) == (V > UINT64_C(0x202110049)));
+        CHECK(bool(Path(Saved, "runtime_name_0x80")) == (V > UINT64_C(0x202208029)));
+        CHECK(bool(Path(Saved, "runtime_bool_0x88")) == (V > UINT64_C(0x202208169)));
+        Path(Saved, "ExcavationParam.SaveSlotInterval")->SetFloat(2.5f);
+        Path(Saved, "ExcavationParam.SaveLaunchVelZ")->SetFloat(3.f);
+        CHECK(Encode(Slot::AIDynamic, Mound, Saved, V, Bytes, Error));
+        CHECK(Decode(Slot::AIDynamic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Saved) == Lines(Back));
+    }
+    for (const std::uint64_t V : {UINT64_C(0x202111259), UINT64_C(0x20211125a), UINT64_C(0x202207059), RowVersion})
+    {
+        Blob Look;
+        CHECK(Fresh(Slot::ActorStatic, Mound, V, Look));
+        CHECK(bool(Path(Look, "ExcavationActor.HeightOffset")) == (V > UINT64_C(0x202111259)));
+        CHECK(bool(Path(Look, "drawer_terrain_material")) == (V > UINT64_C(0x202207059)));
+        Path(Look, "ExcavationActor.EffectColor")->Find("A")->SetFloat(1.f);
+        Path(Look, "ExcavationActor.bCastDynamicShadow")->Bits = 1;
+        CHECK(Encode(Slot::ActorStatic, Mound, Look, V, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Look) == Lines(Back));
+    }
+    bool TerrainTag = false;
+    const auto MoundLayouts = Layouts(Slot::ActorStatic, Mound);
+    for (const Field& F : MoundLayouts[0].Fields)
+        TerrainTag = TerrainTag || (F.Name == "drawer_terrain_tag" && F.Derived && F.RuntimeDefault == 0x80400002);
+    CHECK(TerrainTag);
+    Blob Dug;
+    CHECK(Fresh(Slot::ActorDynamic, Mound, RowVersion, Dug));
+    Path(Dug, "ExcavationActor.WarperCount")->Bits = 16;
+    const Type* Warpers = FieldType(Slot::ActorDynamic, Mound, "ExcavationActor.InitialWarpers");
+    CHECK(Warpers && Warpers->Is == Kind::Array && Warpers->Item);
+    if (Warpers && Warpers->Item)
+    {
+        Value Warper = EmptyOf(*Warpers->Item, RowVersion);
+        Warper.Find("Radius")->SetFloat(100.f);
+        Warper.Find("Offset")->Find("Y")->SetFloat(-20.f);
+        *Warper.Find("LinerShape") = NameFromUtf8("None");
+        Path(Dug, "ExcavationActor.InitialWarpers")->Items.push_back(Warper);
+    }
+    *Path(Dug, "PlacedActor.HMC.Material") = NameFromUtf8("/Game/Soil.Soil");
+    Path(Dug, "PlacedActor.HMC.GridStep")->Find("X")->Bits = 18;
+    CHECK(Encode(Slot::ActorDynamic, Mound, Dug, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 8 && Bytes[0] == 16 && Bytes[4] == 1); // the warper count, then one warper
+    CHECK(Decode(Slot::ActorDynamic, Mound, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Dug) == Lines(Back));
+    // An actor without a dynamic part has no layout for that blob.
+    Context Bare;
+    Bare.ActorChain = {"GActor"};
+    CHECK(Layouts(Slot::ActorDynamic, Bare).empty());
+    // Creatures whose AI components add their own fields after the enemy's: each one written and read back, and
+    // each part's version gate.
+    struct Creature
+    {
+        std::vector<std::string> Chain;
+        Slot S;
+        std::string Gated; // a field only above Above
+        std::uint64_t Above;
+        std::string Set; // a float field to set
+    };
+    const std::vector<Creature> Creatures = {
+        {{"TamagoMushiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "TamagoMushiAIParameter.bMultiTarget", UINT64_C(0x202203189), "TamagoMushiAIParameter.SearchObjectRadius"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", UINT64_C(0x202211049),
+            "KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "KingChappyBaseAIComponent.bAppear", UINT64_C(0x202207049), ""},
+        {{"KumaChappyAIComponent", "ChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KumaChappyAIParameter.GiveupDistance", UINT64_C(0x202203049), "KumaChappyAIParameter.GiveupDistance"},
+        {{"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "", 0, ""},
+        {{"NightKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "TekiAIParameter.SearchAreaCaution", UINT64_C(0x20221215c), ""},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "owner_component_bool_0x238",
+            UINT64_C(0x202203049), "KurageAIParameter.EatOnBirthRange"},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x1098",
+            UINT64_C(0x202210279), ""},
+        {{"TobinkoAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"FrogAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "FrogAIParameter.bNoSearchOuterTerritory", UINT64_C(0x202201149), ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "CrystalComponent.CrystalParameters", UINT64_C(0x202207079), ""},
+        {{"QueenAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "QueenAIParameter.FlickDistXY"},
+        {{"RusherAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "RusherAIParameter.Rush.DistMax"},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bFixedHeight", UINT64_C(0x20211227a), ""},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bDropHotExtractOnly", UINT64_C(0x202204289), ""},
+        {{"MitsuMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x13a8",
+            UINT64_C(0x20220623a), ""},
+        {{"KoganeAIComponent", "KoganeBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "runtime_0x70", UINT64_C(0x202203249), ""},
+        {{"HikariKinokoAIComponent", "ObjectAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "HikariKinokoAIParameter.bLightUp", UINT64_C(0x202206299), ""},
+    };
+    for (const Creature& One : Creatures)
+    {
+        Context C;
+        C.ComponentChain = One.Chain;
+        for (const std::uint64_t V : {One.Above, One.Above + 1, RowVersion})
+        {
+            if (!V)
+                continue;
+            Blob Options;
+            CHECK(Fresh(One.S, C, V, Options));
+            if (!One.Gated.empty())
+                CHECK(bool(Path(Options, One.Gated)) == (V > One.Above));
+            if (!One.Set.empty() && Path(Options, One.Set))
+                Path(Options, One.Set)->SetFloat(250.f);
+            CHECK(Encode(One.S, C, Options, V, Bytes, Error));
+            CHECK(Decode(One.S, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Options) == Lines(Back));
+        }
+    }
+    {
+        Context C;
+        C.ComponentChain = {"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        Blob Leader;
+        CHECK(Fresh(Slot::AIStatic, C, RowVersion, Leader));
+        *Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.SearchTagName") = NameFromUtf8("RootPoint");
+        Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum")->Bits = 4;
+        Path(Leader, "FollowKochappyBaseAIComponent.bLeader")->Bits = 1;
+        CHECK(Encode(Slot::AIStatic, C, Leader, RowVersion, Bytes, Error));
+        // The leader's tag name, its child count and the leader flag end the blob.
+        CHECK(Bytes.size() > 22 && Bytes[Bytes.size() - 8] == 4 && Bytes[Bytes.size() - 4] == 1);
+        CHECK(Decode(Slot::AIStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Leader) == Lines(Back));
+    }
+    // A Mamuta's young (MiniMochi) writes only its territory, and before 0x20210927c also whether it came from an egg.
+    {
+        Context C;
+        C.ComponentChain = {"MiniMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        for (const std::uint64_t V : {UINT64_C(0x20210927b), UINT64_C(0x20210927c), RowVersion})
+        {
+            Blob Young;
+            CHECK(Fresh(Slot::AIStatic, C, V, Young));
+            CHECK(bool(Path(Young, "MiniMochiAIParameter.bSpawnFromEgg")) == (V < UINT64_C(0x20210927c)));
+            CHECK(!Path(Young, "TekiAIParameter.DropParameter.DropItemParameter"));
+            Path(Young, "TekiAIParameter.Territory")->Find("Radius")->SetFloat(180.f);
+            CHECK(Encode(Slot::AIStatic, C, Young, V, Bytes, Error));
+            CHECK(Bytes.size() == (V < UINT64_C(0x20210927c) ? 24u : 20u));
+            CHECK(Decode(Slot::AIStatic, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Young) == Lines(Back));
+        }
+    }
+    // A route spline: its spline's points, its areas and jump keys, then the actor's tags, after the actor's fields.
+    {
+        Context C;
+        C.ActorChain = {"RouteSplineActor", "GActor"};
+        Blob Route;
+        CHECK(Fresh(Slot::ActorStatic, C, RowVersion, Route));
+        const Type* Points = FieldType(Slot::ActorStatic, C, "spline_points");
+        CHECK(Points && Points->Is == Kind::Array && Points->Item);
+        if (Points && Points->Item)
+            for (int I = 0; I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                Point.Find("Type")->Bits = 4;
+                Path(Route, "spline_points")->Items.push_back(Point);
+            }
+        Value Tag;
+        Tag.Is = Kind::Name;
+        Tag = NameFromUtf8("RootPoint");
+        Path(Route, "Actor.Tags")->Items.push_back(Tag);
+        CHECK(Encode(Slot::ActorStatic, C, Route, RowVersion, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Route) == Lines(Back));
+        CHECK(Back.Root.Find("spline_points") && Back.Root.Find("spline_points")->Items.size() == 2);
+    }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
     CHECK(List == ListWord("example.cave", "/game/maps/cave000_f00_p") &&
@@ -551,6 +950,476 @@ static void Own()
         CHECK(!GameRange(Id) && Id != 0 && Id != ~UINT64_C(0));
     auto Taken = Numbers(List, {"Actor_7"}, {Ids[7]});
     CHECK(Taken.size() == 1 && Taken[0] != Ids[7]);
+}
+
+// Gimmicks of the object AI component family: each layout written from authored values and read back, with a gate.
+static Context ObjectChain(std::vector<std::string> Own, const char* Base = "ObjectAIComponent")
+{
+    Context C;
+    C.ComponentChain = std::move(Own);
+    C.ComponentChain.push_back(Base);
+    C.ComponentChain.push_back("CarrotAIComponent");
+    return C;
+}
+static bool RoundTrip(Slot S, const Context& C, const Blob& In, std::uint64_t V, std::vector<std::uint8_t>& Bytes)
+{
+    std::string Error;
+    Blob Back;
+    return Encode(S, C, In, V, Bytes, Error) && Decode(S, C, Bytes, V, Back, Error) && Back.Exact() &&
+        Back.Variant == In.Variant && Lines(In) == Lines(Back);
+}
+static Value Vector(float X, float Y, float Z)
+{
+    Value V;
+    V.Is = Kind::Vec;
+    V.Words[0] = Value::FloatBits(X);
+    V.Words[1] = Value::FloatBits(Y);
+    V.Words[2] = Value::FloatBits(Z);
+    return V;
+}
+static void Gimmicks()
+{
+    std::vector<std::uint8_t> Bytes, Base;
+    // An air wall that opens for actors it searches by CID and tags; the tags and their rule from 0x20221020a.
+    const Context Wall = ObjectChain({"AirWallAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x202210209), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Wall, V, B));
+        *Path(B, "AirWallAIComponent.SearchCID") = NameFromUtf8("Or");
+        Path(B, "AirWallAIComponent.SearchRadius")->SetFloat(100.f);
+        CHECK(bool(Path(B, "AirWallAIComponent.SearchTagList")) == (V > UINT64_C(0x202210209)));
+        if (Value* Tags = Path(B, "AirWallAIComponent.SearchTagList"))
+            Tags->Items = {NameFromUtf8("Or00"), NameFromUtf8("Or01")};
+        CHECK(RoundTrip(Slot::AIStatic, Wall, B, V, Bytes));
+    }
+    // A branch: jump height and link offset; its dynamic blob takes the life component's blob before 0x20220627a.
+    const Context Branch = ObjectChain({"BranchAIComponent"});
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Branch, RowVersion, B));
+        Path(B, "BranchAIParameter.JumpHeight")->SetFloat(35.f);
+        *Path(B, "BranchAIParameter.NavLinkRightOffset") = Vector(0.f, -240.f, 100.f);
+        CHECK(RoundTrip(Slot::AIStatic, Branch, B, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 16 && Bytes[Bytes.size() - 1] == 0x42 && Bytes[Bytes.size() - 13] == 0x42);
+        for (const std::uint64_t V : {UINT64_C(0x202206279), RowVersion})
+        {
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, Branch, V, D));
+            CHECK(bool(Path(D, "legacy_life")) == (V < UINT64_C(0x20220627a)));
+            Path(D, "runtime_branch_0x14")->Bits = 1;
+            CHECK(RoundTrip(Slot::AIDynamic, Branch, D, V, Bytes));
+        }
+    }
+    // Charcoal writes two words no property holds after the object's dynamic blob: 0 and 1.
+    const Context Charcoal = ObjectChain({"CharcoalAIComponent"});
+    {
+        Blob D;
+        CHECK(Fresh(Slot::AIDynamic, Charcoal, RowVersion, D));
+        bool One = false;
+        const auto CharcoalLayouts = Layouts(Slot::AIDynamic, Charcoal);
+        for (const Field& F : CharcoalLayouts[0].Fields)
+            One = One || (F.Name == "deprecated_charcoal_count" && F.Derived && F.RuntimeDefault == 1);
+        CHECK(One);
+        Path(D, "deprecated_charcoal_count")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIDynamic, Charcoal, D, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 8 && Bytes[Bytes.size() - 4] == 1 && Bytes[Bytes.size() - 8] == 0);
+    }
+    // A fire floor's run-time flags; the third from 0x20230325a.
+    const Context Fire = ObjectChain({"FireFloorAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x20230315a), RowVersion})
+    {
+        Blob D;
+        CHECK(Fresh(Slot::AIDynamic, Fire, V, D));
+        CHECK(bool(Path(D, "runtime_firefloor_0x1d")) == (V > UINT64_C(0x202303249)));
+        Path(D, "runtime_firefloor_0x1e")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIDynamic, Fire, D, V, Bytes));
+    }
+    // A dweevil's treasure options after the creature's; its search area from 0x20220422a, its new territory from
+    // 0x20230221a.
+    Context Dweevil;
+    Dweevil.ComponentChain = {"DweevilBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+    for (const std::uint64_t V : {UINT64_C(0x202204219), UINT64_C(0x202302209), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Dweevil, V, B));
+        CHECK(bool(Path(B, "DweevilAIParameter.OtakaraParam.OtakaraSearchArea")) == (V > UINT64_C(0x202204219)));
+        CHECK(bool(Path(B, "DweevilAIParameter.OtakaraParam.NewTerritoryPos")) == (V > UINT64_C(0x202302209)));
+        Path(B, "DweevilAIParameter.OtakaraParam.bInitShoulder")->Bits = 1;
+        if (Value* Area = Path(B, "DweevilAIParameter.OtakaraParam.OtakaraSearchArea"))
+            Area->Find("Radius")->SetFloat(300.f);
+        Path(B, "DweevilAIParameter.EscapeParam.bEnableWallCheck")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIStatic, Dweevil, B, V, Bytes));
+    }
+    // A handle board and a pull nekko: their nav link's points from 0x20230114a.
+    for (const char* Class : {"HandleBoardAIComponent", "PullNekkoAIComponent"})
+    {
+        const Context C = ObjectChain({Class});
+        for (const std::uint64_t V : {UINT64_C(0x202301139), RowVersion})
+        {
+            Blob B;
+            CHECK(Fresh(Slot::AIStatic, C, V, B));
+            Value* Links = Path(B, "PlacedActor.NavLinkForAdjust.Links");
+            CHECK(bool(Links) == (V > UINT64_C(0x202301139)));
+            const Type* Of = FieldType(Slot::AIStatic, C, "PlacedActor.NavLinkForAdjust.Links");
+            if (Links && Of && Of->Item)
+            {
+                Value Link = EmptyOf(*Of->Item, V);
+                *Link.Find("Left") = Vector(0.f, 340.f, -20.f);
+                *Link.Find("Right") = Vector(-27.f, -110.f, -20.f);
+                Links->Items.push_back(Link);
+            }
+            if (Value* Work = Path(B, "HandleBoardAIParameter.WorkNum"))
+                Work->Bits = 20;
+            CHECK(RoundTrip(Slot::AIStatic, C, B, V, Bytes));
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, C, V, D));
+            CHECK(RoundTrip(Slot::AIDynamic, C, D, V, Bytes));
+        }
+    }
+    // A moving floor: its spline's points and rotation, then a nav link's points when the actor has one (the second
+    // layout). A blob is read in the layout it fits.
+    const Context Floor = ObjectChain({"MoveFloorAIComponent"});
+    // Two of its own for each of the object AI base's two (the escape points or none): its own come first.
+    CHECK(Layouts(Slot::AIStatic, Floor).size() == 4);
+    for (int Variant : {0, 1})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Floor, RowVersion, B, Variant));
+        Path(B, "MoveFloorAIParameter.WaitTime")->SetFloat(2.f);
+        const Type* Points = FieldType(Slot::AIStatic, Floor, "SplinePoints");
+        CHECK(Points && Points->Item);
+        if (Points && Points->Item)
+            for (int I = 0; I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                *Point.Find("Scale") = Vector(1.f, 1.f, 1.f);
+                Point.Find("Type")->Bits = 1;
+                Path(B, "SplinePoints")->Items.push_back(Point);
+            }
+        CHECK(bool(Path(B, "PlacedActor.NavLink.Links")) == (Variant == 1));
+        if (Value* Links = Path(B, "PlacedActor.NavLink.Links"))
+        {
+            const Type* Of = FieldType(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", 1);
+            Links->Items.push_back(EmptyOf(*Of->Item, RowVersion));
+        }
+        CHECK(RoundTrip(Slot::AIStatic, Floor, B, RowVersion, Bytes));
+        CHECK(Bytes.size() == (Variant ? Base.size() + 28 : Bytes.size()));
+        if (!Variant)
+            Base = Bytes;
+    }
+    Blob Old;
+    CHECK(Fresh(Slot::AIStatic, Floor, UINT64_C(0x202208229), Old) && !Path(Old, "MoveFloorAIParameter.WarpOffset"));
+    // A fishing rope's jump and its work count.
+    const Context Rope = ObjectChain({"RopeFishingAIComponent"});
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Rope, RowVersion, B));
+        Path(B, "RopeFishingAIParameter.JumpForceXY")->SetFloat(500.f);
+        Path(B, "RopeFishingAIParameter.ManualWorkNum")->Bits = 5;
+        CHECK(RoundTrip(Slot::AIStatic, Rope, B, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 4 && Bytes[Bytes.size() - 4] == 5);
+    }
+    // A sprinkler: its valve, its decal's place, then its water; the flat effect from 0x20220124b and
+    // bSprinklerOnly from 0x20220825a.
+    const Context Sprinkler = ObjectChain({"SprinklerAIComponent", "ValveGimmickBaseAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x20220124a), UINT64_C(0x202208249), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Sprinkler, V, B));
+        *Path(B, "ValveGimmickBaseAIComponent.ValveID") = NameFromUtf8("valve0");
+        *Path(B, "decal_world_location") = Vector(-518.f, 144.4f, -15.f);
+        Path(B, "SprinklerAIParameter.WaterRange")->SetFloat(225.f);
+        CHECK(bool(Path(B, "SprinklerAIParameter.bUseFlatEffect")) == (V > UINT64_C(0x20220124a)));
+        CHECK(bool(Path(B, "SprinklerAIParameter.bSprinklerOnly")) == (V > UINT64_C(0x202208249)));
+        CHECK(RoundTrip(Slot::AIStatic, Sprinkler, B, V, Bytes));
+    }
+    // A string: its fall height, and whether it has fallen.
+    const Context String = ObjectChain({"StringAIComponent"});
+    {
+        Blob B, D;
+        CHECK(Fresh(Slot::AIStatic, String, RowVersion, B) && Fresh(Slot::AIDynamic, String, RowVersion, D));
+        Path(B, "StringAIParameter.FallHeight")->SetFloat(150.f);
+        Path(D, "StringAIParameter.bFalled")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIStatic, String, B, RowVersion, Bytes));
+        CHECK(RoundTrip(Slot::AIDynamic, String, D, RowVersion, Bytes) && Bytes.size() >= 4 && Bytes.back() == 0);
+    }
+    // A pushed box: its warp place, then its nav link's points (from 0x20230114a) or, for a box with a spline, the
+    // spline's points; its dynamic blob has a legacy vector before 0x20220414a.
+    const Context Box = ObjectChain({"PushGimmickAIComponent"});
+    // Two of its own for each of the object AI base's two (the escape points or none): its own come first.
+    CHECK(Layouts(Slot::AIStatic, Box).size() == 4);
+    {
+        Blob Y, X;
+        CHECK(Fresh(Slot::AIStatic, Box, RowVersion, Y, 0) && Fresh(Slot::AIStatic, Box, RowVersion, X, 1));
+        *Path(Y, "PushGimmickAIParameter.WarpPos") = Vector(0.f, 150.f, 30.f);
+        const Type* Of = FieldType(Slot::AIStatic, Box, "PlacedActor.NavLinkForAdjust.Links");
+        Path(Y, "PlacedActor.NavLinkForAdjust.Links")->Items.push_back(EmptyOf(*Of->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, Y, RowVersion, Bytes));
+        const Type* Points = FieldType(Slot::AIStatic, Box, "SplinePoints", 1);
+        Path(X, "SplinePoints")->Items.push_back(EmptyOf(*Points->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, X, RowVersion, Bytes));
+        for (const std::uint64_t V : {UINT64_C(0x202204149), RowVersion})
+        {
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, Box, V, D));
+            CHECK(bool(Path(D, "legacy_push_vector")) == (V < UINT64_C(0x20220414a)));
+            CHECK(RoundTrip(Slot::AIDynamic, Box, D, V, Bytes));
+        }
+    }
+}
+
+// Spawners, portals and trigger boxes: blobs built from authored values, written and read back, and their gates.
+static bool SlotRoundTrip(
+    Slot S, const Context& C, const Blob& In, std::uint64_t V, std::vector<std::uint8_t>& Bytes, Blob& Back)
+{
+    std::string Error;
+    return Encode(S, C, In, V, Bytes, Error) && Decode(S, C, Bytes, V, Back, Error) && Back.Exact() &&
+        Back.Variant == In.Variant && Lines(In) == Lines(Back);
+}
+static bool SlotField(Slot S, const Context& C, const std::string& Name, Field& Out, int Variant = 0)
+{
+    return FieldOf(S, C, Name, Out, Variant);
+}
+static void SpawnersAndTriggers()
+{
+    std::vector<std::uint8_t> Bytes;
+    std::string Error;
+    Blob Back;
+    // An actor spawner: what it spawns, where and how often.
+    Context Spawner;
+    Spawner.ComponentChain = {"ActorSpawnerComponent", "CarrotAIComponent"};
+    Blob Spawn;
+    CHECK(Fresh(Slot::AIStatic, Spawner, RowVersion, Spawn));
+    Path(Spawn, "ActorSpawnAIParameter.OverlapCond.AVATAR")->Bits = 1;
+    Path(Spawn, "ActorSpawnAIParameter.OverlapArea")->Find("SphereRadius")->SetFloat(150.f);
+    *Path(Spawn, "ActorSpawnAIParameter.MotionName") = NameFromUtf8("None");
+    Path(Spawn, "deprecated_word_1")->Bits = 1;
+    Path(Spawn, "ActorSpawnAIParameter.SpawnVel.Y")->SetFloat(600.f);
+    Path(Spawn, "ActorSpawnAIParameter.SpawnInterval")->SetFloat(10.f);
+    Path(Spawn, "ActorSpawnAIParameter.MaxSpawnNum")->Bits = 3;
+    *Path(Spawn, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("DropActor") =
+        NameFromUtf8("/Game/Carrot4/Placeables/Teki/GHambo.GHambo_C");
+    Path(Spawn, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(SlotRoundTrip(Slot::AIStatic, Spawner, Spawn, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 20 && Bytes[0] == 1 && Bytes[4] == 0); // AVATAR, then Pikmin
+    Field Word;
+    CHECK(SlotField(Slot::AIStatic, Spawner, "deprecated_word_1", Word) && Word.Derived && Word.RuntimeDefault == 1);
+    // The spawn angle and speed came in 0x20220525a, the flag for a random angle one version later.
+    Blob Old;
+    CHECK(Fresh(Slot::AIStatic, Spawner, UINT64_C(0x20220525a), Old) && Path(Old, "ActorSpawnAIParameter.SpawnAng") &&
+        !Path(Old, "ActorSpawnAIParameter.bSpawnAngRand") && !Path(Old, "legacy_vector"));
+    CHECK(Fresh(Slot::AIStatic, Spawner, UINT64_C(0x202205259), Old) && !Path(Old, "ActorSpawnAIParameter.SpawnAng") &&
+        Path(Old, "legacy_vector") && Path(Old, "legacy_area"));
+    Path(Old, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(SlotRoundTrip(Slot::AIStatic, Spawner, Old, UINT64_C(0x202205259), Bytes, Back));
+
+    // A portal: its own options, then the extent and place of its box tagged Trigger when the actor has one.
+    Context Portal;
+    Portal.ActorChain = {"GActor"};
+    std::size_t Sizes[2] = {0, 0};
+    for (int Variant = 0; Variant < 2; ++Variant)
+    {
+        Blob Door;
+        CHECK(Fresh(Slot::PortalTriggerStatic, Portal, RowVersion, Door, Variant));
+        Path(Door, "PortalType")->Bits = 4;
+        Path(Door, "PortalNumber")->Bits = 1;
+        *Path(Door, "ToLevelName") = NameFromUtf8("Cave000_F01");
+        Path(Door, "ToBaseCampId")->Bits = UINT64_C(0xffffffff);
+        Path(Door, "ShowIconDist")->SetFloat(500.f);
+        CHECK(bool(Path(Door, "Trigger.BoxExtent")) == (Variant == 0));
+        if (Variant == 0)
+            Path(Door, "Trigger.BoxExtent")->Words[0] = Value::FloatBits(100.f);
+        CHECK(SlotRoundTrip(Slot::PortalTriggerStatic, Portal, Door, RowVersion, Bytes, Back));
+        CHECK(Bytes.size() > 5 && Bytes[0] == 4 && Bytes[1] == 1);
+        Sizes[Variant] = Bytes.size();
+    }
+    CHECK(Sizes[0] == Sizes[1] + 24);
+    Blob OldDoor;
+    CHECK(Fresh(Slot::PortalTriggerStatic, Portal, UINT64_C(0x20220112a), OldDoor, 1) && Path(OldDoor, "legacy_vector"));
+    CHECK(Fresh(Slot::PortalTriggerStatic, Portal, UINT64_C(0x20220112b), OldDoor, 1) && !Path(OldDoor, "legacy_vector"));
+    Blob Found;
+    CHECK(Fresh(Slot::PortalTriggerDynamic, Portal, RowVersion, Found));
+    Path(Found, "bDiscovered")->Bits = 1;
+    CHECK(SlotRoundTrip(Slot::PortalTriggerDynamic, Portal, Found, RowVersion, Bytes, Back) && Bytes.size() == 16);
+    CHECK(Fresh(Slot::PortalTriggerDynamic, Portal, UINT64_C(0x202209309), Found) &&
+        Encode(Slot::PortalTriggerDynamic, Portal, Found, UINT64_C(0x202209309), Bytes, Error) && Bytes.size() == 8);
+
+    // A navigation mesh trigger: the extents of its two boxes, the classes it lets through and its name.
+    Context Nav;
+    Blob Gate;
+    CHECK(Fresh(Slot::NavMeshTriggerStatic, Nav, RowVersion, Gate));
+    Path(Gate, "NavBox.BoxExtent")->Words[2] = Value::FloatBits(100.f);
+    Value Cid = NameFromUtf8("CrackPot");
+    Cid.Is = Kind::Name;
+    Path(Gate, "CIDList")->Items.push_back(Cid);
+    *Path(Gate, "NavMeshTriggerID") = NameFromUtf8("NavMeshTrigger00");
+    CHECK(SlotRoundTrip(Slot::NavMeshTriggerStatic, Nav, Gate, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() == 24 + 4 + 4 + 9 + 4 + 17);
+    CHECK(Fresh(Slot::NavMeshTriggerStatic, Nav, UINT64_C(0x202206209), Gate) && !Path(Gate, "NavMeshTriggerID"));
+    CHECK(Fresh(Slot::NavMeshTriggerDynamic, Nav, RowVersion, Gate) &&
+        SlotRoundTrip(Slot::NavMeshTriggerDynamic, Nav, Gate, RowVersion, Bytes, Back) && Bytes.size() == 4);
+
+    // A narrow space box: camera options, then the points of the actor's spline when it has one.
+    Context Narrow;
+    Narrow.ActorChain = {"GActor"};
+    for (int Variant = 0; Variant < 2; ++Variant)
+    {
+        Blob Box;
+        CHECK(Fresh(Slot::NarrowSpaceBoxTriggerStatic, Narrow, RowVersion, Box, Variant));
+        Path(Box, "Flags")->Bits = UINT64_C(0xfffffe71);
+        *Path(Box, "LinkObjID") = NameFromUtf8("None");
+        Path(Box, "ForceCameraYaw")->SetFloat(15.f);
+        Path(Box, "InputKeyOffset")->SetFloat(0.1f);
+        if (Variant == 1)
+        {
+            const Type* Points =
+                FieldType(Slot::NarrowSpaceBoxTriggerStatic, Narrow, "SplineComponent.SplinePoints", Variant);
+            CHECK(Points && Points->Is == Kind::Array && Points->Item);
+            for (int I = 0; Points && Points->Item && I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                Point.Find("Scale")->Words[0] = Value::FloatBits(1.f);
+                Point.Find("Type")->Bits = 1;
+                Path(Box, "SplineComponent.SplinePoints")->Items.push_back(Point);
+            }
+        }
+        CHECK(SlotRoundTrip(Slot::NarrowSpaceBoxTriggerStatic, Narrow, Box, RowVersion, Bytes, Back));
+        CHECK(Bytes.size() == (Variant == 0 ? 57u : 57u + 4u + 2u * 65u));
+    }
+    Blob OldBox;
+    CHECK(Fresh(Slot::NarrowSpaceBoxTriggerStatic, Narrow, UINT64_C(0x202206099), OldBox) &&
+        Path(OldBox, "LinkObjID") && !Path(OldBox, "ForceCameraYaw"));
+
+    // A hidden box: the group it opens with.
+    Context Hidden;
+    Blob Group;
+    CHECK(Fresh(Slot::HiddenBoxTriggerStatic, Hidden, RowVersion, Group));
+    Path(Group, "GroupId")->Bits = UINT64_C(0xffffffff);
+    CHECK(SlotRoundTrip(Slot::HiddenBoxTriggerStatic, Hidden, Group, RowVersion, Bytes, Back) && Bytes.size() == 4 &&
+        Bytes[3] == 0xff);
+
+    // A water box: how Pikmin freeze in it and its ambient sound. Before 0x20220506a a name and eleven words
+    // of an older form were in the stream.
+    Context Water;
+    Blob Pool;
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, RowVersion, Pool));
+    Path(Pool, "MaxIcePikmins")->Bits = 5;
+    Path(Pool, "FreezeTime")->SetFloat(8.f);
+    Path(Pool, "IceNumCullingDist")->SetFloat(4000.f);
+    *Path(Pool, "WaterAmbientSoundId") = NameFromUtf8("None");
+    CHECK(SlotRoundTrip(Slot::WaterTriggerStatic, Water, Pool, RowVersion, Bytes, Back) && Bytes.size() == 37 &&
+        Bytes[0] == 5);
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, UINT64_C(0x202301319), Pool) && !Path(Pool, "WaterExitGoalOffset") &&
+        !Path(Pool, "legacy_name"));
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, UINT64_C(0x202205069), Pool) && Path(Pool, "legacy_name") &&
+        Path(Pool, "legacy_word_10") && SlotRoundTrip(Slot::WaterTriggerStatic, Water, Pool, UINT64_C(0x202205069), Bytes,
+                                             Back) &&
+        Bytes.size() == 4 + 4 + 4 + 12 + 4 + 11 * 4 + 4);
+    // The navigation of a water box: after the object's fields, whether only happy Pikmin use it and its offset.
+    Context WaterNav;
+    WaterNav.ComponentChain = {"WaterBoxNavAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Lane;
+    CHECK(Fresh(Slot::AIStatic, WaterNav, RowVersion, Lane) && Path(Lane, "WaterBoxNavAIComponent.RightOffset") &&
+        !Path(Lane, "legacy_word"));
+    Path(Lane, "WaterBoxNavAIComponent.bUseHappyOnly")->Bits = 1;
+    Path(Lane, "WaterBoxNavAIComponent.RightOffset")->Words[1] = Value::FloatBits(-50.f);
+    CHECK(SlotRoundTrip(Slot::AIStatic, WaterNav, Lane, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 16 && Bytes[Bytes.size() - 16] == 1);
+    Field Legacy;
+    CHECK(Fresh(Slot::AIStatic, WaterNav, UINT64_C(0x20220630a), Lane) && Path(Lane, "legacy_vector") &&
+        !Path(Lane, "WaterBoxNavAIComponent.bUseHappyOnly") &&
+        SlotField(Slot::AIStatic, WaterNav, "legacy_word", Legacy) && Legacy.RuntimeDefault == 1);
+
+    // A group drop manager: the radius it groups in, the classes it ignores and what the group drops.
+    Context Manager;
+    Manager.ComponentChain = {"GroupDropManagerComponent", "CarrotAIComponent"};
+    Blob Drops;
+    CHECK(Fresh(Slot::AIStatic, Manager, RowVersion, Drops));
+    Path(Drops, "GroupDropManagerAIParameter.GroupingRadius")->SetFloat(125.f);
+    Value Ignored = NameFromUtf8("Kochappy");
+    Ignored.Is = Kind::Name;
+    Path(Drops, "GroupDropManagerAIParameter.IgnoreCIDList")->Items.push_back(Ignored);
+    const Type* DropItems =
+        FieldType(Slot::AIStatic, Manager, "GroupDropManagerAIParameter.DropParameter.DropItemParameter");
+    CHECK(DropItems && DropItems->Is == Kind::Array && DropItems->Item);
+    if (DropItems && DropItems->Item)
+    {
+        Value Drop = EmptyOf(*DropItems->Item, RowVersion);
+        Drop.Find("UniqueId")->Bits = ~UINT64_C(0);
+        Drop.Find("MinNum")->Bits = 3;
+        Drop.Find("MaxNum")->Bits = 3;
+        Drop.Find("DropRatio")->SetFloat(1.f);
+        Drop.Find("SpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+        Path(Drops, "GroupDropManagerAIParameter.DropParameter.DropItemParameter")->Items.push_back(Drop);
+    }
+    Path(Drops, "GroupDropManagerAIParameter.DropTiming")->Bits = 1;
+    CHECK(SlotRoundTrip(Slot::AIStatic, Manager, Drops, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 8 && Bytes[3] == 0x42 && Bytes[4] == 1);
+    CHECK(Fresh(Slot::AIStatic, Manager, UINT64_C(0x202303179), Drops) &&
+        !Path(Drops, "GroupDropManagerAIParameter.DropParameter.bEnableFreezeBothDrop"));
+    CHECK(Fresh(Slot::AIDynamic, Manager, RowVersion, Drops) &&
+        SlotRoundTrip(Slot::AIDynamic, Manager, Drops, RowVersion, Bytes, Back) && Bytes.size() == 8);
+
+    // A sprout spawner's dynamic blob: three run-time words, the wrestling offset and the sniff points.
+    Context Lock;
+    Lock.ComponentChain = {"NoraSpawnerAIComponent", "CarrotAIComponent"};
+    Blob Held;
+    CHECK(Fresh(Slot::AIDynamic, Lock, RowVersion, Held));
+    *Path(Held, "runtime_0xb0") = NameFromUtf8("None");
+    Path(Held, "NoraSpawnerAIParam.ProWrestlingOffset")->Words[2] = Value::FloatBits(100.f);
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Lock, Held, RowVersion, Bytes, Back) && Bytes.size() == 37);
+
+    // Honey placed in a level: one run-time word, 10 as the game's rows carry it.
+    Context Honey;
+    Honey.ComponentChain = {"HoneyAIComponent", "CarrotAIComponent"};
+    Blob Drop;
+    Field Amount;
+    CHECK(Fresh(Slot::AIDynamic, Honey, RowVersion, Drop) &&
+        SlotField(Slot::AIDynamic, Honey, "runtime_0x720", Amount) && Amount.Derived && Amount.RuntimeDefault == 10);
+    Path(Drop, "runtime_0x720")->Bits = Amount.RuntimeDefault;
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Honey, Drop, RowVersion, Bytes, Back) && Bytes.size() == 4 && Bytes[0] == 10);
+    CHECK(Layouts(Slot::AIStatic, Honey).empty());
+
+    // A pit's sub AI: the actor spawner's stream.
+    Context Pit;
+    Pit.ComponentChain = {"TateanaAIComponent", "TateanaBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Sub;
+    CHECK(Fresh(Slot::SubAIStatic, Pit, RowVersion, Sub));
+    Path(Sub, "ActorSpawnAIParameter.OverlapCond.Carry")->Bits = 1;
+    Path(Sub, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(SlotRoundTrip(Slot::SubAIStatic, Pit, Sub, RowVersion, Bytes, Back) && Bytes.size() > 12 && Bytes[12] == 1);
+    Blob Same;
+    CHECK(Fresh(Slot::AIStatic, Spawner, RowVersion, Same) && Lines(Same).size() == Lines(Sub).size());
+
+    // The pit's dynamic blob: the object's fields, then how many digs it takes and the run-time count left.
+    Blob Dig;
+    CHECK(Fresh(Slot::AIDynamic, Pit, RowVersion, Dig, 0) && !Path(Dig, "legacy_life"));
+    Path(Dig, "TateanaAIParameter.NumDig")->Bits = 5;
+    Path(Dig, "runtime_0xa40")->Bits = UINT64_C(0xffffffff);
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Pit, Dig, RowVersion, Bytes, Back) && Bytes.size() == 20 && Bytes[12] == 5);
+    CHECK(Fresh(Slot::AIDynamic, Pit, UINT64_C(0x202206279), Dig, 1) && Path(Dig, "legacy_life"));
+
+    // A water box actor: its color, radar map textures and height map resolution after GActor's options; its
+    // dynamic blob ends with the day its water level changes and the ice Pikmin after the change.
+    Context Pond;
+    Pond.ActorChain = {"WATERBOX", "GActor"};
+    Pond.ComponentChain = {"WaterBoxAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Look;
+    CHECK(Fresh(Slot::ActorStatic, Pond, RowVersion, Look) && Path(Look, "WATERBOX.RadarMapWBChangeDistTexture"));
+    *Path(Look, "WATERBOX.RadarMapWBTexture") = NameFromUtf8("/Game/Carrot4/UI/Map/T_ui_Map_Example.T_ui_Map_Example");
+    Path(Look, "WATERBOX.HeightMapResolution")->SetFloat(12.8f);
+    CHECK(SlotRoundTrip(Slot::ActorStatic, Pond, Look, RowVersion, Bytes, Back));
+    CHECK(Fresh(Slot::ActorStatic, Pond, UINT64_C(0x202109069), Look) &&
+        Path(Look, "WATERBOX.RadarMapWBTexture") && !Path(Look, "WATERBOX.RadarMapWBChangeDistTexture"));
+    Blob Level;
+    CHECK(Fresh(Slot::AIDynamic, Pond, RowVersion, Level));
+    Path(Level, "WaterBoxAIParameter.WaterLevel.WaterLevelChangeDay")->Bits = UINT64_C(0xffffffff);
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Pond, Level, RowVersion, Bytes, Back) && Bytes.size() == 20);
+    CHECK(Fresh(Slot::AIDynamic, Pond, UINT64_C(0x202205069), Level) &&
+        !Path(Level, "WaterBoxAIParameter.WaterLevel.AfterMaxIcePikmins"));
 }
 
 static std::vector<std::uint8_t> FromHex(const std::string& Text)
@@ -709,11 +1578,163 @@ static int DescribeLayouts(const char* ChainsFile, const char* OutFile)
     return 0;
 }
 
+// A slot is complete only for the owner classes the layout data lists for it, by the most derived native class:
+// a class below a listed one, or one listed for another slot, is not.
+static void CompleteOwners()
+{
+    CHECK(Complete(Slot::AIStatic, {"NoraSpawnerAIComponent", "ObjectAIComponent", "CarrotAIComponent"}));
+    CHECK(Complete(Slot::AIDynamic, {"PieceStationAIComponent", "BuildObjectAIComponent", "ObjectAIComponent"}));
+    CHECK(Complete(Slot::LifeDynamic, {"LifeComponent", "ActorComponent"}));
+    CHECK(!Complete(Slot::AIStatic, {"NotAGameAIComponent", "NoraSpawnerAIComponent", "CarrotAIComponent"}));
+    CHECK(!Complete(Slot::LifeDynamic, {"NoraSpawnerAIComponent", "CarrotAIComponent"}));
+    CHECK(!Complete(Slot::AIStatic, {}));
+    // A complete blob is written for a new placement only when no field of it is one the game takes from the actor's
+    // components: a geyser's nav links are, a sprout spawner has none.
+    Context Nora, Geyser;
+    Nora.ComponentChain = {"NoraSpawnerAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    CHECK(Writable(Slot::AIStatic, Nora, Nora.ComponentChain));
+    CHECK(Complete(Slot::AIStatic, Geyser.ComponentChain) && !Writable(Slot::AIStatic, Geyser, Geyser.ComponentChain));
+    Field Links;
+    CHECK(FieldOf(Slot::AIStatic, Geyser, "NavLinkComponent.Links", Links) && Links.FromActor && Links.Derived);
+    // Every listed slot of an owner that is not of a chain has its own layout.
+    const auto Rows = Generated::CompleteRows();
+    CHECK(Rows.Count > 0);
+    for (std::size_t I = 0; I < Rows.Count; ++I)
+        for (const SlotName& Name : Slots())
+            if (Name.S == Rows.Rows[I].Id && !Name.Chain)
+                CHECK(!Layouts(Name.S, Context()).empty());
+}
+
+// Characters, Pikmin, ambient sounds and the actors with options of their own after GActor's.
+static void People()
+{
+    const Context None;
+    std::vector<std::uint8_t> Bytes, Again;
+    std::string Error;
+    Blob Back;
+    // A character's looks: nine ids, the same at every version.
+    Slot S = Slot::ActorStatic;
+    CHECK(SlotOf("CharacterEdit", true, S) && S == Slot::CharacterEditStatic);
+    Blob Look;
+    CHECK(Fresh(Slot::CharacterEditStatic, None, RowVersion, Look) && Look.Root.Members.size() == 9);
+    Path(Look, "CharacterEditComponent.BodyId")->Bits = 3;
+    Path(Look, "CharacterEditComponent.FaceEyeColorId")->Bits = 7;
+    CHECK(Encode(Slot::CharacterEditStatic, None, Look, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 36 && Bytes[0] == 3 && Bytes[32] == 7);
+    CHECK(Decode(Slot::CharacterEditStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Look) == Lines(Back));
+    Blob OldLook;
+    CHECK(Fresh(Slot::CharacterEditStatic, None, UINT64_C(0x202101019), OldLook) && OldLook.Root.Members.size() == 9);
+    // A Pikmin: whether it has joined the player, one bool word.
+    Blob Sprout;
+    CHECK(Fresh(Slot::PikminStatic, None, RowVersion, Sprout));
+    Path(Sprout, "PikminComponent.bPlayerJoined")->Bits = 1;
+    CHECK(Encode(Slot::PikminStatic, None, Sprout, RowVersion, Bytes, Error));
+    CHECK((Bytes == std::vector<std::uint8_t>{1, 0, 0, 0}));
+    CHECK(Decode(Slot::PikminStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Sprout) == Lines(Back));
+    // A sound trigger's shape: no property holds it; the game starts it as no shape with the default extents.
+    Field Got;
+    CHECK(FieldOf(Slot::CakTriggerStatic, None, "runtime_0x260_capsule_half_height", Got) && Got.Derived &&
+        Got.RuntimeDefault == UINT64_C(0x42300000));
+    Blob Shape;
+    CHECK(Fresh(Slot::CakTriggerStatic, None, RowVersion, Shape) && Shape.Root.Members.size() == 7);
+    for (const char* Name : {"runtime_0x254_box_extent_x", "runtime_0x268_sphere_radius"})
+        Path(Shape, Name)->SetFloat(40.f);
+    CHECK(Encode(Slot::CakTriggerStatic, None, Shape, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 25 && Bytes[0] == 0);
+    CHECK(Decode(Slot::CakTriggerStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Shape) == Lines(Back));
+    // An ambient sound actor: its sound, how it attaches, its messages and pausing, after GActor's options.
+    Context Ambient;
+    Ambient.ActorChain = {"CakAmbientSoundActor", "GActor", "Actor", "Object"};
+    Context Plain;
+    Plain.ActorChain = {"GActor", "Actor", "Object"};
+    Blob Sound, Actor;
+    CHECK(Fresh(Slot::ActorStatic, Ambient, RowVersion, Sound) && Fresh(Slot::ActorStatic, Plain, RowVersion, Actor));
+    CHECK(Sound.Root.Members.size() == Actor.Root.Members.size() + 4);
+    *Path(Sound, "CakAmbientSoundActor.AmbientSoundId") = NameFromUtf8("Amb_Cave");
+    Path(Sound, "CakAmbientSoundActor.AmbientAttachmentRule")->Bits = 1;
+    Path(Sound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel")->Bits = 1;
+    const Type* Map = FieldType(Slot::ActorStatic, Ambient, "CakAmbientSoundActor.MessageMap");
+    CHECK(Map && Map->Is == Kind::Array && Map->Item);
+    if (Map && Map->Item)
+    {
+        Value Pair = EmptyOf(*Map->Item, RowVersion);
+        *Pair.Find("Key") = NameFromUtf8("Start");
+        *Pair.Find("Value") = NameFromUtf8("Play");
+        Path(Sound, "CakAmbientSoundActor.MessageMap")->Items.push_back(Pair);
+    }
+    CHECK(Encode(Slot::ActorStatic, Ambient, Sound, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 4 && Bytes[Bytes.size() - 4] == 1);
+    CHECK(Decode(Slot::ActorStatic, Ambient, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Sound) == Lines(Back));
+    Blob OldSound;
+    CHECK(Fresh(Slot::ActorStatic, Ambient, UINT64_C(0x20211116a), OldSound) &&
+        Path(OldSound, "CakAmbientSoundActor.AmbientAttachmentRule") &&
+        !Path(OldSound, "CakAmbientSoundActor.MessageMap") &&
+        !Path(OldSound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel"));
+    CHECK(Fresh(Slot::ActorStatic, Ambient, UINT64_C(0x20220915a), OldSound) &&
+        Path(OldSound, "CakAmbientSoundActor.MessageMap") &&
+        !Path(OldSound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel"));
+    // An NPC's place: its tag after GActor's options.
+    Context Place;
+    Place.ActorChain = {"NPCPLACEACTOR", "GActor", "Actor", "Object"};
+    Blob Spot;
+    CHECK(Fresh(Slot::ActorStatic, Place, RowVersion, Spot));
+    *Path(Spot, "NPCPLACEACTOR.PlaceTag") = NameFromUtf8("LeafPlace");
+    CHECK(Encode(Slot::ActorStatic, Place, Spot, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 14 && std::string(Bytes.end() - 10, Bytes.end() - 1) == "LeafPlace" && Bytes[Bytes.size() - 14] == 10);
+    CHECK(Decode(Slot::ActorStatic, Place, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Spot) == Lines(Back));
+    // A look trigger writes its own tag and radius in place of GActor's options.
+    Context Look2;
+    Look2.ActorChain = {"LookTriggerActor", "GActor", "Actor", "Object"};
+    Blob Watch;
+    CHECK(Fresh(Slot::ActorStatic, Look2, RowVersion, Watch) && Watch.Root.Members.size() == 2 &&
+        !Path(Watch, "GActor.DemoBindName"));
+    *Path(Watch, "LookTriggerActor.LookTriggerActorTag") = NameFromUtf8("Conveyor");
+    Path(Watch, "LookTriggerActor.Radius")->SetFloat(15.f);
+    CHECK(Encode(Slot::ActorStatic, Look2, Watch, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 4 + 9 + 4 && Bytes[0] == 9 && Bytes.back() == 0x41);
+    CHECK(Decode(Slot::ActorStatic, Look2, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Watch) == Lines(Back));
+    // A flexible bridge: its columns, a run-time vector, then its wall collision and nav link options by version.
+    Context Bridge;
+    Bridge.ComponentChain = {"BridgeFlexibleAIComponent", "BridgeAIComponent", "BuildObjectAIComponent",
+        "ObjectAIComponent", "CarrotAIComponent"};
+    Field Runtime;
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_y", Runtime) && Runtime.Derived &&
+        Runtime.RuntimeDefault == UINT64_C(0x42200000));
+    Blob Span;
+    CHECK(Fresh(Slot::AIStatic, Bridge, RowVersion, Span));
+    Path(Span, "BridgeFlexibleAIComponent.NeedColumnNum")->Bits = 7;
+    Path(Span, "BridgeFlexibleAIComponent.BaseWallColType")->Bits = 1;
+    Path(Span, "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos")->Bits = 1;
+    CHECK(Encode(Slot::AIStatic, Bridge, Span, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 21 && Bytes[Bytes.size() - 21] == 7 && Bytes[Bytes.size() - 5] == 1 && Bytes.back() == 0);
+    CHECK(Decode(Slot::AIStatic, Bridge, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Span) == Lines(Back));
+    for (const std::uint64_t V : {UINT64_C(0x202203039), UINT64_C(0x20220303a), UINT64_C(0x202301059),
+             UINT64_C(0x20230105a)})
+    {
+        Blob Old;
+        CHECK(Fresh(Slot::AIStatic, Bridge, V, Old) && Path(Old, "BridgeFlexibleAIComponent.NeedColumnNum"));
+        CHECK(bool(Path(Old, "BridgeFlexibleAIComponent.BaseWallColType")) == (V > UINT64_C(0x202203039)));
+        CHECK(bool(Path(Old, "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos")) == (V > UINT64_C(0x202301059)));
+    }
+}
+
 int main(int Count, char** Args)
 {
     if (Count == 4 && std::string(Args[1]) == "--layouts")
         return DescribeLayouts(Args[2], Args[3]);
     Own();
+    CompleteOwners();
+    Gimmicks();
+    People();
+    SpawnersAndTriggers();
     if (Failures)
     {
         std::cout << Failures << " failures\n";
