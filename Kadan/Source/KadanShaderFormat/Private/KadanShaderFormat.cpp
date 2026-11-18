@@ -15,6 +15,8 @@
 #include "Misc/Crc.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/ScopeLock.h"
+#include "Misc/SecureHash.h"
 #include "Modules/ModuleManager.h"
 #include "ShaderCompilerCommon.h"
 #include "ShaderCore.h"
@@ -36,8 +38,9 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 29; // Round of a vector constant rounded as UE's CPU rounds it too; an instruction's
-                                     // read barrier no longer releases the write barrier it just took.
+constexpr uint32 FormatVersion = 30; // Round of a vector constant rounded as UE's CPU rounds it too; an instruction's
+                                     // read barrier no longer releases the write barrier it just took; a map keeps
+                                     // the engine values its programs read that the game's layout does not list.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
@@ -139,6 +142,25 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
     return Out;
 }
 
+const TArray<FSourcePatch>& BuiltInPatchList()
+{
+    static const TArray<FSourcePatch> List = ParsePatches(BuiltInPatches());
+    return List;
+}
+
+// How many compile jobs in this process each built-in patch changed, by its place in BuiltInPatchList
+// (IKadanSwitchCompileContext::SourcePatchUses). Jobs compile on UE's shader compile thread.
+struct FPatchUses
+{
+    FCriticalSection Lock;
+    TArray<int32> Jobs;
+};
+FPatchUses& PatchUses()
+{
+    static FPatchUses Uses;
+    return Uses;
+}
+
 // A Round node of a constant: UE writes a constant uniform expression's code into the shader, "round(0.50000000)".
 // UE rounds the same value given by a parameter on the CPU, half up (FMaterialUniformExpressionRound,
 // FMath::RoundToFloat), and the editor's compiler folds the literal to that value too; DXC rounds a half to even. A
@@ -184,7 +206,7 @@ void RoundConstantsAsUE(FString& Source)
 
 bool ApplySourcePatches(FString& Source, FString& Error)
 {
-    static const TArray<FSourcePatch> BuiltIn = ParsePatches(BuiltInPatches());
+    const TArray<FSourcePatch>& BuiltIn = BuiltInPatchList();
     TArray<FSourcePatch> FromFile;
     const FString File = FPlatformMisc::GetEnvironmentVariable(TEXT("KADAN_SWITCH_PATCHES"));
     if (!File.IsEmpty())
@@ -204,8 +226,11 @@ bool ApplySourcePatches(FString& Source, FString& Error)
         TEXT("InitRectTexture( TranslucentBasePass_"), ESearchCase::CaseSensitive);
     Source = FString(bTranslucent ? TEXT("#define KADAN_TRANSLUCENT 1\n") : TEXT("#define KADAN_TRANSLUCENT 0\n")) +
         Source;
-    for (const FSourcePatch& Patch : File.IsEmpty() ? BuiltIn : FromFile)
+    const TArray<FSourcePatch>& Patches = File.IsEmpty() ? BuiltIn : FromFile;
+    TArray<int32> Applied;
+    for (int32 Index = 0; Index < Patches.Num(); ++Index)
     {
+        const FSourcePatch& Patch = Patches[Index];
         if (Patch.Find.IsEmpty())
             continue;
         if (!Patch.Requires.IsEmpty() && !Source.Contains(Patch.Requires, ESearchCase::CaseSensitive))
@@ -213,13 +238,24 @@ bool ApplySourcePatches(FString& Source, FString& Error)
         if (!Patch.Unless.IsEmpty() && Source.Contains(Patch.Unless, ESearchCase::CaseSensitive))
             continue;
         if (Source.Contains(Patch.Find, ESearchCase::CaseSensitive))
+        {
             Source.ReplaceInline(*Patch.Find, *Patch.Replace, ESearchCase::CaseSensitive);
+            Applied.Add(Index);
+        }
         else if (!Patch.Requires.IsEmpty())
         {
             Error = FString::Printf(
                 TEXT("Kadan's Switch format: the shader source no longer holds what patch '%s' changes."), *Patch.Name);
             return false;
         }
+    }
+    if (File.IsEmpty())
+    {
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        Uses.Jobs.SetNumZeroed(BuiltIn.Num());
+        for (const int32 Index : Applied)
+            ++Uses.Jobs[Index];
     }
     RoundConstantsAsUE(Source);
     return true;
@@ -764,6 +800,18 @@ private:
             return;
         }
         Output.ShaderCode.GetWriteAccess().Append(Payload);
+        // What the program reads that the game's layout does not list, kept with the map (KadanUnlistedReadsTag). UE
+        // hashes a program's code without it, so its code and its place in the map are the same with or without.
+        if (Program.UnlistedReads.Num())
+        {
+            uint8 Hash[20];
+            FSHA1::HashBuffer(Payload.GetData(), Payload.Num(), Hash);
+            FString Text = FString(KadanUnlistedReadsTag()) + TEXT("\n") + BytesToHex(Hash, 20);
+            for (const FString& Read : Program.UnlistedReads)
+                Text += TEXT("\n") + Read;
+            const FTCHARToUTF8 Utf8(*Text);
+            Output.PlatformDebugData.Append(reinterpret_cast<const uint8*>(Utf8.Get()), Utf8.Length());
+        }
         Output.NumTextureSamplers = Bindings.SamplerSlots;
         Output.bSucceeded = true;
         Parser.ValidateShaderParameterTypes(Input, Output);
@@ -775,6 +823,24 @@ class FKadanSwitchCompileContext : public IKadanSwitchCompileContext
 {
 public:
     virtual void SetMaterialSSR(bool bMaterialSSR) override { KadanSetMaterialSSR(bMaterialSSR); }
+
+    virtual TArray<TPair<FString, int32>> SourcePatchUses() const override
+    {
+        const TArray<FSourcePatch>& Patches = BuiltInPatchList();
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        TArray<TPair<FString, int32>> Out;
+        for (int32 Index = 0; Index < Patches.Num(); ++Index)
+            Out.Emplace(Patches[Index].Name, Uses.Jobs.IsValidIndex(Index) ? Uses.Jobs[Index] : 0);
+        return Out;
+    }
+
+    virtual void ResetSourcePatchUses() override
+    {
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        Uses.Jobs.Reset();
+    }
 };
 
 class FKadanShaderFormatModule : public IShaderFormatModule

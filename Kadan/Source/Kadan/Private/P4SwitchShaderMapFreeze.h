@@ -48,6 +48,12 @@ KADAN_API bool P4FreezeSwitchShaderMap(const FMaterialResource& Resource, const 
 FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorMaterialCompileRequest& Request);
 // P4UseSwitchShaderRoute (P4NativeCustomCompilerBridge.h) says when the export takes this route.
 
+// The built-in source patches of Kadan's format (KadanSwitchSourcePatches.inl) in their order, each by its name with
+// the number of compile jobs in this process it changed since the last reset (IKadanSwitchCompileContext).
+// Empty when the format is not loaded.
+KADAN_API TArray<TPair<FString, int32>> P4SwitchSourcePatchUses();
+KADAN_API void P4ResetSwitchSourcePatchUses();
+
 // While one is alive, UE's shader compiles run in the editor's process: UE's shader compile workers load only the
 // engine's own formats and fail a GLSL_SWITCH job (an empty result the editor asserts on). The export holds one for as
 // long as it compiles or cooks anything for the game. Nested ones restore what the outer one set.

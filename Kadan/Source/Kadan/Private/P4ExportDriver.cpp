@@ -350,6 +350,7 @@ bool FP4ExportRun::StageMaterials()
         Assets.Add(LoadObject<UObject>(nullptr, *P4ObjectPathOf(Package)));
     if (!Materials->Prepare(Names.PackageRoot, Assets, Error))
         return Fail(Error);
+    Result.Told.Append(Materials->Told());
     for (UObject* Asset : Assets)
         if (Asset)
             Result.RuntimePaths.Add(Asset->GetPathName(), Materials->RuntimePath(Asset->GetPathName()));
