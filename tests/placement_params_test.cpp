@@ -1589,14 +1589,14 @@ static void CompleteOwners()
     CHECK(!Complete(Slot::LifeDynamic, {"NoraSpawnerAIComponent", "CarrotAIComponent"}));
     CHECK(!Complete(Slot::AIStatic, {}));
     // A complete blob is written for a new placement only when no field of it is one the game takes from the actor's
-    // components: a geyser's nav links are, a sprout spawner has none.
+    // components that Kadan does not fill: a sprout spawner has none, a geyser's nav links are filled (NavFills).
     Context Nora, Geyser;
     Nora.ComponentChain = {"NoraSpawnerAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
     Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
     CHECK(Writable(Slot::AIStatic, Nora, Nora.ComponentChain));
-    CHECK(Complete(Slot::AIStatic, Geyser.ComponentChain) && !Writable(Slot::AIStatic, Geyser, Geyser.ComponentChain));
+    CHECK(Complete(Slot::AIStatic, Geyser.ComponentChain) && Writable(Slot::AIStatic, Geyser, Geyser.ComponentChain));
     Field Links;
-    CHECK(FieldOf(Slot::AIStatic, Geyser, "NavLinkComponent.Links", Links) && Links.FromActor && Links.Derived);
+    CHECK(FieldOf(Slot::AIStatic, Geyser, "NavLinkComponent.Links", Links) && !Links.FromActor && Links.Derived);
     // Every listed slot of an owner that is not of a chain has its own layout.
     const auto Rows = Generated::CompleteRows();
     CHECK(Rows.Count > 0);
@@ -1726,12 +1726,72 @@ static void People()
     }
 }
 
+// Places and nav links the game's serializers take from the actor's components, filled by the plugin's
+// P4PlacementFillNav.cpp kinds: each field names its kind and the component it reads, and an object whose only
+// blockers were these fields has its AI blob written for a new placement.
+static void NavFills()
+{
+    struct Case
+    {
+        Context C;
+        const char* Field;
+        const char* Fill;
+        const char* Class;
+        const char* Tag;
+    };
+    Context Fence, Geyser, NavBelt, Sprinkler;
+    Fence.ComponentChain = {"FenceFallAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    NavBelt.ComponentChain = {"ConveyorNavAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Sprinkler.ComponentChain = {"SprinklerAIComponent", "ValveGimmickBaseAIComponent", "ObjectAIComponent",
+        "CarrotAIComponent"};
+    const Case Cases[] = {
+        // The sound emitter's world place, zero without one (FenceFallAIComponent 0x014644a0).
+        {Fence, "AkComponentLocation", "world_location_or_zero", "AkComponent", ""},
+        // The first nav link component's links, its own points (0x01464890, GeyserAIComponent 0x01466d10).
+        {Fence, "NavLinkComponent.Links", "nav_links", "NavLinkComponent", ""},
+        {Geyser, "NavLinkComponent.Links", "nav_links", "NavLinkComponent", ""},
+        // The child actor components tagged NavModifierA / B: their relative places (ConveyorNavAIComponent
+        // 0x01453840); the nav link components tagged NavLinkA / B: world place and link ends (0x014543d0); the box
+        // tagged Trigger: relative transform and scaled extent.
+        {NavBelt, "NavModifierALocation", "relative_location", "ChildActorComponent", "NavModifierA"},
+        {NavBelt, "NavModifierBLocation", "relative_location", "ChildActorComponent", "NavModifierB"},
+        {NavBelt, "NavLinkA", "nav_link_place", "", "NavLinkA"},
+        {NavBelt, "NavLinkB", "nav_link_place", "", "NavLinkB"},
+        {NavBelt, "TriggerBox", "box_relative", "BoxComponent", "Trigger"},
+        // The decal's world place (SprinklerAIComponent 0x0184e870).
+        {Sprinkler, "decal_world_location", "world_location", "DecalComponent", ""},
+    };
+    for (const Case& One : Cases)
+    {
+        Field F;
+        const bool Found = FieldOf(Slot::AIStatic, One.C, One.Field, F);
+        CHECK(Found && F.Derived && !F.FromActor && F.Fill == One.Fill && F.FillClass == One.Class &&
+            F.FillTag == One.Tag && F.FillName.empty());
+        if (!Found || F.Fill != One.Fill)
+            std::cerr << "nav fill " << One.Field << ": " << F.Fill << '\n';
+    }
+    for (const Context* C : {&Fence, &Geyser, &NavBelt, &Sprinkler})
+        CHECK(Writable(Slot::AIStatic, *C, C->ComponentChain));
+    // A flexible bridge's vector at its AI component's +0x1188 is the constructor's (0, 40, 0), which nothing changes
+    // before the game writes it (0x018085c0): a constant, not a component's value.
+    Context Bridge;
+    Bridge.ComponentChain = {"BridgeFlexibleAIComponent", "BridgeAIComponent", "BuildObjectAIComponent",
+        "ObjectAIComponent", "CarrotAIComponent"};
+    Field X, Y, Z;
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_x", X) && X.Derived && !X.FromActor && X.Fill.empty() &&
+        X.RuntimeDefault == 0);
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_y", Y) && Y.RuntimeDefault == UINT64_C(0x42200000));
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_z", Z) && Z.RuntimeDefault == 0);
+}
+
 int main(int Count, char** Args)
 {
     if (Count == 4 && std::string(Args[1]) == "--layouts")
         return DescribeLayouts(Args[2], Args[3]);
     Own();
     CompleteOwners();
+    NavFills();
     Gimmicks();
     People();
     SpawnersAndTriggers();

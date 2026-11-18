@@ -1426,8 +1426,8 @@
       "fields": [
         {"name": "FenceFallAIParameter.SwitchID", "type": "name"},
         {"name": "FenceFallAIParameter.bEnableLockOtakara", "type": "bool"},
-        {"name": "AkComponentLocation", "type": "vec", "derived": true, "from_actor": true},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+        {"name": "AkComponentLocation", "type": "vec", "derived": true, "fill": "world_location_or_zero", "fill_class": "AkComponent"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "fill": "nav_links", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -1453,7 +1453,7 @@
       "fields": [
         {"name": "GeyserAIParameter.bSetCrystal", "type": "bool"},
         {"name": "GeyserAIParameter.StopQueenDistXY", "type": "f32"},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "fill": "nav_links", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -1471,11 +1471,11 @@
       "base": "inherit",
       "fields": [
         {"name": "ConveyorNavAIParameter.SwitchID", "type": "name"},
-        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
-        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
-        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "from_actor": true},
-        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "from_actor": true},
-        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "from_actor": true}
+        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "fill": "relative_location", "fill_class": "ChildActorComponent", "fill_tag": "NavModifierA"},
+        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "fill": "relative_location", "fill_class": "ChildActorComponent", "fill_tag": "NavModifierB"},
+        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "fill": "nav_link_place", "fill_tag": "NavLinkA"},
+        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "fill": "nav_link_place", "fill_tag": "NavLinkB"},
+        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "fill": "box_relative", "fill_class": "BoxComponent", "fill_tag": "Trigger"}
       ]
     },
     {
@@ -1723,7 +1723,7 @@
       "slot": "AI.Static",
       "base": "inherit",
       "fields": [
-        {"name": "decal_world_location", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "decal_world_location", "type": "vec", "derived": true, "fill": "world_location", "fill_class": "DecalComponent"},
         {"name": "SprinklerAIParameter.WaterRange", "type": "f32"},
         {"name": "SprinklerAIParameter.OpenTime", "type": "f32"},
         {"name": "SprinklerAIParameter.bUseFlatEffect", "type": "bool", "gate": ">0x20220124a"},
@@ -1806,7 +1806,7 @@
       "base": "inherit",
       "fields": [
         {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
-        {"name": "runtime_0x1188_x", "type": "f32", "derived": true, "from_actor": true},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true},
         {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
         {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
         {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
