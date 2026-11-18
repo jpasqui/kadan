@@ -266,6 +266,27 @@
         {"name": "Scale3D", "type": "vec"},
         {"name": "SphereRadius", "type": "f32"}
       ]
+    },
+    {
+      "name": "NavLink",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"},
+        {"name": "LeftProjectHeight", "type": "f32"},
+        {"name": "MaxFallDownLength", "type": "f32"},
+        {"name": "Direction", "type": "u8"},
+        {"name": "SnapRadius", "type": "f32"},
+        {"name": "SnapHeight", "type": "f32"},
+        {"name": "SupportsAgentBits", "type": "u32"},
+        {"name": "bUseSnapHeight", "type": "u8"},
+        {"name": "bSnapToCheapestArea", "type": "u8"}
+      ]
+    },
+    {
+      "name": "NavLinkArray",
+      "kind": "array",
+      "item": "NavLink"
     }
   ],
   "lists": [
@@ -295,6 +316,26 @@
         {"name": "OtakaraAIParameter.InitTransformAfterFalling.Scale3D", "type": "vec", "gate": ">0x20230220a"},
         {"name": "OtakaraAIParameter.bUseFightCamera", "type": "bool"},
         "@SniffDynamic"
+      ]
+    },
+    {
+      "name": "ObjectAIStaticHead",
+      "fields": [
+        {"name": "ObjectAIParameter.DropParameter.DropItemParameter", "type": "DropItems", "drops": true},
+        {"name": "ObjectAIParameter.DropParameter.DropActorParameter", "type": "DropActor"},
+        {"name": "ObjectAIParameter.DropParameter.DebugUniqueIdList", "type": "U64Array"},
+        {"name": "ObjectAIParameter.DropParameter.bEnableFreezeBothDrop", "type": "bool", "gate": ">0x202303179"},
+        {"name": "ObjectAIParameter.bIgnoreLaterTask", "type": "bool"},
+        {"name": "ObjectAIParameter.bIgnoreCompleteUI", "type": "bool", "gate": ">0x202204209"},
+        {"name": "ObjectAIParameter.CompleteUIOffset", "type": "vec"},
+        {"name": "ObjectAIParameter.bEnableOptimizeWaterBoxContext", "type": "bool"},
+        {"name": "ObjectAIParameter.bDisableSoftEdge", "type": "bool"},
+        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyFrom", "type": "bool", "gate": ">0x20220318a"},
+        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyTo", "type": "bool", "gate": ">0x20220318a"},
+        {"name": "ObjectAIParameter.LinkNarrowSpaceBoxID", "type": "name", "gate": ">0x202202159"},
+        {"name": "ObjectAIParameter.LinkWarpTriggerID", "type": "name", "gate": ">0x20221215a"},
+        {"name": "ObjectAIParameter.NavMeshTriggerID", "type": "name", "gate": ">0x202206159"},
+        {"name": "ObjectAIParameter.EscapePointSerializeNum", "type": "u8"}
       ]
     }
   ],
@@ -493,24 +534,16 @@
       "class": "ObjectAIComponent",
       "slot": "AI.Static",
       "base": "replace",
-      "fields": [
-        {"name": "ObjectAIParameter.DropParameter.DropItemParameter", "type": "DropItems", "drops": true},
-        {"name": "ObjectAIParameter.DropParameter.DropActorParameter", "type": "DropActor"},
-        {"name": "ObjectAIParameter.DropParameter.DebugUniqueIdList", "type": "U64Array"},
-        {"name": "ObjectAIParameter.DropParameter.bEnableFreezeBothDrop", "type": "bool", "gate": ">0x202303179"},
-        {"name": "ObjectAIParameter.bIgnoreLaterTask", "type": "bool"},
-        {"name": "ObjectAIParameter.bIgnoreCompleteUI", "type": "bool", "gate": ">0x202204209"},
-        {"name": "ObjectAIParameter.CompleteUIOffset", "type": "vec"},
-        {"name": "ObjectAIParameter.bEnableOptimizeWaterBoxContext", "type": "bool"},
-        {"name": "ObjectAIParameter.bDisableSoftEdge", "type": "bool"},
-        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyFrom", "type": "bool", "gate": ">0x20220318a"},
-        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyTo", "type": "bool", "gate": ">0x20220318a"},
-        {"name": "ObjectAIParameter.LinkNarrowSpaceBoxID", "type": "name", "gate": ">0x202202159"},
-        {"name": "ObjectAIParameter.LinkWarpTriggerID", "type": "name", "gate": ">0x20221215a"},
-        {"name": "ObjectAIParameter.NavMeshTriggerID", "type": "name", "gate": ">0x202206159"},
-        {"name": "ObjectAIParameter.EscapePointSerializeNum", "type": "u8"},
-        {"name": "EscapePoints", "type": "EscapePoints", "derived": true, "component_tag": "EscapePoint"},
-        "@SniffStatic"
+      "variants": [
+        [
+          "@ObjectAIStaticHead",
+          {"name": "EscapePoints", "type": "EscapePoints", "derived": true, "component_tag": "EscapePoint"},
+          "@SniffStatic"
+        ],
+        [
+          "@ObjectAIStaticHead",
+          "@SniffStatic"
+        ]
       ]
     },
     {
@@ -994,6 +1027,25 @@
       "base": "inherit",
       "fields": [
         {"name": "DownFloorAIComponent.bWorkEnd", "type": "bool"}
+      ]
+    },
+    {
+      "class": "FenceFallAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "FenceFallAIParameter.SwitchID", "type": "name"},
+        {"name": "FenceFallAIParameter.bEnableLockOtakara", "type": "bool"},
+        {"name": "AkComponentLocation", "type": "vec", "derived": true},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true}
+      ]
+    },
+    {
+      "class": "FenceFallAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_0x9f9", "type": "bool", "derived": true}
       ]
     }
   ]

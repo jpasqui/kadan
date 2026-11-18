@@ -533,6 +533,62 @@ static void Own()
         }
         CHECK(Read && Back.Exact() && Lines(Options) == Lines(Back));
     }
+    // A fence: its switch, then the sound emitter's place and the nav links. The game writes an escape point only
+    // for each component tagged EscapePoint the actor has, so the second layout has the counter and no points.
+    Context Fence;
+    Fence.ComponentChain = {"FenceFallAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    CHECK(Layouts(Slot::AIStatic, Fence).size() == 2);
+    for (int Variant : {0, 1})
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Fence, RowVersion, Options, Variant));
+        CHECK(bool(Path(Options, "EscapePoints")) == (Variant == 0));
+        *Path(Options, "FenceFallAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "FenceFallAIParameter.bEnableLockOtakara")->Bits = 1;
+        Path(Options, "ObjectAIParameter.EscapePointSerializeNum")->Bits = 2;
+        if (Variant == 0)
+        {
+            Value Point;
+            Point.Is = Kind::Vec;
+            Point.Words[0] = Value::FloatBits(400.f);
+            Path(Options, "EscapePoints")->Items = {Point, Point};
+        }
+        const Type* Links = FieldType(Slot::AIStatic, Fence, "NavLinkComponent.Links");
+        CHECK(Links && Links->Is == Kind::Array && Links->Item);
+        if (Links && Links->Item)
+        {
+            Value Link = EmptyOf(*Links->Item, RowVersion);
+            Link.Find("Left")->Words[1] = Value::FloatBits(-60.f);
+            Link.Find("Right")->Words[1] = Value::FloatBits(60.f);
+            Link.Find("MaxFallDownLength")->SetFloat(1000.f);
+            Link.Find("SnapRadius")->SetFloat(15.f);
+            Link.Find("SupportsAgentBits")->Bits = 0xffffffff;
+            Link.Find("bUseSnapHeight")->Bits = 1;
+            Path(Options, "NavLinkComponent.Links")->Items.push_back(Link);
+        }
+        CHECK(Encode(Slot::AIStatic, Fence, Options, RowVersion, Bytes, Error));
+        CHECK(Bytes.size() > 2 && Bytes[Bytes.size() - 2] == 1 && Bytes.back() == 0);
+        CHECK(Decode(Slot::AIStatic, Fence, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+            Back.Variant == Variant && Lines(Options) == Lines(Back));
+    }
+    // Before 0x20221124a the sniff points have no priorities: four bytes fewer.
+    {
+        Blob New, Old;
+        std::vector<std::uint8_t> NewBytes, OldBytes;
+        CHECK(Fresh(Slot::AIStatic, Fence, UINT64_C(0x20221124a), New) &&
+            Fresh(Slot::AIStatic, Fence, UINT64_C(0x202211249), Old));
+        CHECK(Encode(Slot::AIStatic, Fence, New, UINT64_C(0x20221124a), NewBytes, Error) &&
+            Encode(Slot::AIStatic, Fence, Old, UINT64_C(0x202211249), OldBytes, Error));
+        CHECK(NewBytes.size() == OldBytes.size() + 4);
+    }
+    {
+        Blob Fallen;
+        CHECK(Fresh(Slot::AIDynamic, Fence, RowVersion, Fallen) && Path(Fallen, "runtime_0x9f9"));
+        Path(Fallen, "runtime_0x9f9")->Bits = 1;
+        CHECK(Encode(Slot::AIDynamic, Fence, Fallen, RowVersion, Bytes, Error) && Bytes.size() == 16 && Bytes[12] == 1);
+        CHECK(Decode(Slot::AIDynamic, Fence, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+            Lines(Fallen) == Lines(Back));
+    }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
     CHECK(List == ListWord("example.cave", "/game/maps/cave000_f00_p") &&
