@@ -519,6 +519,22 @@ inline Table<FieldRow> FieldRows() {
         {"PlacedActor.HMC.Material", "name", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"PlacedActor.HMC.Extent", "vec", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"PlacedActor.HMC.GridStep", "IntPoint", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"TamagoMushiAIParameter.SearchObjectRadius", "f32", '>', UINT64_C(0x202203189), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"TamagoMushiAIParameter.SearchType", "u8", '>', UINT64_C(0x202203189), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"TamagoMushiAIParameter.bMultiTarget", "bool", '>', UINT64_C(0x202203189), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.HideParameter.NoticeRadius2DForNearOtakaraCarry", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", "bool", '>', UINT64_C(0x202211049), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.WarCryParameter.bTriggerByAppear", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.PressParameter.bSinkFloor", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIParameter.AppearParameter.bSinkFloor", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KingChappyBaseAIComponent.bAppear", "bool", '>', UINT64_C(0x202207049), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KumaChappyAIParameter.SearchTagName", "name", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"KumaChappyAIParameter.GiveupDistance", "f32", '>', UINT64_C(0x202203049), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"FollowKochappyBaseAIParameter.LeaderParam.SearchTagName", "name", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum", "i32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"FollowKochappyBaseAIComponent.bLeader", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"TekiAIParameter.SearchAreaCaution", "Sphere", '>', UINT64_C(0x20221215c), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }
@@ -633,6 +649,12 @@ inline Table<PartRow> PartRows() {
         {"ExcavationAIComponent", Slot::AIDynamic, false, 0, 419, 9},
         {"ExcavationActor", Slot::ActorStatic, false, 0, 428, 5},
         {"ExcavationActor", Slot::ActorDynamic, true, 0, 433, 5},
+        {"TamagoMushiAIComponent", Slot::AIStatic, false, 0, 438, 3},
+        {"KingChappyBaseAIComponent", Slot::AIStatic, false, 0, 441, 6},
+        {"KingChappyBaseAIComponent", Slot::AIDynamic, false, 0, 447, 1},
+        {"KumaChappyAIComponent", Slot::AIStatic, false, 0, 448, 2},
+        {"FollowKochappyBaseAIComponent", Slot::AIStatic, false, 0, 450, 3},
+        {"NightKochappyAIComponent", Slot::AIStatic, false, 0, 453, 1},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }

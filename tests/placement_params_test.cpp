@@ -590,6 +590,62 @@ static void Own()
     Context Bare;
     Bare.ActorChain = {"GActor"};
     CHECK(Layouts(Slot::ActorDynamic, Bare).empty());
+    // Creatures whose AI components add their own fields after the enemy's: each one written and read back, and
+    // each part's version gate.
+    struct Creature
+    {
+        std::vector<std::string> Chain;
+        Slot S;
+        std::string Gated; // a field only above Above
+        std::uint64_t Above;
+        std::string Set; // a float field to set
+    };
+    const std::vector<Creature> Creatures = {
+        {{"TamagoMushiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "TamagoMushiAIParameter.bMultiTarget", UINT64_C(0x202203189), "TamagoMushiAIParameter.SearchObjectRadius"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", UINT64_C(0x202211049),
+            "KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio"},
+        {{"KingChappyAIComponent", "KingChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "KingChappyBaseAIComponent.bAppear", UINT64_C(0x202207049), ""},
+        {{"KumaChappyAIComponent", "ChappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KumaChappyAIParameter.GiveupDistance", UINT64_C(0x202203049), "KumaChappyAIParameter.GiveupDistance"},
+        {{"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "", 0, ""},
+        {{"NightKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
+            Slot::AIStatic, "TekiAIParameter.SearchAreaCaution", UINT64_C(0x20221215c), ""},
+    };
+    for (const Creature& One : Creatures)
+    {
+        Context C;
+        C.ComponentChain = One.Chain;
+        for (const std::uint64_t V : {One.Above, One.Above + 1, RowVersion})
+        {
+            if (!V)
+                continue;
+            Blob Options;
+            CHECK(Fresh(One.S, C, V, Options));
+            if (!One.Gated.empty())
+                CHECK(bool(Path(Options, One.Gated)) == (V > One.Above));
+            if (!One.Set.empty() && Path(Options, One.Set))
+                Path(Options, One.Set)->SetFloat(250.f);
+            CHECK(Encode(One.S, C, Options, V, Bytes, Error));
+            CHECK(Decode(One.S, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Options) == Lines(Back));
+        }
+    }
+    {
+        Context C;
+        C.ComponentChain = {"KumaKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        Blob Leader;
+        CHECK(Fresh(Slot::AIStatic, C, RowVersion, Leader));
+        *Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.SearchTagName") = NameFromUtf8("RootPoint");
+        Path(Leader, "FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum")->Bits = 4;
+        Path(Leader, "FollowKochappyBaseAIComponent.bLeader")->Bits = 1;
+        CHECK(Encode(Slot::AIStatic, C, Leader, RowVersion, Bytes, Error));
+        // The leader's tag name, its child count and the leader flag end the blob.
+        CHECK(Bytes.size() > 22 && Bytes[Bytes.size() - 8] == 4 && Bytes[Bytes.size() - 4] == 1);
+        CHECK(Decode(Slot::AIStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Leader) == Lines(Back));
+    }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
     CHECK(List == ListWord("example.cave", "/game/maps/cave000_f00_p") &&

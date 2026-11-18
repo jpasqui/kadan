@@ -1090,6 +1090,64 @@
         {"name": "PlacedActor.HMC.Extent", "type": "vec"},
         {"name": "PlacedActor.HMC.GridStep", "type": "IntPoint"}
       ]
+    },
+    {
+      "class": "TamagoMushiAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TamagoMushiAIParameter.SearchObjectRadius", "type": "f32", "gate": ">0x202203189"},
+        {"name": "TamagoMushiAIParameter.SearchType", "type": "u8", "gate": ">0x202203189"},
+        {"name": "TamagoMushiAIParameter.bMultiTarget", "type": "bool", "gate": ">0x202203189"}
+      ]
+    },
+    {
+      "class": "KingChappyBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KingChappyBaseAIParameter.HideParameter.NoticeRadius2DForNearOtakaraCarry", "type": "f32"},
+        {"name": "KingChappyBaseAIParameter.AttackParameter.TangueColiisionScopeRatio", "type": "f32"},
+        {"name": "KingChappyBaseAIParameter.AttackParameter.bTangueCollisionOnlyWall", "type": "bool", "gate": ">0x202211049"},
+        {"name": "KingChappyBaseAIParameter.WarCryParameter.bTriggerByAppear", "type": "bool"},
+        {"name": "KingChappyBaseAIParameter.PressParameter.bSinkFloor", "type": "bool"},
+        {"name": "KingChappyBaseAIParameter.AppearParameter.bSinkFloor", "type": "bool"}
+      ]
+    },
+    {
+      "class": "KingChappyBaseAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "KingChappyBaseAIComponent.bAppear", "type": "bool", "gate": ">0x202207049"}
+      ]
+    },
+    {
+      "class": "KumaChappyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KumaChappyAIParameter.SearchTagName", "type": "name"},
+        {"name": "KumaChappyAIParameter.GiveupDistance", "type": "f32", "gate": ">0x202203049"}
+      ]
+    },
+    {
+      "class": "FollowKochappyBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "FollowKochappyBaseAIParameter.LeaderParam.SearchTagName", "type": "name"},
+        {"name": "FollowKochappyBaseAIParameter.LeaderParam.MaxChildNum", "type": "i32"},
+        {"name": "FollowKochappyBaseAIComponent.bLeader", "type": "bool"}
+      ]
+    },
+    {
+      "class": "NightKochappyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TekiAIParameter.SearchAreaCaution", "type": "Sphere", "gate": ">0x20221215c"}
+      ]
     }
   ]
 }
