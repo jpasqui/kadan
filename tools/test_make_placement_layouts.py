@@ -22,6 +22,9 @@ class PlacementLayouts(unittest.TestCase):
         self.assertIn('{"AI", true, Slot::AIStatic, \'c\', 2, 0, "", "X,Y", ""},', made)
         self.assertIn('{"X", Slot::AIStatic, true, 0, 2, 2},', made)
         self.assertIn('{"T", "bool", \'>\', UINT64_C(0x5),', made)
+        marked = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
+                                                           fields=[dict(name='L', type='i32', derived=True, from_actor=True)])]))
+        self.assertIn('"", "", false, false, "", "", true},', marked)
 
     def test_complete_owners_are_listed_and_checked(self):
         base = dict(types=[], lists=[], classes=[],
