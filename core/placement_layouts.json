@@ -22,7 +22,9 @@
     "from_actor: the game writes the actor's own value there (a component's place, its nav links, a spline's points),",
     "which a writer does not fill yet; a new placement's blob with such a field is not written either.",
     "fill: a derived field a writer fills from the actor's components as the game's serializer does: the kind (the plugin's",
-    "P4PlacementFillers.h), with fill_class, fill_tag or fill_name for the component it reads. Checked against the game's rows."
+    "P4PlacementFillers.h), with fill_class, fill_tag or fill_name for the component it reads. Checked against the game's rows.",
+    "A writer takes a slot's first layout the actor fills, so of variants that differ by a part the game writes only when",
+    "the actor has its component (a spline's points, a tagged box, a nav link), the one with the part comes first."
   ],
   "complete": [
     {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CakAmbientSoundActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "ExcavationActor", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "LookTriggerActor", "MoveFloorActor", "NPCPLACEACTOR", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "RouteSplineActor", "StringActor", "VarGateBaseActor", "WATERBOX", "WaterBoxNavActor", "YBoxActor"]},
@@ -811,13 +813,13 @@
       "id": "CakTriggerStatic",
       "owner": {"classes": ["CakTriggerComponent"]},
       "fields": [
-        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "from_actor": true},
-        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000"},
-        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000"},
-        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000"}
+        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"}
       ]
     },
     {
@@ -852,8 +854,8 @@
       "id": "NavMeshTriggerStatic",
       "owner": {"classes": ["NavMeshTriggerComponent"]},
       "fields": [
-        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
-        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true, "fill": "nav_trigger_box_extent", "fill_tag": "TriggerBox"},
+        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true, "fill": "nav_trigger_box_extent", "fill_tag": "NavBox"},
         {"name": "CIDList", "type": "NameArray"},
         {"name": "NavMeshTriggerID", "type": "name", "gate": ">0x202206209"}
       ]
@@ -1536,7 +1538,7 @@
         {"name": "TriggerDoorAIParameter.OpenWaitTime", "type": "f32"},
         {"name": "TriggerDoorAIParameter.bEnableAirWall", "type": "bool", "gate": ">0x202112239"},
         {"name": "TriggerDoorAIParameter.bNoCollisionAirWall", "type": "bool", "gate": ">0x202301239"},
-        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "from_actor": true},
+        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "fill": "relative_box", "fill_class": "BoxComponent", "fill_tag": "SearchBox"},
         {"name": "TriggerDoorAIParameter.CIDList", "type": "NameArray"}
       ]
     },
@@ -1668,17 +1670,17 @@
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
-          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
+          {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
         ],
         [
           {"name": "MoveFloorAIParameter.WaitTime", "type": "f32"},
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
-          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
-          {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
         ]
       ]
     },
@@ -1758,7 +1760,7 @@
         ],
         [
           {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"}
         ]
       ]
     },
@@ -1838,7 +1840,7 @@
         {"name": "drawer_terrain_tag", "type": "u32", "derived": true, "runtime_default": "0x80400002"},
         {"name": "ExcavationActor.EffectColor", "type": "LinearColor"},
         {"name": "ExcavationActor.bCastDynamicShadow", "type": "bool"},
-        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true, "from_actor": true}
+        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true, "fill": "terrain_material", "fill_class": "HeightMapDrawerComponent"}
       ]
     },
     {
@@ -1961,7 +1963,7 @@
       "slot": "AI.Dynamic",
       "base": "inherit",
       "fields": [
-        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "from_actor": true}
+        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "fill": "component_property", "fill_class": "CrystalComponent"}
       ]
     },
     {
@@ -2041,9 +2043,9 @@
       "slot": "ActorParameter.Static",
       "base": "inherit",
       "fields": [
-        {"name": "spline_points", "type": "SplinePoints", "derived": true, "from_actor": true},
-        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true, "from_actor": true},
-        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true, "from_actor": true},
+        {"name": "spline_points", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true, "fill": "component_property", "fill_class": "RouteSplineComponent"},
+        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true, "fill": "component_property", "fill_class": "RouteSplineComponent"},
         {"name": "Actor.Tags", "type": "NameArray"}
       ]
     },
@@ -2062,8 +2064,8 @@
       "variants": [
         [
           "@PortalTriggerStatic",
-          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
-          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true, "from_actor": true},
+          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true, "fill": "tagged_box_extent", "fill_class": "BoxComponent", "fill_tag": "Trigger"},
+          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true, "fill": "tagged_box_location", "fill_class": "BoxComponent", "fill_tag": "Trigger"},
           {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
           {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
         ],
@@ -2081,11 +2083,11 @@
       "variants": [
         [
           "@NarrowSpaceTriggerStatic",
+          {"name": "SplineComponent.SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
           {"name": "InputKeyOffset", "type": "f32"}
         ],
         [
           "@NarrowSpaceTriggerStatic",
-          {"name": "SplineComponent.SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
           {"name": "InputKeyOffset", "type": "f32"}
         ]
       ]
