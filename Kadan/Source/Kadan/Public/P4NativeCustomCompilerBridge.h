@@ -26,6 +26,10 @@ struct KADAN_API FP4CreatorMaterialCompileResult {
     std::vector<std::uint8_t> MapId;
     std::vector<std::vector<std::uint8_t>> Programs;
     int32 Versions = 0;
+    // Through UE's shaders: the engine values the map's programs read from uniform buffers the game lays out that the
+    // game's layout does not list ("View.PreExposure"), sorted. Each is read where stock UE 4.26 keeps it, which may
+    // not be where the game's renderer puts it. Also for a map from UE's Derived Data Cache.
+    TArray<FString> UnlistedGameLayoutReads;
 };
 // Read-only graph eligibility. Export compiles the exact graph again.
 KADAN_API FString P4CreatorMaterialGraphIssue(UMaterial* Material);
