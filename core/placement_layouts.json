@@ -1,7 +1,7 @@
 {
   "about": [
     "The per-placement blobs of a placement row, as the game's native serializers write them (placement_params.h).",
-    "Generate placement_layouts.h from this file with tools/navigation/make_placement_layouts.py.",
+    "Generate placement_layouts.h from this file with tools/make_placement_layouts.py.",
     "A slot is one blob of a row: its fields start every layout of the slot. A slot with a chain also takes the parts of",
     "the classes of the actor's native class chain (actor) or its AI component's (component), walked from the base class",
     "down: a part with base replace replaces the stream of the classes above it, one with base inherit appends to it.",
@@ -74,6 +74,11 @@
         {"name": "bSetTerritory", "type": "bool", "gate": ">0x202109289"},
         {"name": "Territory", "type": "Cylinder", "gate": ">0x202109289", "when": "bSetTerritory"}
       ]
+    },
+    {
+      "name": "SpawnArray",
+      "kind": "array",
+      "item": "Spawn"
     },
     {
       "name": "DropItem",
@@ -675,6 +680,36 @@
       ]
     },
     {
+      "class": "NoraSpawnerAIComponent",
+      "slot": "AI.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "NoraSpawnerAIParam.SpawnNum", "type": "i32"},
+        {"name": "NoraSpawnerAIParam.SpawnRadius", "type": "f32"},
+        {"name": "NoraSpawnerAIParam.NoSpawnRadius", "type": "f32"},
+        {"name": "NoraSpawnerAIParam.PikminColor", "type": "u8"},
+        {"name": "NoraSpawnerAIParam.bMabikiEnable", "type": "bool"},
+        {"name": "NoraSpawnerAIParam.SpawnHeadLeaves", "type": "u8"},
+        {"name": "NoraSpawnerAIParam.MabikiNumFromFollow", "type": "i32"},
+        {"name": "NoraSpawnerAIParam.MabikiNumFromAll", "type": "i32"},
+        {"name": "NoraSpawnerAIParam.bMabikiPongashi", "type": "bool", "gate": ">0x202111179"},
+        {"name": "NoraSpawnerAIParam.PongashiChangeColorFollowNum", "type": "i32", "gate": ">0x202111179"},
+        {"name": "NoraSpawnerAIParam.PongashiChangeColorFromFollow", "type": "u8", "gate": ">0x202111179"},
+        {"name": "NoraSpawnerAIParam.bReservedBirth", "type": "bool"},
+        {"name": "NoraSpawnerAIParam.bDisableForcePongashi", "type": "bool"},
+        {"name": "NoraSpawnerAIParam.bProWrestling", "type": "bool"},
+        {"name": "NoraSpawnerAIParam.PongashiColor", "type": "u8"},
+        {"name": "NoraSpawnerAIParam.NoraIdlingPresetId", "type": "name"},
+        {"name": "NoraSpawnerAIParam.bEnablePointLight", "type": "bool"},
+        {"name": "NoraSpawnerAIParam.GroupIdlingType", "type": "u8", "gate": ">0x202206169"},
+        {"name": "NoraSpawnerAIParam.bExcludesFue", "type": "bool", "gate": ">0x20221018a"},
+        {"name": "NoraSpawnerAIParam.MabikiPongashiOffset", "type": "vec", "gate": ">0x202212059"},
+        {"name": "NoraSpawnerAIParam.AIWaitTime", "type": "f32", "gate": ">0x202212209"},
+        {"name": "NoraSpawnerAIParam.RandomActorSpawnList", "type": "SpawnArray"},
+        "@SniffStatic"
+      ]
+    },
+    {
       "class": "VarGateBaseActor",
       "slot": "ActorParameter.Static",
       "base": "inherit",
@@ -910,6 +945,28 @@
       "base": "inherit",
       "fields": [
         {"name": "DownFloorAIComponent.bDisableAirWall", "type": "bool", "gate": ">0x202207219"}
+      ]
+    },
+    {
+      "class": "BuildObjectAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "BuildObjectAIComponent.PiecePutNum", "type": "i32"},
+        {"name": "BuildObjectAIComponent.PieceTotalNum", "type": "i32"},
+        {"name": "BuildObjectAIComponent.CompleteColumnNum", "type": "i32"},
+        {"name": "BuildObjectAIComponent.bStartApplyPiecePerPanel", "type": "bool"},
+        {"name": "runtime_pending_raw_material", "type": "i32", "derived": true}
+      ]
+    },
+    {
+      "class": "PieceStationAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_0x10b4", "type": "i32", "derived": true},
+        {"name": "PieceStationAIComponent.PieceNum", "type": "i32"},
+        {"name": "runtime_0x10b8", "type": "i32", "derived": true, "runtime_default": "0xffffffff"}
       ]
     },
     {

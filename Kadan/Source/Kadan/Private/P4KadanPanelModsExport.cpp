@@ -507,11 +507,18 @@ void FKadanModsPage::ExportMod()
     }
     if (Finished && Result.Published && Result.GameRowEdits.Num())
     {
-        // The game's own gameplay objects moved or removed, each named with the row the mod changes.
+        // The game's own gameplay objects moved, removed or given other options, each named with the row the mod
+        // changes.
         for (const FP4GameRowEdit& Row : Result.GameRowEdits)
+        {
+            const FString Options = TEXT("given your options (") + FString::Join(Row.Options, TEXT(", ")) + TEXT(")");
+            const FString Done = Row.Removed                     ? FString(TEXT("removed"))
+                : Row.Moved && Row.Options.Num() ? TEXT("moved and ") + Options
+                : Row.Moved                      ? FString(TEXT("moved"))
+                                                 : Options;
             Host.Message += FString::Printf(TEXT("\n%s is %s through row %llu of the game's placement list %s."),
-                *Row.Actor, Row.Removed ? TEXT("removed") : TEXT("moved"), Row.Id,
-                *FPackageName::GetShortName(Row.List));
+                *Row.Actor, *Done, Row.Id, *FPackageName::GetShortName(Row.List));
+        }
     }
     TSet<FString> LoggedRefusals;
     if (!Why.IsEmpty())

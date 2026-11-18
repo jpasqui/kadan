@@ -228,6 +228,7 @@ bool FP4ExportRun::ReadLevelEdits()
                     GameRows.Find(ListFolder)))
                 return Fail(Error.IsEmpty() ? TEXT("Selected original World could not be loaded") : Error);
             Result.GameRowEdits.Append(Edit.RowEdits);
+            Result.Told.Append(Edit.Told);
             Edits.Add(MoveTemp(Edit));
         }
     }
@@ -251,6 +252,7 @@ bool FP4ExportRun::BuildPlacementLists()
                 : Names.PackageRoot / (TEXT("Maps/Map") + FString::FromInt(Index + 1));
             if (!P4BuildPlacementList(Request.Mod.Id, PlacementRoot, Groups[Index].Map, Placed, Placements, Error))
                 return Fail(Error);
+            Result.Told.Append(Placements.Told);
             // A row names a class of the game's, which the player's game supplies. No class is shipped.
             for (const FP4PlacementRow& Row : Placements.Rows)
             {

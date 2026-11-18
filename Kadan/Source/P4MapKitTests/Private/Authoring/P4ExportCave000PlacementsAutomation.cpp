@@ -606,10 +606,11 @@ bool FP4PlacementOptionsCave000Test::RunTest(const FString&)
     return !HasAnyErrors();
 }
 
-// Cave000_F00 as a creator edits it: the game's pot GCrackPotS2 moved 300 cm along X and GCrackPotL2 deleted.
-// The game builds both from rows of AP_Cave000_F00_P_Objects, so export writes them as placement_changes of
-// that list, by the rows' numbers, the same entry as the hand-made proof mod (run placechanges-02), and no
-// level change for them.
+// Cave000_F00 as a creator edits it: the game's pot GCrackPotS2 moved 300 cm along X, with its option
+// CrackPotAIParameter.bSendBreakEvent turned the other way, and GCrackPotL2 deleted. The game builds both from rows
+// of AP_Cave000_F00_P_Objects, so export writes them as placement_changes of that list, by the rows' numbers, the
+// same entry as the hand-made proof mod (run placechanges-02), and no level change for them. The changed option goes
+// into the moved row as its AI.Static blob, the game's blob with that one field changed.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4PlacementChangesCave000Test,"P4MapKit.Export.PlacementChangesCave000",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FP4PlacementChangesCave000Test::RunTest(const FString&)
@@ -641,6 +642,7 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
         { Objects = Streaming->GetLoadedLevel(); ObjectsPackage = Streaming->GetWorldAssetPackageName(); }
     if (!TestTrue(TEXT("the object sublevel is loaded"), Objects != nullptr)) return false;
     AActor* Moved = nullptr; AActor* Removed = nullptr;
+    bool WasSending = false;
     for (AActor* Actor : Objects->Actors)
     {
         if (Actor && Actor->GetName() == TEXT("GCrackPotS2")) Moved = Actor;
@@ -653,13 +655,25 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
         GEditor->BeginTransaction(FText::FromString(TEXT("Kadan placement changes test")));
         ON_SCOPE_EXIT { GEditor->EndTransaction(); };
         Moved->Modify(); Moved->SetActorLocation(Moved->GetActorLocation() + FVector(300, 0, 0), false, nullptr, ETeleportType::TeleportPhysics);
+        // The pot's own option, on its AI component.
+        UActorComponent* PotAI = nullptr;
+        for (UActorComponent* Component : Moved->GetComponents())
+            for (UClass* Class = Component ? Component->GetClass() : nullptr; Class && !PotAI; Class = Class->GetSuperClass())
+                if (Class->GetName() == TEXT("CrackPotAIComponent")) PotAI = Component;
+        FStructProperty* Parameter = PotAI ? CastField<FStructProperty>(PotAI->GetClass()->FindPropertyByName(TEXT("CrackPotAIParameter"))) : nullptr;
+        FBoolProperty* Send = Parameter ? CastField<FBoolProperty>(Parameter->Struct->FindPropertyByName(TEXT("bSendBreakEvent"))) : nullptr;
+        if (!TestTrue(TEXT("GCrackPotS2 has CrackPotAIParameter.bSendBreakEvent on its AI component"), Send != nullptr)) return false;
+        void* Value = Send->ContainerPtrToValuePtr<void>(Parameter->ContainerPtrToValuePtr<void>(PotAI));
+        WasSending = Send->GetPropertyValue(Value);
+        PotAI->Modify(); Send->SetPropertyValue(Value, !WasSending);
         if (!TestTrue(TEXT("the editor deletes GCrackPotL2"), Persistent->EditorDestroyActor(Removed, true))) return false;
     }
     bool Undone = false;
     const auto Undo = [&]() { if (Undone) return; Undone = true; GEditor->UndoTransaction(); Objects->GetOutermost()->SetDirtyFlag(false); };
     ON_SCOPE_EXIT { Undo(); };
     const FP4LevelChangesResult Changes = P4AnalyzeOriginalLevelChanges(ObjectsWorld);
-    if (!TestTrue(TEXT("the edit reads as one move and one removal"), Changes.IsValid() && Changes.Moved.Num() == 1 && Changes.Removed == TArray<FString>({TEXT("GCrackPotL2")}))) return false;
+    if (!TestTrue(TEXT("the edit reads as one move and one removal"), Changes.IsValid() && Changes.Removed == TArray<FString>({TEXT("GCrackPotL2")}) &&
+        (Changes.Moved.Num() == 1 || Changes.OtherChanged.ContainsByPredicate([](const FP4LevelActorChanges& One) { return One.Actor == TEXT("GCrackPotS2"); })))) return false;
     const FP4RemovedActor* Gone = Changes.RemovedActors.Find(TEXT("GCrackPotL2"));
     TestTrue(TEXT("the removed pot's placement number is read from the level as imported"), Gone && Gone->PlacementNumber == UINT64_C(17179869268));
     // What the review says, before anything is written.
@@ -678,7 +692,7 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
             const FP4ExportSelectionRow* Row = Review.Creator.Rows.FindByPredicate([&](const FP4ExportSelectionRow& R) { return R.Package == ObjectsPackage; });
             if (Row) AddInfo(TEXT("review: ") + Row->Reason);
             TestTrue(TEXT("the review says the pots are changed in the game's placement lists"),
-                Row && Row->Reason.Contains(TEXT("1 you moved and 1 you removed are written as changes to their rows")));
+                Row && Row->Reason.Contains(TEXT("1 you moved, 1 you removed and 1 whose options you changed are written as changes to their rows")));
         }
     }
     FP4ExportModResult Result;
@@ -690,9 +704,11 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
     const FString List = TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/ActorPlacementInfo/AP_Cave000_F00_P_Objects");
     TestEqual(TEXT("two of the game's rows are changed"), Result.GameRowEdits.Num(), 2);
     TestTrue(TEXT("the export tells which row each pot is"), Result.Told.ContainsByPredicate([](const FString& Line)
-        { return Line.Contains(TEXT("GCrackPotS2 is moved by a change to row 17179869271")); }) && Result.Told.ContainsByPredicate([](const FString& Line)
+        { return Line.Contains(TEXT("GCrackPotS2 is moved and given your options (AI.Static) by a change to row 17179869271")); }) && Result.Told.ContainsByPredicate([](const FString& Line)
         { return Line.Contains(TEXT("GCrackPotL2 is removed by a change to row 17179869268")); }));
     TestEqual(TEXT("no lighting is rebuilt"), Result.RebuiltLighting.Num(), 0);
+    TestFalse(TEXT("every change of the pot reaches the game"), Result.Told.ContainsByPredicate([](const FString& Line)
+        { return Line.Contains(TEXT("does not reach the game")); }));
     const FString Folder = Result.Directory / TEXT("romfs/tsuchi/mods") / Request.Mod.Id;
     const TSharedPtr<FJsonObject> Manifest = ReadJson(Folder / TEXT("mod.json"));
     const TArray<TSharedPtr<FJsonValue>>* Maps = nullptr; const TSharedPtr<FJsonObject>* Entry = nullptr;
@@ -722,6 +738,36 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
     }
     TestTrue(TEXT("the removed pot is row 17179869268, as text"), (*Rows)->TryGetArrayField(TEXT("remove"), Gone2) && Gone2->Num() == 1 &&
         (*Gone2)[0]->Type == EJson::String && (*Gone2)[0]->AsString() == TEXT("17179869268"));
+    // The moved pot's option: its row gets the game's AI.Static blob with bSendBreakEvent the other way, and nothing else.
+    {
+        namespace P = P4MapKit::Placement;
+        const TSharedPtr<FJsonObject>* Given = nullptr; const TSharedPtr<FJsonObject>* Blobs = nullptr; FString Hex;
+        TArray<FP4GamePlacementRow> GameRows; FString Unread;
+        const FString ListFolder = P4GamePlacementFolder(Game, ObjectsPackage);
+        const FP4GamePlacementRow* GameRow = !ListFolder.IsEmpty() && P4ReadGamePlacementLists(ListFolder, GameRows, Unread)
+            ? GameRows.FindByPredicate([](const FP4GamePlacementRow& Row) { return Row.Id == UINT64_C(17179869271); }) : nullptr;
+        if (TestTrue(TEXT("the moved pot's row is given one blob, AI.Static"), (*Rows)->TryGetObjectField(TEXT("set"), Given) && (*Given)->Values.Num() == 1 &&
+                (*Given)->TryGetObjectField(TEXT("17179869271"), Blobs) && (*Blobs)->Values.Num() == 1 && (*Blobs)->TryGetStringField(TEXT("AI.Static"), Hex)) &&
+            TestTrue(TEXT("the game's row of the pot is read: ") + Unread, GameRow && GameRow->Blobs.Contains(TEXT("AI.Static"))))
+        {
+            std::vector<uint8> Written;
+            for (int32 At = 0; At + 1 < Hex.Len(); At += 2) Written.push_back(uint8(FParse::HexDigit(Hex[At]) << 4 | FParse::HexDigit(Hex[At + 1])));
+            const TArray<uint8>& Bytes = GameRow->Blobs[TEXT("AI.Static")];
+            P::Context PotChain; PotChain.ComponentChain = {"CrackPotAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+            P::Blob Before, After; std::string Why;
+            if (TestTrue(TEXT("both blobs read whole"), P::Decode(P::Slot::AIStatic, PotChain, std::vector<uint8>(Bytes.GetData(), Bytes.GetData() + Bytes.Num()), GameRow->AssetVersion, Before, Why) &&
+                    P::Decode(P::Slot::AIStatic, PotChain, Written, GameRow->AssetVersion, After, Why) && Before.Exact() && After.Exact()))
+            {
+                std::vector<std::string> Was, Is;
+                P::Flatten(Before.Root, "", Was); P::Flatten(After.Root, "", Is);
+                std::vector<std::string> Differ;
+                for (size_t Line = 0; Line < Was.size() && Line < Is.size(); ++Line) if (Was[Line] != Is[Line]) Differ.push_back(Is[Line]);
+                TestTrue(TEXT("the blobs differ in bSendBreakEvent alone"), Was.size() == Is.size() && Differ.size() == 1 &&
+                    Differ[0] == std::string("CrackPotAIParameter.bSendBreakEvent=") + (WasSending ? "false" : "true"));
+                for (const std::string& Line : Differ) AddInfo(TEXT("changed: ") + FString(UTF8_TO_TCHAR(Line.c_str())));
+            }
+        }
+    }
     // No level change names the pots, which the game would not apply to them.
     FString ChangesFile;
     if ((*Entry)->TryGetStringField(TEXT("changes"), ChangesFile))

@@ -104,6 +104,8 @@ FString UP4AuthoringTools::NativeExportMod(const FString& ModId, const FString& 
             One->SetStringField(TEXT("list"), Row.List);
             One->SetStringField(TEXT("id"), FString::Printf(TEXT("%llu"), Row.Id));
             One->SetBoolField(TEXT("removed"), Row.Removed);
+            One->SetBoolField(TEXT("moved"), Row.Moved);
+            One->SetArrayField(TEXT("options"), Strings(Row.Options));
             GameRows.Add(MakeShared<FJsonValueObject>(One));
         }
         Json->SetArrayField(TEXT("game_row_edits"), GameRows);
