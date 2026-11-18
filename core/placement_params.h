@@ -724,8 +724,15 @@ inline std::vector<Layout> Layouts(Slot S, const Context& C)
                 Variants = Part->Variants;
                 continue;
             }
-            for (auto& Variant : Variants)
-                Variant.insert(Variant.end(), Part->Variants[0].begin(), Part->Variants[0].end());
+            // Each layout so far, followed by each of this part's variants in turn.
+            std::vector<std::vector<Field>> Next;
+            for (const auto& Variant : Variants)
+                for (const auto& Own : Part->Variants)
+                {
+                    Next.push_back(Variant);
+                    Next.back().insert(Next.back().end(), Own.begin(), Own.end());
+                }
+            Variants = std::move(Next);
         }
     }
     std::vector<Layout> Out;
