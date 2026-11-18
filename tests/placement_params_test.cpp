@@ -261,7 +261,7 @@ static void Own()
             Got.ComponentTransform);
         CHECK(FieldOf(Slot::ActorStatic, None, "GActor.DemoBindName", Got) && !Got.Derived && Got.CountOf.empty());
         Slot Found = Slot::ActorStatic;
-        CHECK(Slots().size() == 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
+        CHECK(Slots().size() >= 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
             !SlotOf("Hash", true, Found));
         // The object each blob is read from, and how drops are numbered.
         for (const auto& One : Slots())
@@ -553,6 +553,138 @@ static void Own()
     CHECK(Taken.size() == 1 && Taken[0] != Ids[7]);
 }
 
+// Spawners, portals and trigger boxes: blobs built from authored values, written and read back, and their gates.
+static bool RoundTrip(
+    Slot S, const Context& C, const Blob& In, std::uint64_t V, std::vector<std::uint8_t>& Bytes, Blob& Back)
+{
+    std::string Error;
+    return Encode(S, C, In, V, Bytes, Error) && Decode(S, C, Bytes, V, Back, Error) && Back.Exact() &&
+        Back.Variant == In.Variant && Lines(In) == Lines(Back);
+}
+static bool LayoutField(Slot S, const Context& C, const std::string& Name, Field& Out, int Variant = 0)
+{
+    return FieldOf(S, C, Name, Out, Variant);
+}
+static void SpawnersAndTriggers()
+{
+    std::vector<std::uint8_t> Bytes;
+    std::string Error;
+    Blob Back;
+    // An actor spawner: what it spawns, where and how often.
+    Context Spawner;
+    Spawner.ComponentChain = {"ActorSpawnerComponent", "CarrotAIComponent"};
+    Blob Spawn;
+    CHECK(Fresh(Slot::AIStatic, Spawner, RowVersion, Spawn));
+    Path(Spawn, "ActorSpawnAIParameter.OverlapCond.AVATAR")->Bits = 1;
+    Path(Spawn, "ActorSpawnAIParameter.OverlapArea")->Find("SphereRadius")->SetFloat(150.f);
+    *Path(Spawn, "ActorSpawnAIParameter.MotionName") = NameFromUtf8("None");
+    Path(Spawn, "deprecated_word_1")->Bits = 1;
+    Path(Spawn, "ActorSpawnAIParameter.SpawnVel.Y")->SetFloat(600.f);
+    Path(Spawn, "ActorSpawnAIParameter.SpawnInterval")->SetFloat(10.f);
+    Path(Spawn, "ActorSpawnAIParameter.MaxSpawnNum")->Bits = 3;
+    *Path(Spawn, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("DropActor") =
+        NameFromUtf8("/Game/Carrot4/Placeables/Teki/GHambo.GHambo_C");
+    Path(Spawn, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(RoundTrip(Slot::AIStatic, Spawner, Spawn, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 20 && Bytes[0] == 1 && Bytes[4] == 0); // AVATAR, then Pikmin
+    Field Word;
+    CHECK(LayoutField(Slot::AIStatic, Spawner, "deprecated_word_1", Word) && Word.Derived && Word.RuntimeDefault == 1);
+    // The spawn angle and speed came in 0x20220525a, the flag for a random angle one version later.
+    Blob Old;
+    CHECK(Fresh(Slot::AIStatic, Spawner, UINT64_C(0x20220525a), Old) && Path(Old, "ActorSpawnAIParameter.SpawnAng") &&
+        !Path(Old, "ActorSpawnAIParameter.bSpawnAngRand") && !Path(Old, "legacy_vector"));
+    CHECK(Fresh(Slot::AIStatic, Spawner, UINT64_C(0x202205259), Old) && !Path(Old, "ActorSpawnAIParameter.SpawnAng") &&
+        Path(Old, "legacy_vector") && Path(Old, "legacy_area"));
+    Path(Old, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(RoundTrip(Slot::AIStatic, Spawner, Old, UINT64_C(0x202205259), Bytes, Back));
+
+    // A portal: its own options, then the extent and place of its box tagged Trigger when the actor has one.
+    Context Portal;
+    Portal.ActorChain = {"GActor"};
+    std::size_t Sizes[2] = {0, 0};
+    for (int Variant = 0; Variant < 2; ++Variant)
+    {
+        Blob Door;
+        CHECK(Fresh(Slot::PortalTriggerStatic, Portal, RowVersion, Door, Variant));
+        Path(Door, "PortalType")->Bits = 4;
+        Path(Door, "PortalNumber")->Bits = 1;
+        *Path(Door, "ToLevelName") = NameFromUtf8("Cave000_F01");
+        Path(Door, "ToBaseCampId")->Bits = UINT64_C(0xffffffff);
+        Path(Door, "ShowIconDist")->SetFloat(500.f);
+        CHECK(bool(Path(Door, "TriggerBox.BoxExtent")) == (Variant == 0));
+        if (Variant == 0)
+            Path(Door, "TriggerBox.BoxExtent")->Words[0] = Value::FloatBits(100.f);
+        CHECK(RoundTrip(Slot::PortalTriggerStatic, Portal, Door, RowVersion, Bytes, Back));
+        CHECK(Bytes.size() > 5 && Bytes[0] == 4 && Bytes[1] == 1);
+        Sizes[Variant] = Bytes.size();
+    }
+    CHECK(Sizes[0] == Sizes[1] + 24);
+    Blob OldDoor;
+    CHECK(Fresh(Slot::PortalTriggerStatic, Portal, UINT64_C(0x20220112a), OldDoor, 1) && Path(OldDoor, "legacy_vector"));
+    CHECK(Fresh(Slot::PortalTriggerStatic, Portal, UINT64_C(0x20220112b), OldDoor, 1) && !Path(OldDoor, "legacy_vector"));
+    Blob Found;
+    CHECK(Fresh(Slot::PortalTriggerDynamic, Portal, RowVersion, Found));
+    Path(Found, "bDiscovered")->Bits = 1;
+    CHECK(RoundTrip(Slot::PortalTriggerDynamic, Portal, Found, RowVersion, Bytes, Back) && Bytes.size() == 16);
+    CHECK(Fresh(Slot::PortalTriggerDynamic, Portal, UINT64_C(0x202209309), Found) &&
+        Encode(Slot::PortalTriggerDynamic, Portal, Found, UINT64_C(0x202209309), Bytes, Error) && Bytes.size() == 8);
+
+    // A navigation mesh trigger: the extents of its two boxes, the classes it lets through and its name.
+    Context Nav;
+    Blob Gate;
+    CHECK(Fresh(Slot::NavMeshTriggerStatic, Nav, RowVersion, Gate));
+    Path(Gate, "NavBox.BoxExtent")->Words[2] = Value::FloatBits(100.f);
+    Value Cid = NameFromUtf8("CrackPot");
+    Cid.Is = Kind::Name;
+    Path(Gate, "CIDList")->Items.push_back(Cid);
+    *Path(Gate, "NavMeshTriggerID") = NameFromUtf8("NavMeshTrigger00");
+    CHECK(RoundTrip(Slot::NavMeshTriggerStatic, Nav, Gate, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() == 24 + 4 + 4 + 9 + 4 + 17);
+    CHECK(Fresh(Slot::NavMeshTriggerStatic, Nav, UINT64_C(0x202206209), Gate) && !Path(Gate, "NavMeshTriggerID"));
+    CHECK(Fresh(Slot::NavMeshTriggerDynamic, Nav, RowVersion, Gate) &&
+        RoundTrip(Slot::NavMeshTriggerDynamic, Nav, Gate, RowVersion, Bytes, Back) && Bytes.size() == 4);
+
+    // A narrow space box: camera options, then the points of the actor's spline when it has one.
+    Context Narrow;
+    Narrow.ActorChain = {"GActor"};
+    for (int Variant = 0; Variant < 2; ++Variant)
+    {
+        Blob Box;
+        CHECK(Fresh(Slot::NarrowSpaceBoxTriggerStatic, Narrow, RowVersion, Box, Variant));
+        Path(Box, "Flags")->Bits = UINT64_C(0xfffffe71);
+        *Path(Box, "LinkObjID") = NameFromUtf8("None");
+        Path(Box, "ForceCameraYaw")->SetFloat(15.f);
+        Path(Box, "InputKeyOffset")->SetFloat(0.1f);
+        if (Variant == 1)
+        {
+            const Type* Points =
+                FieldType(Slot::NarrowSpaceBoxTriggerStatic, Narrow, "SplineComponent.SplinePoints", Variant);
+            CHECK(Points && Points->Is == Kind::Array && Points->Item);
+            for (int I = 0; Points && Points->Item && I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                Point.Find("Scale")->Words[0] = Value::FloatBits(1.f);
+                Point.Find("Type")->Bits = 1;
+                Path(Box, "SplineComponent.SplinePoints")->Items.push_back(Point);
+            }
+        }
+        CHECK(RoundTrip(Slot::NarrowSpaceBoxTriggerStatic, Narrow, Box, RowVersion, Bytes, Back));
+        CHECK(Bytes.size() == (Variant == 0 ? 57u : 57u + 4u + 2u * 65u));
+    }
+    Blob OldBox;
+    CHECK(Fresh(Slot::NarrowSpaceBoxTriggerStatic, Narrow, UINT64_C(0x202206099), OldBox) &&
+        Path(OldBox, "LinkObjID") && !Path(OldBox, "ForceCameraYaw"));
+
+    // A hidden box: the group it opens with.
+    Context Hidden;
+    Blob Group;
+    CHECK(Fresh(Slot::HiddenBoxTriggerStatic, Hidden, RowVersion, Group));
+    Path(Group, "GroupId")->Bits = UINT64_C(0xffffffff);
+    CHECK(RoundTrip(Slot::HiddenBoxTriggerStatic, Hidden, Group, RowVersion, Bytes, Back) && Bytes.size() == 4 &&
+        Bytes[3] == 0xff);
+}
+
 static std::vector<std::uint8_t> FromHex(const std::string& Text)
 {
     std::vector<std::uint8_t> Out;
@@ -714,6 +846,7 @@ int main(int Count, char** Args)
     if (Count == 4 && std::string(Args[1]) == "--layouts")
         return DescribeLayouts(Args[2], Args[3]);
     Own();
+    SpawnersAndTriggers();
     if (Failures)
     {
         std::cout << Failures << " failures\n";

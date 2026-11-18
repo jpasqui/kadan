@@ -266,6 +266,24 @@
         {"name": "Scale3D", "type": "vec"},
         {"name": "SphereRadius", "type": "f32"}
       ]
+    },
+    {
+      "name": "SplinePoint",
+      "kind": "struct",
+      "members": [
+        {"name": "InputKey", "type": "f32"},
+        {"name": "Position", "type": "vec"},
+        {"name": "ArriveTangent", "type": "vec"},
+        {"name": "LeaveTangent", "type": "vec"},
+        {"name": "Rotation", "type": "rot"},
+        {"name": "Scale", "type": "vec"},
+        {"name": "Type", "type": "u8"}
+      ]
+    },
+    {
+      "name": "SplinePointArray",
+      "kind": "array",
+      "item": "SplinePoint"
     }
   ],
   "lists": [
@@ -295,6 +313,46 @@
         {"name": "OtakaraAIParameter.InitTransformAfterFalling.Scale3D", "type": "vec", "gate": ">0x20230220a"},
         {"name": "OtakaraAIParameter.bUseFightCamera", "type": "bool"},
         "@SniffDynamic"
+      ]
+    },
+    {
+      "name": "PortalTriggerStatic",
+      "fields": [
+        {"name": "PortalType", "type": "u8"},
+        {"name": "PortalNumber", "type": "i32"},
+        {"name": "ToLevelName", "type": "name"},
+        {"name": "ToSubLevelName", "type": "name"},
+        {"name": "ToPortalNumber", "type": "i32"},
+        {"name": "bPlayDemo", "type": "bool"},
+        {"name": "DemoPlayParamEnter", "type": "SoftPath"},
+        {"name": "DemoPlayParamExit", "type": "SoftPath"},
+        {"name": "CheckPointLevelNames", "type": "NameArray"},
+        {"name": "ToBaseCampId", "type": "i32"},
+        {"name": "bInitialPortalMove", "type": "bool"},
+        {"name": "bDeactivateByExit", "type": "bool"},
+        {"name": "ShowIconDist", "type": "f32"},
+        {"name": "PlayAnimDist", "type": "f32"},
+        {"name": "bPlayAnimDemo", "type": "bool"},
+        {"name": "PankuzuPriority", "type": "i32"},
+        {"name": "DisablePikminFlags", "type": "i32"},
+        {"name": "bDisableIsFlareGuard", "type": "bool"}
+      ]
+    },
+    {
+      "name": "NarrowSpaceTriggerStatic",
+      "fields": [
+        {"name": "Flags", "type": "u32"},
+        {"name": "LookUpLookAtOffsetZ", "type": "f32"},
+        {"name": "LookUpPoleOffsetZ", "type": "f32"},
+        {"name": "LinkObjID", "type": "name", "gate": ">0x202202159"},
+        {"name": "bForceCameraYawDistance", "type": "bool", "gate": ">0x202206099"},
+        {"name": "ForceCameraYaw", "type": "f32", "gate": ">0x202206099"},
+        {"name": "ForceCameraYawRange", "type": "f32", "gate": ">0x202206099"},
+        {"name": "ForceCameraLinearRatioMin", "type": "f32", "gate": ">0x202206099"},
+        {"name": "ForceCameraLinearRatioMax", "type": "f32", "gate": ">0x202206099"},
+        {"name": "ForceCameraDistanceMin", "type": "f32", "gate": ">0x202206099"},
+        {"name": "ForceCameraDistanceMax", "type": "f32", "gate": ">0x202206099"},
+        {"name": "bForceCameraDistance", "type": "bool", "gate": ">0x202206099"}
       ]
     }
   ],
@@ -485,6 +543,62 @@
         {"name": "CakMultiplePositionComponent.MultiPositionType", "type": "u8"},
         {"name": "CakMultiplePositionComponent.MultiplePositions", "type": "TransformArray"},
         {"name": "CakMultiplePositionComponent.ShapesCount", "type": "i32", "stop_if_set": true, "count_of": "Shapes"}
+      ]
+    },
+    {
+      "row": "PortalTrigger",
+      "half": "Static",
+      "id": "PortalTriggerStatic",
+      "chain": "actor",
+      "owner": {"classes": ["PortalTriggerComponent"]}
+    },
+    {
+      "row": "PortalTrigger",
+      "half": "Dynamic",
+      "id": "PortalTriggerDynamic",
+      "owner": {"classes": ["PortalTriggerComponent"]},
+      "fields": [
+        {"name": "bDiscovered", "type": "bool"},
+        {"name": "runtime_bool_0x340", "type": "bool", "gate": ">0x202209309", "derived": true},
+        {"name": "runtime_bool_0x341", "type": "bool", "gate": ">0x202212199", "derived": true},
+        {"name": "bFlagVisible", "type": "bool", "gate": ">0x202201219"}
+      ]
+    },
+    {
+      "row": "NavMeshTrigger",
+      "half": "Static",
+      "id": "NavMeshTriggerStatic",
+      "owner": {"classes": ["NavMeshTriggerComponent"]},
+      "fields": [
+        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true},
+        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true},
+        {"name": "CIDList", "type": "NameArray"},
+        {"name": "NavMeshTriggerID", "type": "name", "gate": ">0x202206209"}
+      ]
+    },
+    {
+      "row": "NavMeshTrigger",
+      "half": "Dynamic",
+      "id": "NavMeshTriggerDynamic",
+      "owner": {"classes": ["NavMeshTriggerComponent"]},
+      "fields": [
+        {"name": "runtime_bool_0x262", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "row": "NarrowSpaceBoxTrigger",
+      "half": "Static",
+      "id": "NarrowSpaceBoxTriggerStatic",
+      "chain": "actor",
+      "owner": {"classes": ["NarrowSpaceTriggerComponent"]}
+    },
+    {
+      "row": "HiddenBoxTrigger",
+      "half": "Static",
+      "id": "HiddenBoxTriggerStatic",
+      "owner": {"classes": ["HiddenBoxTriggerComponent"]},
+      "fields": [
+        {"name": "GroupId", "type": "i32"}
       ]
     }
   ],
@@ -994,6 +1108,73 @@
       "base": "inherit",
       "fields": [
         {"name": "DownFloorAIComponent.bWorkEnd", "type": "bool"}
+      ]
+    },
+    {
+      "class": "ActorSpawnerComponent",
+      "slot": "AI.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "ActorSpawnAIParameter.OverlapCond.AVATAR", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.Pikmin", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.AvatarAndPikmin", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.Carry", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.bGenseiControl", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.bNotOverlap", "type": "bool", "gate": ">0x202201129"},
+        {"name": "ActorSpawnAIParameter.OverlapArea", "type": "Sphere"},
+        {"name": "ActorSpawnAIParameter.MotionName", "type": "name", "gate": ">0x202204229"},
+        {"name": "deprecated_word_1", "type": "i32", "derived": true, "runtime_default": "0x1"},
+        {"name": "ActorSpawnAIParameter.SpawnLocation", "type": "vec"},
+        {"name": "legacy_vector", "type": "vec", "gate": "<0x20220525a", "derived": true},
+        {"name": "ActorSpawnAIParameter.bSpawnAngRand", "type": "bool", "gate": ">0x20220525a"},
+        {"name": "ActorSpawnAIParameter.SpawnAng", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.SpawnVel.X", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.SpawnVel.Y", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.bInfiniteSpawn", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.SpawnInterval", "type": "f32"},
+        {"name": "ActorSpawnAIParameter.MaxAreaNum", "type": "i32"},
+        {"name": "ActorSpawnAIParameter.MaxSpawnNum", "type": "i32"},
+        {"name": "ActorSpawnAIParameter.bRandomRotation", "type": "bool"},
+        {"name": "legacy_word", "type": "i32", "gate": "<0x20220824b", "derived": true},
+        {"name": "legacy_area", "type": "Cylinder", "gate": "<0x20220824b", "derived": true},
+        {"name": "ActorSpawnAIParameter.bNoDropItem", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.DropSpawnMiniInfo", "type": "Spawn"},
+        {"name": "ActorSpawnAIParameter.InvasionStartTimeRatio", "type": "f32", "gate": ">0x202201119"}
+      ]
+    },
+    {
+      "class": "GActor",
+      "slot": "PortalTrigger.Static",
+      "base": "replace",
+      "variants": [
+        [
+          "@PortalTriggerStatic",
+          {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true},
+          {"name": "TriggerBox.WorldLocation", "type": "vec", "derived": true},
+          {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
+          {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
+        ],
+        [
+          "@PortalTriggerStatic",
+          {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
+          {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
+        ]
+      ]
+    },
+    {
+      "class": "GActor",
+      "slot": "NarrowSpaceBoxTrigger.Static",
+      "base": "replace",
+      "variants": [
+        [
+          "@NarrowSpaceTriggerStatic",
+          {"name": "InputKeyOffset", "type": "f32"}
+        ],
+        [
+          "@NarrowSpaceTriggerStatic",
+          {"name": "SplineComponent.SplinePoints", "type": "SplinePointArray", "derived": true},
+          {"name": "InputKeyOffset", "type": "f32"}
+        ]
       ]
     }
   ]
