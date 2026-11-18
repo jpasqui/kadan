@@ -614,6 +614,30 @@ static void Own()
             Slot::AIStatic, "", 0, ""},
         {{"NightKochappyAIComponent", "FollowKochappyBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"},
             Slot::AIStatic, "TekiAIParameter.SearchAreaCaution", UINT64_C(0x20221215c), ""},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "owner_component_bool_0x238",
+            UINT64_C(0x202203049), "KurageAIParameter.EatOnBirthRange"},
+        {{"KurageAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x1098",
+            UINT64_C(0x202210279), ""},
+        {{"TobinkoAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"FrogAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "FrogAIParameter.bNoSearchOuterTerritory", UINT64_C(0x202201149), ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0, ""},
+        {{"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "CrystalComponent.CrystalParameters", UINT64_C(0x202207079), ""},
+        {{"QueenAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "QueenAIParameter.FlickDistXY"},
+        {{"RusherAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic, "", 0,
+            "RusherAIParameter.Rush.DistMax"},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bFixedHeight", UINT64_C(0x20211227a), ""},
+        {{"KurioneAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIStatic,
+            "KurioneAIParameter.bDropHotExtractOnly", UINT64_C(0x202204289), ""},
+        {{"MitsuMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic, "runtime_bool_0x13a8",
+            UINT64_C(0x20220623a), ""},
+        {{"KoganeAIComponent", "KoganeBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "runtime_0x70", UINT64_C(0x202203249), ""},
+        {{"HikariKinokoAIComponent", "ObjectAIComponent", "CarrotAIComponent"}, Slot::AIDynamic,
+            "HikariKinokoAIParameter.bLightUp", UINT64_C(0x202206299), ""},
     };
     for (const Creature& One : Creatures)
     {
@@ -645,6 +669,46 @@ static void Own()
         // The leader's tag name, its child count and the leader flag end the blob.
         CHECK(Bytes.size() > 22 && Bytes[Bytes.size() - 8] == 4 && Bytes[Bytes.size() - 4] == 1);
         CHECK(Decode(Slot::AIStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Leader) == Lines(Back));
+    }
+    // A Mamuta's young (MiniMochi) writes only its territory, and before 0x20210927c also whether it came from an egg.
+    {
+        Context C;
+        C.ComponentChain = {"MiniMochiAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+        for (const std::uint64_t V : {UINT64_C(0x20210927b), UINT64_C(0x20210927c), RowVersion})
+        {
+            Blob Young;
+            CHECK(Fresh(Slot::AIStatic, C, V, Young));
+            CHECK(bool(Path(Young, "MiniMochiAIParameter.bSpawnFromEgg")) == (V < UINT64_C(0x20210927c)));
+            CHECK(!Path(Young, "TekiAIParameter.DropParameter.DropItemParameter"));
+            Path(Young, "TekiAIParameter.Territory")->Find("Radius")->SetFloat(180.f);
+            CHECK(Encode(Slot::AIStatic, C, Young, V, Bytes, Error));
+            CHECK(Bytes.size() == (V < UINT64_C(0x20210927c) ? 24u : 20u));
+            CHECK(Decode(Slot::AIStatic, C, Bytes, V, Back, Error) && Back.Exact() && Lines(Young) == Lines(Back));
+        }
+    }
+    // A route spline: its spline's points, its areas and jump keys, then the actor's tags, after the actor's fields.
+    {
+        Context C;
+        C.ActorChain = {"RouteSplineActor", "GActor"};
+        Blob Route;
+        CHECK(Fresh(Slot::ActorStatic, C, RowVersion, Route));
+        const Type* Points = FieldType(Slot::ActorStatic, C, "spline_points");
+        CHECK(Points && Points->Is == Kind::Array && Points->Item);
+        if (Points && Points->Item)
+            for (int I = 0; I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                Point.Find("Type")->Bits = 4;
+                Path(Route, "spline_points")->Items.push_back(Point);
+            }
+        Value Tag;
+        Tag.Is = Kind::Name;
+        Tag = NameFromUtf8("RootPoint");
+        Path(Route, "Actor.Tags")->Items.push_back(Tag);
+        CHECK(Encode(Slot::ActorStatic, C, Route, RowVersion, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, C, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Route) == Lines(Back));
+        CHECK(Back.Root.Find("spline_points") && Back.Root.Find("spline_points")->Items.size() == 2);
     }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");

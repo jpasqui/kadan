@@ -314,6 +314,50 @@
       "name": "ExcavationInitialWarperArray",
       "kind": "array",
       "item": "ExcavationInitialWarper"
+    },
+    {
+      "name": "CrystalLife",
+      "kind": "struct",
+      "members": [
+        {"name": "Life", "type": "f32"}
+      ]
+    },
+    {
+      "name": "CrystalLifeArray",
+      "kind": "array",
+      "item": "CrystalLife"
+    },
+    {
+      "name": "SplinePoint",
+      "kind": "struct",
+      "members": [
+        {"name": "InputKey", "type": "f32"},
+        {"name": "Position", "type": "vec"},
+        {"name": "ArriveTangent", "type": "vec"},
+        {"name": "LeaveTangent", "type": "vec"},
+        {"name": "Rotation", "type": "rot"},
+        {"name": "Scale", "type": "vec"},
+        {"name": "Type", "type": "u8"}
+      ]
+    },
+    {
+      "name": "SplinePointArray",
+      "kind": "array",
+      "item": "SplinePoint"
+    },
+    {
+      "name": "SplineAreaInfo",
+      "kind": "struct",
+      "members": [
+        {"name": "Key", "type": "i32"},
+        {"name": "Radius", "type": "f32"},
+        {"name": "Name", "type": "name"}
+      ]
+    },
+    {
+      "name": "SplineAreaInfoArray",
+      "kind": "array",
+      "item": "SplineAreaInfo"
     }
   ],
   "lists": [
@@ -1147,6 +1191,142 @@
       "base": "inherit",
       "fields": [
         {"name": "TekiAIParameter.SearchAreaCaution", "type": "Sphere", "gate": ">0x20221215c"}
+      ]
+    },
+    {
+      "class": "KurageAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KurageAIParameter.EatOnBirthRange", "type": "f32"},
+        {"name": "KurageAIParameter.bFallStart", "type": "bool"},
+        {"name": "TekiAIParameter.SearchAreaRest", "type": "Sphere"},
+        {"name": "owner_component_bool_0x238", "type": "bool", "gate": ">0x202203049", "derived": true, "runtime_default": "0x1"}
+      ]
+    },
+    {
+      "class": "KurageAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_bool_0x1098", "type": "bool", "gate": ">0x202210279", "derived": true}
+      ]
+    },
+    {
+      "class": "TobinkoAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TobinkoAIParameter.bNoBurrowType", "type": "bool"}
+      ]
+    },
+    {
+      "class": "FrogAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TekiAIParameter.SearchAreaRest", "type": "Sphere"},
+        {"name": "TekiAIParameter.EatArea", "type": "CakeArea"},
+        {"name": "FrogAIParameter.bNoSearchOuterTerritory", "type": "bool", "gate": ">0x202201149"}
+      ]
+    },
+    {
+      "class": "KanitamaAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KanitamaAIParameter.bAmbush", "type": "bool"}
+      ]
+    },
+    {
+      "class": "KanitamaAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true}
+      ]
+    },
+    {
+      "class": "QueenAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "QueenAIParameter.QueenAIType", "type": "u8"},
+        {"name": "QueenAIParameter.RockBallHeightMin", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMax", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnRadius", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnOffsetY", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMinInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallHeightMaxInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.RockBallSpawnRadiusInOppositeSide", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabyHeightMin", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabyHeightMax", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabySpawnRadius", "type": "f32"},
+        {"name": "QueenAIParameter.FallBabySpawnNum", "type": "i32"},
+        {"name": "QueenAIParameter.FlickDistXY", "type": "f32"}
+      ]
+    },
+    {
+      "class": "RusherAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "RusherAIParameter.Rush.DistMin", "type": "f32"},
+        {"name": "RusherAIParameter.Rush.DistMax", "type": "f32"}
+      ]
+    },
+    {
+      "class": "KurioneAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "KurioneAIParameter.bGoFaceDir", "type": "bool"},
+        {"name": "KurioneAIParameter.bFixedHeight", "type": "bool", "gate": ">0x20211227a"},
+        {"name": "KurioneAIParameter.bDropHotExtractOnly", "type": "bool", "gate": ">0x202204289"}
+      ]
+    },
+    {
+      "class": "MiniMochiAIComponent",
+      "slot": "AI.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "TekiAIParameter.Territory", "type": "Cylinder"},
+        {"name": "MiniMochiAIParameter.bSpawnFromEgg", "type": "bool", "gate": "<0x20210927c"}
+      ]
+    },
+    {
+      "class": "MitsuMochiAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_bool_0x13a8", "type": "bool", "gate": ">0x20220623a", "derived": true}
+      ]
+    },
+    {
+      "class": "KoganeBaseAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_0x70", "type": "i32", "gate": ">0x202203249", "derived": true}
+      ]
+    },
+    {
+      "class": "HikariKinokoAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "HikariKinokoAIParameter.bLightUp", "type": "bool", "gate": ">0x202206299"}
+      ]
+    },
+    {
+      "class": "RouteSplineActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "spline_points", "type": "SplinePointArray", "derived": true},
+        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true},
+        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true},
+        {"name": "Actor.Tags", "type": "NameArray"}
       ]
     }
   ]
