@@ -521,6 +521,30 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
             }
             if (Options(Slot.S, Context, Placed) == Options(Slot.S, Context, Default))
                 continue;
+            if (!Complete(Owner, Slot))
+            {
+                // Kadan knows only a part of this blob for the owner's class, and the game would read past a short
+                // one: the game keeps the class's values, and the creator hears of the options set on it.
+                TArray<FString> Changed;
+                for (const auto& Member : Placed.Root.Members)
+                {
+                    const P::Field* Field = FieldNamed(LayoutFields(Slot.S, Context, Placed.Variant), Member.first);
+                    if (Field && Field->Derived)
+                        continue;
+                    std::vector<std::string> Mine, Class;
+                    P::Flatten(Member.second, Member.first, Mine);
+                    for (const auto& Other : Default.Root.Members)
+                        if (Other.first == Member.first)
+                            P::Flatten(Other.second, Other.first, Class);
+                    if (Mine != Class)
+                        Changed.Add(Wide(Member.first));
+                }
+                Out.Told.Add(FString::Printf(
+                    TEXT("%s: Kadan cannot write the game's options of %s (%s) yet, so the game uses the class's values in place of %s."),
+                    *Actor->GetName(), *Owner->GetClass()->GetName(), *SlotKey(Slot),
+                    *FString::Join(Changed, TEXT(", "))));
+                continue;
+            }
             // A creature's drops are generators of their own, with numbers of the list's; a gimmick's are not.
             NumberDrops(Placed.Root, LayoutFields(Slot.S, Context), Utf8(ActorKey(Actor)), std::string(), List, Taken);
             std::vector<uint8> Bytes;

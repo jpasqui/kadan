@@ -780,6 +780,23 @@ inline const std::vector<SlotName>& Slots()
     return Table;
 }
 
+// Whether a slot's layouts are the game's whole blob for an owner (the slot's object: the actor, or its component)
+// of the native classes OwnerChain, most derived first: the layout data lists the most derived one for the slot
+// because every blob of the slot of such owners in the game's placement lists was read and written back exactly.
+// A writer leaves the blob of an owner that is not complete to the game, which would read past a short one.
+inline bool Complete(Slot S, const std::vector<std::string>& OwnerChain)
+{
+    if (OwnerChain.empty())
+        return false;
+    const auto Rows = Generated::CompleteRows();
+    for (std::size_t I = 0; I < Rows.Count; ++I)
+    {
+        if (Rows.Rows[I].Id == S && OwnerChain.front() == Rows.Rows[I].Class)
+            return true;
+    }
+    return false;
+}
+
 // The slot a row's blob name and half are, or false when the blob is not one of these.
 inline bool SlotOf(const std::string& Name, bool Static, Slot& Out)
 {

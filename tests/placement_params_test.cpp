@@ -709,11 +709,31 @@ static int DescribeLayouts(const char* ChainsFile, const char* OutFile)
     return 0;
 }
 
+// A slot is complete only for the owner classes the layout data lists for it, by the most derived native class:
+// a class below a listed one, or one listed for another slot, is not.
+static void CompleteOwners()
+{
+    CHECK(Complete(Slot::AIStatic, {"NoraSpawnerAIComponent", "ObjectAIComponent", "CarrotAIComponent"}));
+    CHECK(Complete(Slot::AIDynamic, {"PieceStationAIComponent", "BuildObjectAIComponent", "ObjectAIComponent"}));
+    CHECK(Complete(Slot::LifeDynamic, {"LifeComponent", "ActorComponent"}));
+    CHECK(!Complete(Slot::AIStatic, {"NotAGameAIComponent", "NoraSpawnerAIComponent", "CarrotAIComponent"}));
+    CHECK(!Complete(Slot::LifeDynamic, {"NoraSpawnerAIComponent", "CarrotAIComponent"}));
+    CHECK(!Complete(Slot::AIStatic, {}));
+    // Every listed slot of an owner that is not of a chain has its own layout.
+    const auto Rows = Generated::CompleteRows();
+    CHECK(Rows.Count > 0);
+    for (std::size_t I = 0; I < Rows.Count; ++I)
+        for (const SlotName& Name : Slots())
+            if (Name.S == Rows.Rows[I].Id && !Name.Chain)
+                CHECK(!Layouts(Name.S, Context()).empty());
+}
+
 int main(int Count, char** Args)
 {
     if (Count == 4 && std::string(Args[1]) == "--layouts")
         return DescribeLayouts(Args[2], Args[3]);
     Own();
+    CompleteOwners();
     if (Failures)
     {
         std::cout << Failures << " failures\n";
