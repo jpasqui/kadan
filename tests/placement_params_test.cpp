@@ -791,6 +791,42 @@ static void People()
     CHECK(Bytes.size() > 14 && std::string(Bytes.end() - 10, Bytes.end() - 1) == "LeafPlace" && Bytes[Bytes.size() - 14] == 10);
     CHECK(Decode(Slot::ActorStatic, Place, Bytes, RowVersion, Back, Error) && Back.Exact() &&
         Lines(Spot) == Lines(Back));
+    // A look trigger writes its own tag and radius in place of GActor's options.
+    Context Look2;
+    Look2.ActorChain = {"LookTriggerActor", "GActor", "Actor", "Object"};
+    Blob Watch;
+    CHECK(Fresh(Slot::ActorStatic, Look2, RowVersion, Watch) && Watch.Root.Members.size() == 2 &&
+        !Path(Watch, "GActor.DemoBindName"));
+    *Path(Watch, "LookTriggerActor.LookTriggerActorTag") = NameFromUtf8("Conveyor");
+    Path(Watch, "LookTriggerActor.Radius")->SetFloat(15.f);
+    CHECK(Encode(Slot::ActorStatic, Look2, Watch, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 4 + 9 + 4 && Bytes[0] == 9 && Bytes.back() == 0x41);
+    CHECK(Decode(Slot::ActorStatic, Look2, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Watch) == Lines(Back));
+    // A flexible bridge: its columns, a run-time vector, then its wall collision and nav link options by version.
+    Context Bridge;
+    Bridge.ComponentChain = {"BridgeFlexibleAIComponent", "BridgeAIComponent", "BuildObjectAIComponent",
+        "ObjectAIComponent", "CarrotAIComponent"};
+    Field Runtime;
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_y", Runtime) && Runtime.Derived &&
+        Runtime.RuntimeDefault == UINT64_C(0x42200000));
+    Blob Span;
+    CHECK(Fresh(Slot::AIStatic, Bridge, RowVersion, Span));
+    Path(Span, "BridgeFlexibleAIComponent.NeedColumnNum")->Bits = 7;
+    Path(Span, "BridgeFlexibleAIComponent.BaseWallColType")->Bits = 1;
+    Path(Span, "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos")->Bits = 1;
+    CHECK(Encode(Slot::AIStatic, Bridge, Span, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 21 && Bytes[Bytes.size() - 21] == 7 && Bytes[Bytes.size() - 5] == 1 && Bytes.back() == 0);
+    CHECK(Decode(Slot::AIStatic, Bridge, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Span) == Lines(Back));
+    for (const std::uint64_t V : {UINT64_C(0x202203039), UINT64_C(0x20220303a), UINT64_C(0x202301059),
+             UINT64_C(0x20230105a)})
+    {
+        Blob Old;
+        CHECK(Fresh(Slot::AIStatic, Bridge, V, Old) && Path(Old, "BridgeFlexibleAIComponent.NeedColumnNum"));
+        CHECK(bool(Path(Old, "BridgeFlexibleAIComponent.BaseWallColType")) == (V > UINT64_C(0x202203039)));
+        CHECK(bool(Path(Old, "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos")) == (V > UINT64_C(0x202301059)));
+    }
 }
 
 int main(int Count, char** Args)

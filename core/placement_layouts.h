@@ -507,6 +507,14 @@ inline Table<FieldRow> FieldRows() {
         {"CakAmbientSoundActor.MessageMap", "NameMap", '>', UINT64_C(0x20211116a), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"CakAmbientSoundActor.bIsNotPauseOnSubLevel", "bool", '>', UINT64_C(0x20220915a), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"NPCPLACEACTOR.PlaceTag", "name", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"LookTriggerActor.LookTriggerActorTag", "name", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"LookTriggerActor.Radius", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"BridgeFlexibleAIComponent.NeedColumnNum", "i32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"runtime_0x1188_x", "f32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"runtime_0x1188_y", "f32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x42200000), "", "", false, false, "", ""},
+        {"runtime_0x1188_z", "f32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"BridgeFlexibleAIComponent.BaseWallColType", "u8", '>', UINT64_C(0x202203039), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "bool", '>', UINT64_C(0x202301059), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }
@@ -619,6 +627,8 @@ inline Table<PartRow> PartRows() {
         {"DownFloorAIComponent", Slot::AIDynamic, false, 0, 418, 1},
         {"CakAmbientSoundActor", Slot::ActorStatic, false, 0, 419, 4},
         {"NPCPLACEACTOR", Slot::ActorStatic, false, 0, 423, 1},
+        {"LookTriggerActor", Slot::ActorStatic, true, 0, 424, 2},
+        {"BridgeFlexibleAIComponent", Slot::AIStatic, false, 0, 426, 6},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }

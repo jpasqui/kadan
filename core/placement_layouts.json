@@ -1068,6 +1068,28 @@
       "fields": [
         {"name": "NPCPLACEACTOR.PlaceTag", "type": "name"}
       ]
+    },
+    {
+      "class": "LookTriggerActor",
+      "slot": "ActorParameter.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "LookTriggerActor.LookTriggerActorTag", "type": "name"},
+        {"name": "LookTriggerActor.Radius", "type": "f32"}
+      ]
+    },
+    {
+      "class": "BridgeFlexibleAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true},
+        {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
+        {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
+        {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
+        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
+      ]
     }
   ]
 }
