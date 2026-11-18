@@ -683,6 +683,99 @@ static void SpawnersAndTriggers()
     Path(Group, "GroupId")->Bits = UINT64_C(0xffffffff);
     CHECK(RoundTrip(Slot::HiddenBoxTriggerStatic, Hidden, Group, RowVersion, Bytes, Back) && Bytes.size() == 4 &&
         Bytes[3] == 0xff);
+
+    // A water box: how Pikmin freeze in it and its ambient sound. Before 0x20220506a a name and eleven words
+    // of an older form were in the stream.
+    Context Water;
+    Blob Pool;
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, RowVersion, Pool));
+    Path(Pool, "MaxIcePikmins")->Bits = 5;
+    Path(Pool, "FreezeTime")->SetFloat(8.f);
+    Path(Pool, "IceNumCullingDist")->SetFloat(4000.f);
+    *Path(Pool, "WaterAmbientSoundId") = NameFromUtf8("None");
+    CHECK(RoundTrip(Slot::WaterTriggerStatic, Water, Pool, RowVersion, Bytes, Back) && Bytes.size() == 37 &&
+        Bytes[0] == 5);
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, UINT64_C(0x202301319), Pool) && !Path(Pool, "WaterExitGoalOffset") &&
+        !Path(Pool, "legacy_name"));
+    CHECK(Fresh(Slot::WaterTriggerStatic, Water, UINT64_C(0x202205069), Pool) && Path(Pool, "legacy_name") &&
+        Path(Pool, "legacy_word_10") && RoundTrip(Slot::WaterTriggerStatic, Water, Pool, UINT64_C(0x202205069), Bytes,
+                                             Back) &&
+        Bytes.size() == 4 + 4 + 4 + 12 + 4 + 11 * 4 + 4);
+    // The navigation of a water box: after the object's fields, whether only happy Pikmin use it and its offset.
+    Context WaterNav;
+    WaterNav.ComponentChain = {"WaterBoxNavAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Lane;
+    CHECK(Fresh(Slot::AIStatic, WaterNav, RowVersion, Lane) && Path(Lane, "WaterBoxNavAIComponent.RightOffset") &&
+        !Path(Lane, "legacy_word"));
+    Path(Lane, "WaterBoxNavAIComponent.bUseHappyOnly")->Bits = 1;
+    Path(Lane, "WaterBoxNavAIComponent.RightOffset")->Words[1] = Value::FloatBits(-50.f);
+    CHECK(RoundTrip(Slot::AIStatic, WaterNav, Lane, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 16 && Bytes[Bytes.size() - 16] == 1);
+    Field Legacy;
+    CHECK(Fresh(Slot::AIStatic, WaterNav, UINT64_C(0x20220630a), Lane) && Path(Lane, "legacy_vector") &&
+        !Path(Lane, "WaterBoxNavAIComponent.bUseHappyOnly") &&
+        LayoutField(Slot::AIStatic, WaterNav, "legacy_word", Legacy) && Legacy.RuntimeDefault == 1);
+
+    // A group drop manager: the radius it groups in, the classes it ignores and what the group drops.
+    Context Manager;
+    Manager.ComponentChain = {"GroupDropManagerComponent", "CarrotAIComponent"};
+    Blob Drops;
+    CHECK(Fresh(Slot::AIStatic, Manager, RowVersion, Drops));
+    Path(Drops, "GroupDropManagerAIParameter.GroupingRadius")->SetFloat(125.f);
+    Value Ignored = NameFromUtf8("Kochappy");
+    Ignored.Is = Kind::Name;
+    Path(Drops, "GroupDropManagerAIParameter.IgnoreCIDList")->Items.push_back(Ignored);
+    const Type* DropItems =
+        FieldType(Slot::AIStatic, Manager, "GroupDropManagerAIParameter.DropParameter.DropItemParameter");
+    CHECK(DropItems && DropItems->Is == Kind::Array && DropItems->Item);
+    if (DropItems && DropItems->Item)
+    {
+        Value Drop = EmptyOf(*DropItems->Item, RowVersion);
+        Drop.Find("UniqueId")->Bits = ~UINT64_C(0);
+        Drop.Find("MinNum")->Bits = 3;
+        Drop.Find("MaxNum")->Bits = 3;
+        Drop.Find("DropRatio")->SetFloat(1.f);
+        Drop.Find("SpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+        Path(Drops, "GroupDropManagerAIParameter.DropParameter.DropItemParameter")->Items.push_back(Drop);
+    }
+    Path(Drops, "GroupDropManagerAIParameter.DropTiming")->Bits = 1;
+    CHECK(RoundTrip(Slot::AIStatic, Manager, Drops, RowVersion, Bytes, Back));
+    CHECK(Bytes.size() > 8 && Bytes[3] == 0x42 && Bytes[4] == 1);
+    CHECK(Fresh(Slot::AIStatic, Manager, UINT64_C(0x202303179), Drops) &&
+        !Path(Drops, "GroupDropManagerAIParameter.DropParameter.bEnableFreezeBothDrop"));
+    CHECK(Fresh(Slot::AIDynamic, Manager, RowVersion, Drops) &&
+        RoundTrip(Slot::AIDynamic, Manager, Drops, RowVersion, Bytes, Back) && Bytes.size() == 8);
+
+    // A sprout spawner's dynamic blob: three run-time words, the wrestling offset and the sniff points.
+    Context Lock;
+    Lock.ComponentChain = {"NoraSpawnerAIComponent", "CarrotAIComponent"};
+    Blob Held;
+    CHECK(Fresh(Slot::AIDynamic, Lock, RowVersion, Held));
+    *Path(Held, "runtime_0xb0") = NameFromUtf8("None");
+    Path(Held, "NoraSpawnerAIParam.ProWrestlingOffset")->Words[2] = Value::FloatBits(100.f);
+    CHECK(RoundTrip(Slot::AIDynamic, Lock, Held, RowVersion, Bytes, Back) && Bytes.size() == 37);
+
+    // Honey placed in a level: one run-time word, 10 as the game's rows carry it.
+    Context Honey;
+    Honey.ComponentChain = {"HoneyAIComponent", "CarrotAIComponent"};
+    Blob Drop;
+    Field Amount;
+    CHECK(Fresh(Slot::AIDynamic, Honey, RowVersion, Drop) &&
+        LayoutField(Slot::AIDynamic, Honey, "runtime_0x720", Amount) && Amount.Derived && Amount.RuntimeDefault == 10);
+    Path(Drop, "runtime_0x720")->Bits = Amount.RuntimeDefault;
+    CHECK(RoundTrip(Slot::AIDynamic, Honey, Drop, RowVersion, Bytes, Back) && Bytes.size() == 4 && Bytes[0] == 10);
+    CHECK(Layouts(Slot::AIStatic, Honey).empty());
+
+    // A pit's sub AI: the actor spawner's stream.
+    Context Pit;
+    Pit.ComponentChain = {"TateanaAIComponent", "TateanaBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Sub;
+    CHECK(Fresh(Slot::SubAIStatic, Pit, RowVersion, Sub));
+    Path(Sub, "ActorSpawnAIParameter.OverlapCond.Carry")->Bits = 1;
+    Path(Sub, "ActorSpawnAIParameter.DropSpawnMiniInfo")->Find("bSetTerritory")->Bits = 1;
+    CHECK(RoundTrip(Slot::SubAIStatic, Pit, Sub, RowVersion, Bytes, Back) && Bytes.size() > 12 && Bytes[12] == 1);
+    Blob Same;
+    CHECK(Fresh(Slot::AIStatic, Spawner, RowVersion, Same) && Lines(Same).size() == Lines(Sub).size());
 }
 
 static std::vector<std::uint8_t> FromHex(const std::string& Text)

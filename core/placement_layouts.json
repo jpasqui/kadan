@@ -354,6 +354,36 @@
         {"name": "ForceCameraDistanceMax", "type": "f32", "gate": ">0x202206099"},
         {"name": "bForceCameraDistance", "type": "bool", "gate": ">0x202206099"}
       ]
+    },
+    {
+      "name": "ActorSpawnStatic",
+      "fields": [
+        {"name": "ActorSpawnAIParameter.OverlapCond.AVATAR", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.Pikmin", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.AvatarAndPikmin", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.Carry", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.bGenseiControl", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.OverlapCond.bNotOverlap", "type": "bool", "gate": ">0x202201129"},
+        {"name": "ActorSpawnAIParameter.OverlapArea", "type": "Sphere"},
+        {"name": "ActorSpawnAIParameter.MotionName", "type": "name", "gate": ">0x202204229"},
+        {"name": "deprecated_word_1", "type": "i32", "derived": true, "runtime_default": "0x1"},
+        {"name": "ActorSpawnAIParameter.SpawnLocation", "type": "vec"},
+        {"name": "legacy_vector", "type": "vec", "gate": "<0x20220525a", "derived": true},
+        {"name": "ActorSpawnAIParameter.bSpawnAngRand", "type": "bool", "gate": ">0x20220525a"},
+        {"name": "ActorSpawnAIParameter.SpawnAng", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.SpawnVel.X", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.SpawnVel.Y", "type": "f32", "gate": ">0x202205259"},
+        {"name": "ActorSpawnAIParameter.bInfiniteSpawn", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.SpawnInterval", "type": "f32"},
+        {"name": "ActorSpawnAIParameter.MaxAreaNum", "type": "i32"},
+        {"name": "ActorSpawnAIParameter.MaxSpawnNum", "type": "i32"},
+        {"name": "ActorSpawnAIParameter.bRandomRotation", "type": "bool"},
+        {"name": "legacy_word", "type": "i32", "gate": "<0x20220824b", "derived": true},
+        {"name": "legacy_area", "type": "Cylinder", "gate": "<0x20220824b", "derived": true},
+        {"name": "ActorSpawnAIParameter.bNoDropItem", "type": "bool"},
+        {"name": "ActorSpawnAIParameter.DropSpawnMiniInfo", "type": "Spawn"},
+        {"name": "ActorSpawnAIParameter.InvasionStartTimeRatio", "type": "f32", "gate": ">0x202201119"}
+      ]
     }
   ],
   "slots": [
@@ -599,6 +629,41 @@
       "owner": {"classes": ["HiddenBoxTriggerComponent"]},
       "fields": [
         {"name": "GroupId", "type": "i32"}
+      ]
+    },
+    {
+      "row": "WaterTrigger",
+      "half": "Static",
+      "id": "WaterTriggerStatic",
+      "owner": {"classes": ["WaterCarrotTriggerComponent"]},
+      "fields": [
+        {"name": "MaxIcePikmins", "type": "i32"},
+        {"name": "FreezeTime", "type": "f32"},
+        {"name": "legacy_name", "type": "name", "gate": "<0x20220506a", "derived": true},
+        {"name": "ShowIceNumOffs", "type": "vec"},
+        {"name": "IceNumCullingDist", "type": "f32"},
+        {"name": "WaterExitGoalOffset", "type": "f32", "gate": ">0x202301319"},
+        {"name": "legacy_word_0", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_1", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_2", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_3", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_4", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_5", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_6", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_7", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_8", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_9", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "legacy_word_10", "type": "i32", "gate": "<0x20220506a", "derived": true},
+        {"name": "WaterAmbientSoundId", "type": "name"}
+      ]
+    },
+    {
+      "row": "SubAI",
+      "half": "Static",
+      "id": "SubAIStatic",
+      "owner": {"classes": ["ActorSpawnerComponent"]},
+      "fields": [
+        "@ActorSpawnStatic"
       ]
     }
   ],
@@ -1115,31 +1180,7 @@
       "slot": "AI.Static",
       "base": "replace",
       "fields": [
-        {"name": "ActorSpawnAIParameter.OverlapCond.AVATAR", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.OverlapCond.Pikmin", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.OverlapCond.AvatarAndPikmin", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.OverlapCond.Carry", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.OverlapCond.bGenseiControl", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.OverlapCond.bNotOverlap", "type": "bool", "gate": ">0x202201129"},
-        {"name": "ActorSpawnAIParameter.OverlapArea", "type": "Sphere"},
-        {"name": "ActorSpawnAIParameter.MotionName", "type": "name", "gate": ">0x202204229"},
-        {"name": "deprecated_word_1", "type": "i32", "derived": true, "runtime_default": "0x1"},
-        {"name": "ActorSpawnAIParameter.SpawnLocation", "type": "vec"},
-        {"name": "legacy_vector", "type": "vec", "gate": "<0x20220525a", "derived": true},
-        {"name": "ActorSpawnAIParameter.bSpawnAngRand", "type": "bool", "gate": ">0x20220525a"},
-        {"name": "ActorSpawnAIParameter.SpawnAng", "type": "f32", "gate": ">0x202205259"},
-        {"name": "ActorSpawnAIParameter.SpawnVel.X", "type": "f32", "gate": ">0x202205259"},
-        {"name": "ActorSpawnAIParameter.SpawnVel.Y", "type": "f32", "gate": ">0x202205259"},
-        {"name": "ActorSpawnAIParameter.bInfiniteSpawn", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.SpawnInterval", "type": "f32"},
-        {"name": "ActorSpawnAIParameter.MaxAreaNum", "type": "i32"},
-        {"name": "ActorSpawnAIParameter.MaxSpawnNum", "type": "i32"},
-        {"name": "ActorSpawnAIParameter.bRandomRotation", "type": "bool"},
-        {"name": "legacy_word", "type": "i32", "gate": "<0x20220824b", "derived": true},
-        {"name": "legacy_area", "type": "Cylinder", "gate": "<0x20220824b", "derived": true},
-        {"name": "ActorSpawnAIParameter.bNoDropItem", "type": "bool"},
-        {"name": "ActorSpawnAIParameter.DropSpawnMiniInfo", "type": "Spawn"},
-        {"name": "ActorSpawnAIParameter.InvasionStartTimeRatio", "type": "f32", "gate": ">0x202201119"}
+        "@ActorSpawnStatic"
       ]
     },
     {
@@ -1175,6 +1216,60 @@
           {"name": "SplineComponent.SplinePoints", "type": "SplinePointArray", "derived": true},
           {"name": "InputKeyOffset", "type": "f32"}
         ]
+      ]
+    },
+    {
+      "class": "WaterBoxNavAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_word", "type": "i32", "gate": "<0x20220630b", "derived": true, "runtime_default": "0x1"},
+        {"name": "WaterBoxNavAIComponent.bUseHappyOnly", "type": "bool", "gate": ">0x20220630a"},
+        {"name": "legacy_vector", "type": "vec", "gate": "<0x20220630b", "derived": true},
+        {"name": "WaterBoxNavAIComponent.RightOffset", "type": "vec", "gate": ">0x20220630a"}
+      ]
+    },
+    {
+      "class": "GroupDropManagerComponent",
+      "slot": "AI.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "GroupDropManagerAIParameter.GroupingRadius", "type": "f32"},
+        {"name": "GroupDropManagerAIParameter.IgnoreCIDList", "type": "NameArray"},
+        {"name": "GroupDropManagerAIParameter.DropParameter.DropItemParameter", "type": "DropItems", "drops": true},
+        {"name": "GroupDropManagerAIParameter.DropParameter.DropActorParameter", "type": "DropActor"},
+        {"name": "GroupDropManagerAIParameter.DropParameter.DebugUniqueIdList", "type": "U64Array"},
+        {"name": "GroupDropManagerAIParameter.DropParameter.bEnableFreezeBothDrop", "type": "bool", "gate": ">0x202303179"},
+        {"name": "GroupDropManagerAIParameter.DropTiming", "type": "u8"},
+        "@SniffStatic"
+      ]
+    },
+    {
+      "class": "GroupDropManagerComponent",
+      "slot": "AI.Dynamic",
+      "base": "replace",
+      "fields": [
+        "@SniffDynamic"
+      ]
+    },
+    {
+      "class": "NoraSpawnerAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "replace",
+      "fields": [
+        {"name": "runtime_0xa8", "type": "i32", "derived": true},
+        {"name": "runtime_0xb0", "type": "name", "derived": true},
+        {"name": "runtime_0xb8", "type": "i32", "derived": true},
+        {"name": "NoraSpawnerAIParam.ProWrestlingOffset", "type": "vec"},
+        "@SniffDynamic"
+      ]
+    },
+    {
+      "class": "HoneyAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "replace",
+      "fields": [
+        {"name": "runtime_0x720", "type": "i32", "derived": true, "runtime_default": "0xa"}
       ]
     }
   ]
