@@ -49,6 +49,19 @@ bool FP4GameOptionsDetailsTest::RunTest(const FString&)
     TestFalse(TEXT("its class id does not"), Reaches(TEXT("CID")));
     TestTrue(TEXT("an engine property is not the game's to judge"),
         P4GameOptionReachesGame(Actor, Actor, FindFProperty<FProperty>(AActor::StaticClass(), TEXT("Tags"))));
+
+    UClass* Circulator = FindObject<UClass>(nullptr, TEXT("/Script/Carrot4.CirculatorActor"));
+    if (!TestNotNull(TEXT("the circulator class is declared"), Circulator))
+        return false;
+    AActor* Added = World->SpawnActor<AActor>(Circulator);
+    if (!TestNotNull(TEXT("a new circulator placement"), Added))
+        return false;
+    FProperty* DemoBind = FindFProperty<FProperty>(Circulator, TEXT("DemoBindName"));
+    TestTrue(TEXT("the new placement shows the inherited option"),
+        P4GameOptionsOf(Added).Contains(TPair<UObject*, FProperty*>(Added, DemoBind)));
+    TestFalse(TEXT("the new placement cannot write an option in an unverified blob"),
+        P4GameOptionReachesGame(Added, Added, DemoBind));
+
     AStaticMeshActor* Plain = World->SpawnActor<AStaticMeshActor>();
     TestEqual(TEXT("a mesh actor has no game options"), P4GameOptionsOf(Plain).Num(), 0);
     return true;

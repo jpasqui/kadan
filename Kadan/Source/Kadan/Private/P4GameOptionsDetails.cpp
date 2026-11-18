@@ -1,5 +1,6 @@
 // The Details panel's Game Options: the options a gameplay object's placement row holds, at the top.
 #include "P4GameOptionsDetails.h"
+#include "P4LevelContent.h"
 #include "P4PlacementExport.h"
 #include "P4PlacementInternal.h"
 #include "DetailCategoryBuilder.h"
@@ -21,6 +22,25 @@ const FText NotHeld = FText::FromString(TEXT(
     "The game makes this object from its placement list, which does not hold this value, so a change here does not reach the game."));
 const FText NotWritten = FText::FromString(TEXT(
     "Kadan cannot write this option into the game's placement list yet, so a change here does not reach the game."));
+const FText NotWrittenForNewPlacement = FText::FromString(TEXT(
+    "Kadan cannot write this option for a new placement yet. The game uses the class's default value."));
+
+bool IsNewPlacement(const AActor* Actor)
+{
+    const ULevel* Level = Actor->GetLevel();
+    UWorld* Source = Level ? Cast<UWorld>(Level->GetOuter()) : nullptr;
+    return !Source || !P4ImportedLevelActors(Source).Contains(Actor->GetFName());
+}
+
+bool ReachesGame(AActor* Actor, UObject* Object, FProperty* Property, const P::Context& Context, bool bNewPlacement)
+{
+    if (!GameProperty(Property) || (Object == Actor && RowSetting(Property)))
+        return true;
+    for (const TPair<FProperty*, bool>& Held : HeldOptions(Actor, Object, Context, bNewPlacement))
+        if (Held.Key == Property)
+            return Held.Value;
+    return false;
+}
 
 class FP4GameOptionsDetails final : public IDetailCustomization
 {
@@ -33,6 +53,8 @@ public:
         if (!Actor || Actor->IsTemplate() || !P4IsGameplayActor(Actor))
             return;
         const P::Context Context = ContextOf(Actor);
+        const bool bNewPlacement = IsNewPlacement(Actor);
+        const FText& CannotWrite = bNewPlacement ? NotWrittenForNewPlacement : NotWritten;
         IDetailCategoryBuilder* Category = nullptr;
         const auto Mark = [](IDetailPropertyRow* Row, bool Reaches, const FText& Why)
         {
@@ -47,18 +69,18 @@ public:
             if (!Category)
                 Category = &Builder.EditCategory(
                     TEXT("Game Options"), FText::FromString(TEXT("Game Options")), ECategoryPriority::Important);
-            const bool Reaches = P4GameOptionReachesGame(Actor, Option.Key, Option.Value);
+            const bool Reaches = ReachesGame(Actor, Option.Key, Option.Value, Context, bNewPlacement);
             // The actor's own option moves here from its other category; a component's is shown here as well.
             if (Option.Key == Actor)
             {
                 TSharedRef<IPropertyHandle> Handle =
                     Builder.GetProperty(Option.Value->GetFName(), Option.Value->GetOwnerClass());
                 if (Handle->IsValidHandle())
-                    Mark(&Category->AddProperty(Handle), Reaches, NotWritten);
+                    Mark(&Category->AddProperty(Handle), Reaches, CannotWrite);
             }
             else
                 Mark(Category->AddExternalObjectProperty(TArray<UObject*>{Option.Key}, Option.Value->GetFName()), Reaches,
-                    NotWritten);
+                    CannotWrite);
         }
         // The game's other values of the object do not reach the game: they are shown, not edited.
         const TArray<TPair<FProperty*, bool>> Held = HeldOptions(Actor, Actor, Context);
@@ -101,14 +123,9 @@ TArray<TPair<UObject*, FProperty*>> P4GameOptionsOf(AActor* Actor)
 
 bool P4GameOptionReachesGame(AActor* Actor, UObject* Object, FProperty* Property)
 {
-    if (!Actor || !Object || !Property || !P4IsGameplayActor(Actor) || !GameProperty(Property))
+    if (!Actor || !Object || !Property || !P4IsGameplayActor(Actor))
         return true;
-    if (Object == Actor && RowSetting(Property))
-        return true;
-    for (const TPair<FProperty*, bool>& Held : HeldOptions(Actor, Object, ContextOf(Actor)))
-        if (Held.Key == Property)
-            return Held.Value;
-    return false;
+    return ReachesGame(Actor, Object, Property, ContextOf(Actor), IsNewPlacement(Actor));
 }
 
 void P4RegisterGameOptionsDetails()

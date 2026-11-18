@@ -11,8 +11,8 @@ class UObject;
 // component that holds each, and the property. Empty for an actor that is not a gameplay object.
 KADAN_API TArray<TPair<UObject*, FProperty*>> P4GameOptionsOf(AActor* Actor);
 // Whether a change to the property of one of a gameplay object's objects reaches the game: an option its row holds in a
-// blob Kadan reads and writes whole, a setting Kadan writes into the row itself, or an engine property. The panel
-// shows the others without letting them be edited.
+// blob Kadan can write for this placement, a row setting, or an engine property. A new placement uses the same
+// whole-blob eligibility as export. The panel shows the others without letting them be edited.
 KADAN_API bool P4GameOptionReachesGame(AActor* Actor, UObject* Object, FProperty* Property);
 KADAN_API void P4RegisterGameOptionsDetails();
 KADAN_API void P4UnregisterGameOptionsDetails();
