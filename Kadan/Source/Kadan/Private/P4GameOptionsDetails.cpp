@@ -5,6 +5,7 @@
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "IDetailCustomization.h"
+#include "IDetailPropertyRow.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
 #include "PropertyHandle.h"
@@ -16,21 +17,10 @@ namespace
 const FName LayoutClass(TEXT("GActor"));
 bool bRegistered = false;
 
-// The property of the owner a field's path starts with: its first step, or the second after the name of one of
-// the owner's classes ("VarGateBaseActor.AddWallNum"). None for a path through the actor's components.
-FProperty* TopProperty(UObject* Owner, const std::string& Path)
-{
-    TArray<FString> Steps;
-    Wide(Path).ParseIntoArray(Steps, TEXT("."));
-    for (int32 Step = 0; Step < FMath::Min(2, Steps.Num()); ++Step)
-    {
-        if (Steps[Step] == TEXT("PlacedActor"))
-            return nullptr;
-        if (FProperty* Property = FindFProperty<FProperty>(Owner->GetClass(), *Steps[Step]))
-            return Property->HasAnyPropertyFlags(CPF_Edit) ? Property : nullptr;
-    }
-    return nullptr;
-}
+const FText NotHeld = FText::FromString(TEXT(
+    "The game makes this object from its placement list, which does not hold this value, so a change here does not reach the game."));
+const FText NotWritten = FText::FromString(TEXT(
+    "Kadan cannot write this option into the game's placement list yet, so a change here does not reach the game."));
 
 class FP4GameOptionsDetails final : public IDetailCustomization
 {
@@ -42,22 +32,45 @@ public:
         AActor* Actor = Selected.Num() == 1 ? Cast<AActor>(Selected[0].Get()) : nullptr;
         if (!Actor || Actor->IsTemplate() || !P4IsGameplayActor(Actor))
             return;
+        const P::Context Context = ContextOf(Actor);
         IDetailCategoryBuilder* Category = nullptr;
+        const auto Mark = [](IDetailPropertyRow* Row, bool Reaches, const FText& Why)
+        {
+            if (Row && !Reaches)
+            {
+                Row->IsEnabled(false);
+                Row->ToolTip(Why);
+            }
+        };
         for (const TPair<UObject*, FProperty*>& Option : P4GameOptionsOf(Actor))
         {
             if (!Category)
                 Category = &Builder.EditCategory(
                     TEXT("Game Options"), FText::FromString(TEXT("Game Options")), ECategoryPriority::Important);
+            const bool Reaches = P4GameOptionReachesGame(Actor, Option.Key, Option.Value);
             // The actor's own option moves here from its other category; a component's is shown here as well.
             if (Option.Key == Actor)
             {
                 TSharedRef<IPropertyHandle> Handle =
                     Builder.GetProperty(Option.Value->GetFName(), Option.Value->GetOwnerClass());
                 if (Handle->IsValidHandle())
-                    Category->AddProperty(Handle);
+                    Mark(&Category->AddProperty(Handle), Reaches, NotWritten);
             }
             else
-                Category->AddExternalObjectProperty(TArray<UObject*>{Option.Key}, Option.Value->GetFName());
+                Mark(Category->AddExternalObjectProperty(TArray<UObject*>{Option.Key}, Option.Value->GetFName()), Reaches,
+                    NotWritten);
+        }
+        // The game's other values of the object do not reach the game: they are shown, not edited.
+        const TArray<TPair<FProperty*, bool>> Held = HeldOptions(Actor, Actor, Context);
+        for (TFieldIterator<FProperty> It(Actor->GetClass()); It; ++It)
+        {
+            FProperty* Property = *It;
+            if (!Property->HasAnyPropertyFlags(CPF_Edit) || !GameProperty(Property) || RowSetting(Property) ||
+                Held.ContainsByPredicate([&](const TPair<FProperty*, bool>& One) { return One.Key == Property; }))
+                continue;
+            TSharedRef<IPropertyHandle> Handle = Builder.GetProperty(Property->GetFName(), Property->GetOwnerClass());
+            if (Handle->IsValidHandle())
+                Mark(Builder.EditDefaultProperty(Handle), false, NotHeld);
         }
     }
 };
@@ -74,17 +87,28 @@ TArray<TPair<UObject*, FProperty*>> P4GameOptionsOf(AActor* Actor)
     if (!Actor || !P4IsGameplayActor(Actor))
         return Out;
     const P::Context Context = ContextOf(Actor);
-    for (const P::SlotName& Slot : P::Slots())
-    {
-        UObject* Owner = OwnerOf(Actor, Slot);
-        if (!Owner || NotAnOption(SlotKey(Slot)))
-            continue;
-        for (const P::Field& Field : LayoutFields(Slot.S, Context))
-            if (!NotAProperty(Field))
-                if (FProperty* Property = TopProperty(Owner, Field.Name))
-                    Out.AddUnique(TPair<UObject*, FProperty*>(Owner, Property));
-    }
+    TInlineComponentArray<UActorComponent*> Parts(Actor);
+    TArray<UObject*> Objects{Actor};
+    for (UActorComponent* Part : Parts)
+        if (Part)
+            Objects.Add(Part);
+    for (UObject* Object : Objects)
+        for (const TPair<FProperty*, bool>& Held : HeldOptions(Actor, Object, Context))
+            if (Held.Key->HasAnyPropertyFlags(CPF_Edit))
+                Out.Add(TPair<UObject*, FProperty*>(Object, Held.Key));
     return Out;
+}
+
+bool P4GameOptionReachesGame(AActor* Actor, UObject* Object, FProperty* Property)
+{
+    if (!Actor || !Object || !Property || !P4IsGameplayActor(Actor) || !GameProperty(Property))
+        return true;
+    if (Object == Actor && RowSetting(Property))
+        return true;
+    for (const TPair<FProperty*, bool>& Held : HeldOptions(Actor, Object, ContextOf(Actor)))
+        if (Held.Key == Property)
+            return Held.Value;
+    return false;
 }
 
 void P4RegisterGameOptionsDetails()

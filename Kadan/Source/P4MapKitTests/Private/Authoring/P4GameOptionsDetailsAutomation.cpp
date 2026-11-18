@@ -38,6 +38,17 @@ bool FP4GameOptionsDetailsTest::RunTest(const FString&)
         TestTrue(FString(TEXT("the row's option is there: ")) + Held, Names.Contains(Held));
     for (const TCHAR* Class : {TEXT("bAddWall"), TEXT("WallWidth"), TEXT("CID"), TEXT("PikminColor")})
         TestFalse(FString(TEXT("a setting the row does not hold is not: ")) + Class, Names.Contains(Class));
+    // What reaches the game is editable: its length, Kadan's row settings and the engine's; its width is not.
+    const auto Reaches = [&](const TCHAR* Name)
+    {
+        return P4GameOptionReachesGame(Actor, Actor, FindFProperty<FProperty>(Gate, Name));
+    };
+    TestTrue(TEXT("its length reaches the game"), Reaches(TEXT("AddWallNum")));
+    TestTrue(TEXT("its generator settings reach the game"), Reaches(TEXT("GenerateInfo")));
+    TestFalse(TEXT("its wall width does not"), Reaches(TEXT("WallWidth")));
+    TestFalse(TEXT("its class id does not"), Reaches(TEXT("CID")));
+    TestTrue(TEXT("an engine property is not the game's to judge"),
+        P4GameOptionReachesGame(Actor, Actor, FindFProperty<FProperty>(AActor::StaticClass(), TEXT("Tags"))));
     AStaticMeshActor* Plain = World->SpawnActor<AStaticMeshActor>();
     TestEqual(TEXT("a mesh actor has no game options"), P4GameOptionsOf(Plain).Num(), 0);
     return true;
