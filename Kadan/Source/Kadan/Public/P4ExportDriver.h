@@ -68,12 +68,14 @@ struct FP4PlacementRow
 };
 // A gameplay object of the game's that a level edit moves, changes or removes and that the game builds from a
 // row of its placement lists: the actor, the list's package (an AP_ asset of the game's) and the row's number.
-// A level change does nothing to such an object; export writes the move or the removal as a change to that row.
+// A level change does nothing to such an object; export writes the move, the removal or the changed options as a
+// change to that row. Options: the blobs of the row given anew ("AI.Static"), from the values the creator changed.
 struct FP4GameRowEdit
 {
     FString Actor, List;
     uint64 Id = 0;
-    bool Removed = false;
+    bool Removed = false, Moved = false;
+    TArray<FString> Options;
 };
 struct FP4ExportModResult
 {

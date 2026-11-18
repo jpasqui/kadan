@@ -77,11 +77,17 @@ bool FP4ExportRun::WriteManifest()
                     *MapName));
         }
         for (const FP4GameRowEdit& Row : Result.GameRowEdits)
+        {
+            const FString Options = TEXT("given your options (") + FString::Join(Row.Options, TEXT(", ")) + TEXT(")");
+            const FString Done = Row.Removed                     ? FString(TEXT("removed"))
+                : Row.Moved && Row.Options.Num() ? TEXT("moved and ") + Options
+                : Row.Moved                      ? FString(TEXT("moved"))
+                                                 : Options;
             Result.Told.Add(FString::Printf(
                 TEXT(
                     "%s is %s by a change to row %llu of the game's placement list %s, because the game builds it from that row."),
-                *Row.Actor, Row.Removed ? TEXT("removed") : TEXT("moved"), Row.Id,
-                *FPackageName::GetShortName(Row.List)));
+                *Row.Actor, *Done, Row.Id, *FPackageName::GetShortName(Row.List)));
+        }
         if (Result.RebuiltLighting.Num())
             Result.Told.Add(
                 TEXT("The edited map's lighting was rebuilt and is included at the game's lighting paths."));

@@ -240,13 +240,22 @@ FP4KadanCreatorReview P4ReviewCreatorSelection(const FP4ModDescriptor& Mod, cons
                 }
                 if (Why.IsEmpty() && RowEdits.Num())
                 {
-                    int32 Removed = 0;
+                    int32 Removed = 0, Moved = 0, Options = 0;
                     for (const FP4GameRowEdit& Edit : RowEdits)
+                    {
                         Removed += Edit.Removed ? 1 : 0;
-                    Row.Reason += FString::Printf(
-                        TEXT(
-                            " The game builds its own gameplay objects from its placement lists, so %d you moved and %d you removed are written as changes to their rows in those lists."),
-                        RowEdits.Num() - Removed, Removed);
+                        Moved += Edit.Moved ? 1 : 0;
+                        Options += Edit.Options.Num() ? 1 : 0;
+                    }
+                    Row.Reason += Options
+                        ? FString::Printf(
+                              TEXT(
+                                  " The game builds its own gameplay objects from its placement lists, so %d you moved, %d you removed and %d whose options you changed are written as changes to their rows in those lists."),
+                              Moved, Removed, Options)
+                        : FString::Printf(
+                              TEXT(
+                                  " The game builds its own gameplay objects from its placement lists, so %d you moved and %d you removed are written as changes to their rows in those lists."),
+                              Moved, Removed);
                 }
                 if (Why.IsEmpty() && Relight)
                     Row.Reason += TEXT(

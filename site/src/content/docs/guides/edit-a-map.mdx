@@ -6,7 +6,7 @@ description: Add actors, move or remove game objects, and change their propertie
 import { Steps } from '@astrojs/starlight/components';
 
 :::caution[WIP]
-Placing the game's objects, setting their options, and moving or removing the game's gameplay objects work in the game. Changing other values or World Settings hasn't been tested in the game yet. A baked test cube has loaded and drawn in Eden, but a rebake of the game's lighting hasn't been seen in the game yet.
+Placing the game's objects, setting their options, and moving or removing the game's gameplay objects work in the game. Changing an option of one of the game's own objects needs a Tsuchi that reads `placement_changes` "set" and hasn't been tested in the game yet. Changing other values or World Settings hasn't been tested in the game yet. A baked test cube has loaded and drawn in Eden, but a rebake of the game's lighting hasn't been seen in the game yet.
 :::
 
 If you haven't [imported a map](/guides/import/) yet, you'll need to do that first.
@@ -34,9 +34,11 @@ changes need, and your mod includes them. Your mod includes your content and cha
 without copying the game's original data.
 
 The game builds its own gameplay objects, such as pots, enemies, and treasures, from the map's
-placement lists rather than from the level. When you move or delete one of them, Kadan writes the
-change to that object's row in the game's placement list, and the export review and the Kadan panel
-name each row that changed. A save that already has the map's record keeps the game's own objects as
+placement lists rather than from the level. When you move or delete one of them, or change one of its
+options in the **Details** panel (a Pikmin sprout's color, the nuggets in a gold nugget pile, a wall's
+length), Kadan writes the change to that object's row in the game's placement list, and the export
+review and the Kadan panel name each row that changed. The export tells you about an option Kadan
+can't write into the row yet; the game keeps its own value for that option. A save that already has the map's record keeps the game's own objects as
 they were, because the game builds the map from the save then. To see your changes, play from a save
 that hasn't visited the map yet.
 

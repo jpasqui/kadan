@@ -136,6 +136,44 @@ bool ActorValues(UWorld* World, const FP4LevelActorChanges& Changed, P4MapKit::E
         Edit.Set[TCHAR_TO_UTF8(*Changed.Actor)] = std::move(Values);
     return true;
 }
+// The properties the creator changed on one of the game's actors or on its parts, other than the place of its root,
+// which is a move. Lines that ActorValues refuses are left out here.
+TArray<FP4ChangedProperty> ChangedProperties(UWorld* World, AActor* Actor, const FP4LevelActorChanges& Changed)
+{
+    TArray<FP4ChangedProperty> Out;
+    const FString Base = World->GetName() + TEXT(".") + World->PersistentLevel->GetName() + TEXT(".") + Changed.Actor;
+    USceneComponent* Root = Actor->GetRootComponent();
+    TArray<FString> Lines = Changed.Lines.Before;
+    Lines.Append(Changed.Lines.After);
+    for (const FString& Line : Lines)
+    {
+        const int32 Bar = Line.Find(TEXT(" | "), ESearchCase::CaseSensitive);
+        FString Below = Bar == INDEX_NONE ? FString() : Line.Left(Bar);
+        if (Bar == INDEX_NONE || !Below.StartsWith(Base, ESearchCase::CaseSensitive))
+            continue;
+        Below = Below.Mid(Base.Len());
+        Below.RemoveFromStart(TEXT("."), ESearchCase::CaseSensitive);
+        const FString Rest = Line.Mid(Bar + 3);
+        const int32 Is = Rest.Find(TEXT(" = "), ESearchCase::CaseSensitive);
+        FString Key = Is == INDEX_NONE ? FString() : Rest.Left(Is);
+        int32 Bracket = INDEX_NONE;
+        if (Key.FindChar(TEXT('['), Bracket))
+            Key.LeftInline(Bracket);
+        UObject* Object = nullptr;
+        FString Path;
+        if (Key.IsEmpty() || Key.Contains(TEXT(" ")) || Below.Contains(TEXT(">")) || !Reach(Actor, Below, Object, Path))
+            continue;
+        const FProperty* Property = Object->GetClass()->FindPropertyByName(FName(*Key));
+        if (!Property || (Object == Root && !Root->GetAttachParent() &&
+                             (Key == TEXT("relativelocation") || Key == TEXT("relativerotation") ||
+                                 Key == TEXT("relativescale3d"))))
+            continue;
+        if (!Out.ContainsByPredicate([&](const FP4ChangedProperty& One)
+                { return One.Object == Object && One.Property == Property; }))
+            Out.Add({Object, Property});
+    }
+    return Out;
+}
 } // namespace
 
 namespace P4Export
@@ -180,20 +218,50 @@ bool LevelChanges(UWorld* World, const FP4LevelChangesResult& Changes, P4MapKit:
     if (ReadRows && !P4GameRowsOfLevelEdit(World, Changes, GameRows, Rows, Error))
         return false;
     Out.RowEdits.Reset();
-    for (const auto& Pair : Rows)
+    Out.Told.Reset();
+    const FString Level = FPackageName::GetLongPackageAssetName(World->GetOutermost()->GetName());
+    for (auto& Pair : Rows)
     {
         const std::string Actor = TCHAR_TO_UTF8(*Pair.Key);
-        P4MapKit::Export::PlacementEdit& Row = Map.PlacementChanges[TCHAR_TO_UTF8(*Pair.Value.List)];
         if (Pair.Value.Removed)
         {
+            P4MapKit::Export::PlacementEdit& Row = Map.PlacementChanges[TCHAR_TO_UTF8(*Pair.Value.List)];
             Edit.Remove.erase(std::remove(Edit.Remove.begin(), Edit.Remove.end(), Actor), Edit.Remove.end());
             Row.Remove.push_back(Pair.Value.Id);
+            Out.RowEdits.Add(Pair.Value);
+            continue;
         }
-        else
+        // The values the creator changed reach the game through the row's blobs of options, which the game makes the
+        // object from. A value of the level's actor would change only the editor's picture of it.
+        std::map<std::string, std::vector<uint8>> Blobs;
+        const FP4LevelActorChanges* Changed = Changes.OtherChanged.FindByPredicate(
+            [&](const FP4LevelActorChanges& One) { return One.Actor == Pair.Key; });
+        AActor* Placed = Changed ? FindObject<AActor>(World->PersistentLevel, *Pair.Key) : nullptr;
+        const FP4GamePlacementRow* Game = Placed && GameRows
+            ? P4GamePlacementRowFor(Pair.Value.Id, Level, Placed->GetClass()->GetPathName(), *GameRows)
+            : nullptr;
+        if (Game)
         {
-            const auto Moved = Edit.Move.find(Actor);
-            if (Moved == Edit.Move.end())
-                continue; // changed values only: they stay values of the level's actor
+            TMap<FString, TArray<uint8>> Given;
+            TArray<FString> Left;
+            if (!P4GameRowBlobChanges(Placed, *Game, ChangedProperties(World, Placed, *Changed), Given, Left, Error))
+                return false;
+            for (const FString& Why : Left)
+                Out.Told.Add(FString::Printf(TEXT("%s of %s: the change to %s does not reach the game."),
+                    *Pair.Key, *Changes.Level, *Why));
+            for (const auto& Blob : Given)
+            {
+                Blobs[TCHAR_TO_UTF8(*Blob.Key)] = std::vector<uint8>(Blob.Value.GetData(), Blob.Value.GetData() + Blob.Value.Num());
+                Pair.Value.Options.Add(Blob.Key);
+            }
+            Pair.Value.Options.Sort();
+        }
+        const auto Moved = Edit.Move.find(Actor);
+        if (Moved == Edit.Move.end() && Blobs.empty())
+            continue;
+        P4MapKit::Export::PlacementEdit& Row = Map.PlacementChanges[TCHAR_TO_UTF8(*Pair.Value.List)];
+        if (Moved != Edit.Move.end())
+        {
             if (!Row.Move.emplace(Pair.Value.Id, Moved->second).second)
             {
                 Error = FString::Printf(
@@ -201,6 +269,13 @@ bool LevelChanges(UWorld* World, const FP4LevelChangesResult& Changes, P4MapKit:
                 return false;
             }
             Edit.Move.erase(Moved);
+            Pair.Value.Moved = true;
+        }
+        if (!Blobs.empty() && !Row.Set.emplace(Pair.Value.Id, std::move(Blobs)).second)
+        {
+            Error = FString::Printf(
+                TEXT("%s is given new options twice in the game's placement list %s."), *Pair.Key, *Pair.Value.List);
+            return false;
         }
         Out.RowEdits.Add(Pair.Value);
     }
@@ -217,13 +292,10 @@ bool LevelChanges(UWorld* World, const FP4LevelChangesResult& Changes, P4MapKit:
     Out.Added.Reset();
     Out.Placed.Reset();
     // The game's level keeps a gameplay object built from a placement row only as the editor's picture of it,
-    // so moving or removing one leaves the level's lighting as it is.
+    // so moving, removing or changing one leaves the level's lighting as it is.
     Out.RebuildLighting = false;
     for (const FString& Lit : Changes.LitByGame)
-        Out.RebuildLighting = Out.RebuildLighting ||
-            !Out.RowEdits.ContainsByPredicate([&](const FP4GameRowEdit& Row) { return Row.Actor == Lit; }) ||
-            Changes.OtherChanged.ContainsByPredicate(
-                [&](const FP4LevelActorChanges& Changed) { return Changed.Actor == Lit; });
+        Out.RebuildLighting = Out.RebuildLighting || !Rows.Contains(Lit);
     Out.NavigationOnly.Reset();
     Out.Navigation = P4EditChangesNavigation(Changes, Out.NavigationWhy);
     for (const FString& Name : Changes.Added)

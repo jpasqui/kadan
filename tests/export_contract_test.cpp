@@ -105,6 +105,26 @@ int main(int Count, char** Args) {
         Rows.PlacementChanges.clear(); Rows.PlacementChanges[Naming.Root + "/Placements/AP_Mine"].Remove = {7}; CHECK(!FrameworkFiles(Mod, Rows, Written, Error));
         Rows.PlacementChanges.clear(); Rows.PlacementChanges["/Game/Carrot4/Maps/APL_Cave"].Remove = {7}; CHECK(!FrameworkFiles(Mod, Rows, Written, Error));
         CHECK(Written == Saved);
+        // A row of the game's given new option blobs keeps the rest of the game's row: the blobs by name, as hex.
+        MapEdit Options; Options.Package = Rows.Package;
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)]["AI.Static"] = {0x03, 0x00, 0xab};
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)]["ActorParameter.Static"] = {0xff};
+        Options.PlacementChanges[List].Move[UINT64_C(17179869300)].Location = {{1, 2, 3}};
+        Options.PlacementChanges[List].Remove = {UINT64_C(17179869268)};
+        CHECK(FrameworkFiles(Mod, Options, Written, Error));
+        CHECK(Written["mod.json"].find("\"remove\":[\"17179869268\"],\"set\":{\"17179869300\":{\"AI.Static\":\"0300ab\",\"ActorParameter.Static\":\"ff\"}}") != std::string::npos);
+        Options.PlacementChanges[List].Move.clear(); Options.PlacementChanges[List].Remove.clear();
+        CHECK(FrameworkFiles(Mod, Options, Written, Error));
+        CHECK(Written["mod.json"].find("\"placement_changes\":{\"" + List + "\":{\"set\":{\"17179869300\":{") != std::string::npos);
+        const auto Given = Written;
+        Options.PlacementChanges[List].Remove = {UINT64_C(17179869300)}; CHECK(!FrameworkFiles(Mod, Options, Written, Error));
+        Options.PlacementChanges[List].Remove.clear();
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)]["AI.Sideways"] = {1}; CHECK(!FrameworkFiles(Mod, Options, Written, Error));
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)].erase("AI.Sideways");
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)]["AI.Dynamic"] = {}; CHECK(!FrameworkFiles(Mod, Options, Written, Error));
+        Options.PlacementChanges[List].Set[UINT64_C(17179869300)].erase("AI.Dynamic");
+        Options.PlacementChanges[List].Set[0]["AI.Static"] = {1}; CHECK(!FrameworkFiles(Mod, Options, Written, Error));
+        CHECK(Written == Given);
     }
     {
         MapEdit First; First.Package = "/Game/First/Shared_P";
