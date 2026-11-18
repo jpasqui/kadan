@@ -126,7 +126,7 @@ void Keep(FGate& State, USceneComponent* Component)
     FOwn& Own = State.Own.Add(Component->GetFName());
     Own.Location = Component->GetRelativeLocation();
     Own.Scale = Component->GetRelativeScale3D();
-    Own.bVisible = Component->IsVisible();
+    Own.bVisible = Component->GetVisibleFlag();
     if (const UBoxComponent* Box = Cast<UBoxComponent>(Component))
         Own.Extent = Box->GetUnscaledBoxExtent();
 }
