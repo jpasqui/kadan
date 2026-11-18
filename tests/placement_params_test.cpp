@@ -1077,12 +1077,12 @@ static void Gimmicks()
             CHECK(RoundTrip(Slot::AIDynamic, C, D, V, Bytes));
         }
     }
-    // A moving floor: its spline's points and rotation, then a nav link's points when the actor has one (the second
-    // layout). A blob is read in the layout it fits.
+    // A moving floor: its spline's points and rotation, then a nav link's points when the actor has one (the first
+    // layout, which a writer tries first). A blob is read in the layout it fits.
     const Context Floor = ObjectChain({"MoveFloorAIComponent"});
     // Two of its own for each of the object AI base's two (the escape points or none): its own come first.
     CHECK(Layouts(Slot::AIStatic, Floor).size() == 4);
-    for (int Variant : {0, 1})
+    for (int Variant : {1, 0})
     {
         Blob B;
         CHECK(Fresh(Slot::AIStatic, Floor, RowVersion, B, Variant));
@@ -1098,15 +1098,15 @@ static void Gimmicks()
                 Point.Find("Type")->Bits = 1;
                 Path(B, "SplinePoints")->Items.push_back(Point);
             }
-        CHECK(bool(Path(B, "PlacedActor.NavLink.Links")) == (Variant == 1));
+        CHECK(bool(Path(B, "PlacedActor.NavLink.Links")) == (Variant == 0));
         if (Value* Links = Path(B, "PlacedActor.NavLink.Links"))
         {
-            const Type* Of = FieldType(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", 1);
+            const Type* Of = FieldType(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", 0);
             Links->Items.push_back(EmptyOf(*Of->Item, RowVersion));
         }
         CHECK(RoundTrip(Slot::AIStatic, Floor, B, RowVersion, Bytes));
-        CHECK(Bytes.size() == (Variant ? Base.size() + 28 : Bytes.size()));
-        if (!Variant)
+        CHECK(Bytes.size() == (Variant == 0 ? Base.size() + 28 : Bytes.size()));
+        if (Variant == 1)
             Base = Bytes;
     }
     Blob Old;
@@ -1261,7 +1261,7 @@ static void SpawnersAndTriggers()
     CHECK(Fresh(Slot::NavMeshTriggerDynamic, Nav, RowVersion, Gate) &&
         SlotRoundTrip(Slot::NavMeshTriggerDynamic, Nav, Gate, RowVersion, Bytes, Back) && Bytes.size() == 4);
 
-    // A narrow space box: camera options, then the points of the actor's spline when it has one.
+    // A narrow space box: camera options, then the points of the actor's spline when it has one (the first layout).
     Context Narrow;
     Narrow.ActorChain = {"GActor"};
     for (int Variant = 0; Variant < 2; ++Variant)
@@ -1272,7 +1272,7 @@ static void SpawnersAndTriggers()
         *Path(Box, "LinkObjID") = NameFromUtf8("None");
         Path(Box, "ForceCameraYaw")->SetFloat(15.f);
         Path(Box, "InputKeyOffset")->SetFloat(0.1f);
-        if (Variant == 1)
+        if (Variant == 0)
         {
             const Type* Points =
                 FieldType(Slot::NarrowSpaceBoxTriggerStatic, Narrow, "SplineComponent.SplinePoints", Variant);
@@ -1287,7 +1287,7 @@ static void SpawnersAndTriggers()
             }
         }
         CHECK(SlotRoundTrip(Slot::NarrowSpaceBoxTriggerStatic, Narrow, Box, RowVersion, Bytes, Back));
-        CHECK(Bytes.size() == (Variant == 0 ? 57u : 57u + 4u + 2u * 65u));
+        CHECK(Bytes.size() == (Variant == 1 ? 57u : 57u + 4u + 2u * 65u));
     }
     Blob OldBox;
     CHECK(Fresh(Slot::NarrowSpaceBoxTriggerStatic, Narrow, UINT64_C(0x202206099), OldBox) &&
@@ -1785,6 +1785,96 @@ static void NavFills()
     CHECK(FieldOf(Slot::AIStatic, Bridge, "runtime_0x1188_z", Z) && Z.RuntimeDefault == 0);
 }
 
+// The fields the game takes from an object's splines, boxes, trigger shape, crystals and height map name the filler
+// that takes them the same way (the plugin's P4PlacementFillShapes.cpp), so the blobs that held them are written for
+// a new placement. A slot whose part the game writes only when the actor has its component lists that layout first
+// (a writer takes the first layout the actor fills).
+static void ShapeFillers()
+{
+    const std::vector<std::string> Object = {"ObjectAIComponent", "CarrotAIComponent", "CarrotActorComponent",
+        "ActorComponent", "Object"};
+    const auto Ai = [&](const std::string& Class)
+    {
+        Context C;
+        C.ComponentChain = {Class};
+        C.ComponentChain.insert(C.ComponentChain.end(), Object.begin(), Object.end());
+        return C;
+    };
+    const auto Actor = [](const std::vector<std::string>& Chain)
+    {
+        Context C;
+        C.ActorChain = Chain;
+        C.ActorChain.insert(C.ActorChain.end(), {"GActor", "Actor", "Object"});
+        return C;
+    };
+    const auto Filled = [](Slot S, const Context& C, const std::string& Name, const std::string& Kind,
+                            const std::string& Class, const std::string& Tag, int Variant = 0)
+    {
+        Field F;
+        const bool Found = FieldOf(S, C, Name, F, Variant);
+        CHECK(Found);
+        if (!Found)
+            return;
+        CHECK(F.Derived && !F.FromActor);
+        CHECK(F.Fill == Kind);
+        CHECK(F.FillClass == Class && F.FillTag == Tag && F.FillName.empty());
+    };
+    // Splines: the points of the actor's first spline component.
+    const Context Floor = Ai("MoveFloorAIComponent"), Push = Ai("PushGimmickAIComponent");
+    Filled(Slot::AIStatic, Floor, "SplinePoints", "spline_points", "SplineComponent", "", 0);
+    Filled(Slot::AIStatic, Floor, "SplinePoints", "spline_points", "SplineComponent", "", 1);
+    Filled(Slot::AIStatic, Push, "SplinePoints", "spline_points", "SplineComponent", "", 1);
+    const Context Route = Actor({"RouteSplineActor"});
+    Filled(Slot::ActorStatic, Route, "spline_points", "spline_points", "SplineComponent", "");
+    Filled(Slot::ActorStatic, Route, "RouteSplineComponent.AreaList", "component_property", "RouteSplineComponent", "");
+    Filled(Slot::ActorStatic, Route, "RouteSplineComponent.JumpKeyList", "component_property", "RouteSplineComponent", "");
+    const Context Placed = Actor({});
+    Filled(Slot::NarrowSpaceBoxTriggerStatic, Placed, "SplineComponent.SplinePoints", "spline_points", "SplineComponent", "");
+    // Boxes: the portal's box tagged Trigger, the nav mesh trigger's two boxes, the trigger door's search box.
+    Filled(Slot::PortalTriggerStatic, Placed, "Trigger.BoxExtent", "tagged_box_extent", "BoxComponent", "Trigger");
+    Filled(Slot::PortalTriggerStatic, Placed, "Trigger.WorldLocation", "tagged_box_location", "BoxComponent", "Trigger");
+    const Context None;
+    Filled(Slot::NavMeshTriggerStatic, None, "TriggerBox.BoxExtent", "nav_trigger_box_extent", "", "TriggerBox");
+    Filled(Slot::NavMeshTriggerStatic, None, "NavBox.BoxExtent", "nav_trigger_box_extent", "", "NavBox");
+    const Context Door = Ai("TriggerDoorAIComponent");
+    Filled(Slot::AIStatic, Door, "SearchBox", "relative_box", "BoxComponent", "SearchBox");
+    // An ambient sound's trigger shape and its extents; the extents the shape does not set keep their start values.
+    for (const char* Name : {"runtime_0x250_shape", "runtime_0x254_box_extent_x", "runtime_0x258_box_extent_y",
+             "runtime_0x25c_box_extent_z", "runtime_0x260_capsule_half_height", "runtime_0x264_capsule_radius",
+             "runtime_0x268_sphere_radius"})
+        Filled(Slot::CakTriggerStatic, None, Name, "trigger_shape", "", "Trigger");
+    Field Radius;
+    CHECK(FieldOf(Slot::CakTriggerStatic, None, "runtime_0x264_capsule_radius", Radius) &&
+        Radius.RuntimeDefault == UINT64_C(0x41b00000));
+    // A pit's terrain material and a crab's crystals.
+    const Context Pit = Actor({"ExcavationActor"});
+    Filled(Slot::ActorStatic, Pit, "drawer_terrain_material", "terrain_material", "HeightMapDrawerComponent", "");
+    Context Crab;
+    Crab.ComponentChain = {"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent", "CarrotActorComponent",
+        "ActorComponent", "Object"};
+    Filled(Slot::AIDynamic, Crab, "CrystalComponent.CrystalParameters", "component_property", "CrystalComponent", "");
+    // Nothing else holds these blobs back: each is written for a new placement.
+    CHECK(Writable(Slot::AIStatic, Floor, Floor.ComponentChain));
+    CHECK(Writable(Slot::AIStatic, Push, Push.ComponentChain));
+    CHECK(Writable(Slot::AIStatic, Door, Door.ComponentChain));
+    CHECK(Writable(Slot::AIDynamic, Crab, Crab.ComponentChain));
+    CHECK(Writable(Slot::ActorStatic, Route, Route.ActorChain));
+    CHECK(Writable(Slot::ActorStatic, Pit, Pit.ActorChain));
+    CHECK(Writable(Slot::PortalTriggerStatic, Placed, {"PortalTriggerComponent", "CarrotTriggerComponent"}));
+    CHECK(Writable(Slot::NarrowSpaceBoxTriggerStatic, Placed, {"NarrowSpaceTriggerComponent", "CarrotTriggerComponent"}));
+    CHECK(Writable(Slot::NavMeshTriggerStatic, None, {"NavMeshTriggerComponent", "CarrotTriggerComponent"}));
+    CHECK(Writable(Slot::CakTriggerStatic, None, {"CakTriggerComponent", "CarrotTriggerComponent"}));
+    // The layout with the part that needs a component comes first: a moving floor's nav links, a narrow space's
+    // spline, a portal's trigger box.
+    Field Got;
+    CHECK(FieldOf(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", Got, 0));
+    CHECK(!FieldOf(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", Got, 1));
+    CHECK(FieldOf(Slot::PortalTriggerStatic, Placed, "Trigger.BoxExtent", Got, 0));
+    CHECK(!FieldOf(Slot::PortalTriggerStatic, Placed, "Trigger.BoxExtent", Got, 1));
+    CHECK(FieldOf(Slot::NarrowSpaceBoxTriggerStatic, Placed, "SplineComponent.SplinePoints", Got, 0));
+    CHECK(!FieldOf(Slot::NarrowSpaceBoxTriggerStatic, Placed, "SplineComponent.SplinePoints", Got, 1));
+}
+
 int main(int Count, char** Args)
 {
     if (Count == 4 && std::string(Args[1]) == "--layouts")
@@ -1795,6 +1885,7 @@ int main(int Count, char** Args)
     Gimmicks();
     People();
     SpawnersAndTriggers();
+    ShapeFillers();
     if (Failures)
     {
         std::cout << Failures << " failures\n";
