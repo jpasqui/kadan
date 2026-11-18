@@ -1393,6 +1393,33 @@ static void SpawnersAndTriggers()
     CHECK(SlotRoundTrip(Slot::SubAIStatic, Pit, Sub, RowVersion, Bytes, Back) && Bytes.size() > 12 && Bytes[12] == 1);
     Blob Same;
     CHECK(Fresh(Slot::AIStatic, Spawner, RowVersion, Same) && Lines(Same).size() == Lines(Sub).size());
+
+    // The pit's dynamic blob: the object's fields, then how many digs it takes and the run-time count left.
+    Blob Dig;
+    CHECK(Fresh(Slot::AIDynamic, Pit, RowVersion, Dig, 0) && !Path(Dig, "legacy_life"));
+    Path(Dig, "TateanaAIParameter.NumDig")->Bits = 5;
+    Path(Dig, "runtime_0xa40")->Bits = UINT64_C(0xffffffff);
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Pit, Dig, RowVersion, Bytes, Back) && Bytes.size() == 20 && Bytes[12] == 5);
+    CHECK(Fresh(Slot::AIDynamic, Pit, UINT64_C(0x202206279), Dig, 1) && Path(Dig, "legacy_life"));
+
+    // A water box actor: its color, radar map textures and height map resolution after GActor's options; its
+    // dynamic blob ends with the day its water level changes and the ice Pikmin after the change.
+    Context Pond;
+    Pond.ActorChain = {"WATERBOX", "GActor"};
+    Pond.ComponentChain = {"WaterBoxAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Look;
+    CHECK(Fresh(Slot::ActorStatic, Pond, RowVersion, Look) && Path(Look, "WATERBOX.RadarMapWBChangeDistTexture"));
+    *Path(Look, "WATERBOX.RadarMapWBTexture") = NameFromUtf8("/Game/Carrot4/UI/Map/T_ui_Map_Example.T_ui_Map_Example");
+    Path(Look, "WATERBOX.HeightMapResolution")->SetFloat(12.8f);
+    CHECK(SlotRoundTrip(Slot::ActorStatic, Pond, Look, RowVersion, Bytes, Back));
+    CHECK(Fresh(Slot::ActorStatic, Pond, UINT64_C(0x202109069), Look) &&
+        Path(Look, "WATERBOX.RadarMapWBTexture") && !Path(Look, "WATERBOX.RadarMapWBChangeDistTexture"));
+    Blob Level;
+    CHECK(Fresh(Slot::AIDynamic, Pond, RowVersion, Level));
+    Path(Level, "WaterBoxAIParameter.WaterLevel.WaterLevelChangeDay")->Bits = UINT64_C(0xffffffff);
+    CHECK(SlotRoundTrip(Slot::AIDynamic, Pond, Level, RowVersion, Bytes, Back) && Bytes.size() == 20);
+    CHECK(Fresh(Slot::AIDynamic, Pond, UINT64_C(0x202205069), Level) &&
+        !Path(Level, "WaterBoxAIParameter.WaterLevel.AfterMaxIcePikmins"));
 }
 
 static std::vector<std::uint8_t> FromHex(const std::string& Text)

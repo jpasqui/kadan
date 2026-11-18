@@ -957,6 +957,18 @@ inline Table<FieldRow> FieldRows() {
         {"legacy_vector", "vec", '<', UINT64_C(0x20220203a), "", false, true, UINT64_C(0x0), "", "", false, false, "", "", false},
         {"SniffPointParameter.DroppedDirectOptionalPoints", "VecArray", '>', UINT64_C(0x202202039), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
         {"runtime_0x720", "i32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0xa), "", "", false, false, "", "", false},
+        {"WATERBOX.WaterColorVariation", "u8", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"WATERBOX.RadarMapWBTexture", "name", '>', UINT64_C(0x202103249), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"WATERBOX.RadarMapWBChangeDistTexture", "name", '>', UINT64_C(0x202109069), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"WATERBOX.HeightMapResolution", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"WaterBoxAIParameter.WaterLevel.WaterLevelChangeDay", "i32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"WaterBoxAIParameter.WaterLevel.AfterMaxIcePikmins", "i32", '>', UINT64_C(0x202205069), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"TateanaAIParameter.NumDig", "i32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"runtime_0xa40", "i32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0xffffffff), "", "", false, false, "", "", false},
+        {"legacy_life_max", "f32", '<', UINT64_C(0x20220627a), "", false, true, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"legacy_life", "f32", '<', UINT64_C(0x20220627a), "", false, true, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"TateanaAIParameter.NumDig", "i32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false},
+        {"runtime_0xa40", "i32", 0, UINT64_C(0x0), "", false, true, UINT64_C(0xffffffff), "", "", false, false, "", "", false},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }
@@ -1168,6 +1180,10 @@ inline Table<PartRow> PartRows() {
         {"GroupDropManagerComponent", Slot::AIDynamic, true, 0, 847, 3},
         {"NoraSpawnerAIComponent", Slot::AIDynamic, true, 0, 850, 7},
         {"HoneyAIComponent", Slot::AIDynamic, true, 0, 857, 1},
+        {"WATERBOX", Slot::ActorStatic, false, 0, 858, 4},
+        {"WaterBoxAIComponent", Slot::AIDynamic, false, 0, 862, 2},
+        {"TateanaAIComponent", Slot::AIDynamic, false, 0, 864, 2},
+        {"TateanaAIComponent", Slot::AIDynamic, false, 1, 866, 4},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }

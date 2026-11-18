@@ -2133,6 +2133,43 @@
       "fields": [
         {"name": "runtime_0x720", "type": "i32", "derived": true, "runtime_default": "0xa"}
       ]
+    },
+    {
+      "class": "WATERBOX",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "WATERBOX.WaterColorVariation", "type": "u8"},
+        {"name": "WATERBOX.RadarMapWBTexture", "type": "name", "gate": ">0x202103249"},
+        {"name": "WATERBOX.RadarMapWBChangeDistTexture", "type": "name", "gate": ">0x202109069"},
+        {"name": "WATERBOX.HeightMapResolution", "type": "f32"}
+      ]
+    },
+    {
+      "class": "WaterBoxAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "WaterBoxAIParameter.WaterLevel.WaterLevelChangeDay", "type": "i32"},
+        {"name": "WaterBoxAIParameter.WaterLevel.AfterMaxIcePikmins", "type": "i32", "gate": ">0x202205069"}
+      ]
+    },
+    {
+      "class": "TateanaAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "variants": [
+        [
+          {"name": "TateanaAIParameter.NumDig", "type": "i32"},
+          {"name": "runtime_0xa40", "type": "i32", "derived": true, "runtime_default": "0xffffffff"}
+        ],
+        [
+          {"name": "legacy_life_max", "type": "f32", "gate": "<0x20220627a", "derived": true},
+          {"name": "legacy_life", "type": "f32", "gate": "<0x20220627a", "derived": true},
+          {"name": "TateanaAIParameter.NumDig", "type": "i32"},
+          {"name": "runtime_0xa40", "type": "i32", "derived": true, "runtime_default": "0xffffffff"}
+        ]
+      ]
     }
   ]
 }
