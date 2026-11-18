@@ -540,6 +540,15 @@ inline Table<FieldRow> FieldRows() {
         {"SprinklerAIParameter.bUseFlatEffect", "bool", '>', UINT64_C(0x20220124a), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"SprinklerAIParameter.FlatEffectOffsetZ", "f32", '>', UINT64_C(0x20220124a), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
         {"SprinklerAIParameter.bSprinklerOnly", "bool", '>', UINT64_C(0x202208249), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"StringAIParameter.FallHeight", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"StringAIParameter.bFalled", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"PushGimmickAIParameter.WarpPos", "vec", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"PlacedActor.NavLinkForAdjust.Links", "NavLinkPoints", '>', UINT64_C(0x202301139), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"PushGimmickAIParameter.WarpPos", "vec", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"SplinePoints", "SplinePoints", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"runtime_push_0x148", "bool", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"runtime_push_0x14c", "vec", 0, UINT64_C(0x0), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
+        {"legacy_push_vector", "vec", '<', UINT64_C(0x20220414a), "", false, true, UINT64_C(0x0), "", "", false, false, "", ""},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }
@@ -664,6 +673,11 @@ inline Table<PartRow> PartRows() {
         {"RopeFishingAIComponent", Slot::AIStatic, false, 0, 449, 4},
         {"ValveGimmickBaseAIComponent", Slot::AIStatic, false, 0, 453, 1},
         {"SprinklerAIComponent", Slot::AIStatic, false, 0, 454, 6},
+        {"StringAIComponent", Slot::AIStatic, false, 0, 460, 1},
+        {"StringAIComponent", Slot::AIDynamic, false, 0, 461, 1},
+        {"PushGimmickAIComponent", Slot::AIStatic, false, 0, 462, 2},
+        {"PushGimmickAIComponent", Slot::AIStatic, false, 1, 464, 2},
+        {"PushGimmickAIComponent", Slot::AIDynamic, false, 0, 466, 3},
     };
     return {Rows, sizeof(Rows) / sizeof(Rows[0])};
 }

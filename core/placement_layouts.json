@@ -1179,6 +1179,47 @@
         {"name": "SprinklerAIParameter.FlatEffectOffsetZ", "type": "f32", "gate": ">0x20220124a"},
         {"name": "SprinklerAIParameter.bSprinklerOnly", "type": "bool", "gate": ">0x202208249"}
       ]
+    },
+    {
+      "class": "StringAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "StringAIParameter.FallHeight", "type": "f32"}
+      ]
+    },
+    {
+      "class": "StringAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "StringAIParameter.bFalled", "type": "bool"}
+      ]
+    },
+    {
+      "class": "PushGimmickAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "variants": [
+        [
+          {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
+          {"name": "PlacedActor.NavLinkForAdjust.Links", "type": "NavLinkPoints", "gate": ">0x202301139"}
+        ],
+        [
+          {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true}
+        ]
+      ]
+    },
+    {
+      "class": "PushGimmickAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_push_0x148", "type": "bool", "derived": true},
+        {"name": "runtime_push_0x14c", "type": "vec", "derived": true},
+        {"name": "legacy_push_vector", "type": "vec", "gate": "<0x20220414a", "derived": true}
+      ]
     }
   ]
 }

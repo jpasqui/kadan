@@ -735,6 +735,38 @@ static void Gimmicks()
         CHECK(bool(Path(B, "SprinklerAIParameter.bSprinklerOnly")) == (V > UINT64_C(0x202208249)));
         CHECK(RoundTrip(Slot::AIStatic, Sprinkler, B, V, Bytes));
     }
+    // A string: its fall height, and whether it has fallen.
+    const Context String = ObjectChain({"StringAIComponent"});
+    {
+        Blob B, D;
+        CHECK(Fresh(Slot::AIStatic, String, RowVersion, B) && Fresh(Slot::AIDynamic, String, RowVersion, D));
+        Path(B, "StringAIParameter.FallHeight")->SetFloat(150.f);
+        Path(D, "StringAIParameter.bFalled")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIStatic, String, B, RowVersion, Bytes));
+        CHECK(RoundTrip(Slot::AIDynamic, String, D, RowVersion, Bytes) && Bytes.size() >= 4 && Bytes.back() == 0);
+    }
+    // A pushed box: its warp place, then its nav link's points (from 0x20230114a) or, for a box with a spline, the
+    // spline's points; its dynamic blob has a legacy vector before 0x20220414a.
+    const Context Box = ObjectChain({"PushGimmickAIComponent"});
+    CHECK(Layouts(Slot::AIStatic, Box).size() == 2);
+    {
+        Blob Y, X;
+        CHECK(Fresh(Slot::AIStatic, Box, RowVersion, Y, 0) && Fresh(Slot::AIStatic, Box, RowVersion, X, 1));
+        *Path(Y, "PushGimmickAIParameter.WarpPos") = Vector(0.f, 150.f, 30.f);
+        const Type* Of = FieldType(Slot::AIStatic, Box, "PlacedActor.NavLinkForAdjust.Links");
+        Path(Y, "PlacedActor.NavLinkForAdjust.Links")->Items.push_back(EmptyOf(*Of->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, Y, RowVersion, Bytes));
+        const Type* Points = FieldType(Slot::AIStatic, Box, "SplinePoints", 1);
+        Path(X, "SplinePoints")->Items.push_back(EmptyOf(*Points->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, X, RowVersion, Bytes));
+        for (const std::uint64_t V : {UINT64_C(0x202204149), RowVersion})
+        {
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, Box, V, D));
+            CHECK(bool(Path(D, "legacy_push_vector")) == (V < UINT64_C(0x20220414a)));
+            CHECK(RoundTrip(Slot::AIDynamic, Box, D, V, Bytes));
+        }
+    }
 }
 
 static std::vector<std::uint8_t> FromHex(const std::string& Text)
