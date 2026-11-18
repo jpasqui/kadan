@@ -365,6 +365,19 @@
       "name": "SplinePoints",
       "kind": "array",
       "item": "SplinePoint"
+    },
+    {
+      "name": "NamePair",
+      "kind": "struct",
+      "members": [
+        {"name": "Key", "type": "name"},
+        {"name": "Value", "type": "name"}
+      ]
+    },
+    {
+      "name": "NameMap",
+      "kind": "array",
+      "item": "NamePair"
     }
   ],
   "lists": [
@@ -604,6 +617,47 @@
         {"name": "CakMultiplePositionComponent.MultiPositionType", "type": "u8"},
         {"name": "CakMultiplePositionComponent.MultiplePositions", "type": "TransformArray"},
         {"name": "CakMultiplePositionComponent.ShapesCount", "type": "i32", "stop_if_set": true, "count_of": "Shapes"}
+      ]
+    },
+    {
+      "row": "CharacterEdit",
+      "half": "Static",
+      "id": "CharacterEditStatic",
+      "owner": {"classes": ["CharacterEditComponent"]},
+      "fields": [
+        {"name": "CharacterEditComponent.BodyId", "type": "i32"},
+        {"name": "CharacterEditComponent.HairId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceId", "type": "i32"},
+        {"name": "CharacterEditComponent.BodyColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.HairColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.MakeUpColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.FacialExpId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceSkinColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceEyeColorId", "type": "i32"}
+      ]
+    },
+    {
+      "row": "Pikmin",
+      "half": "Static",
+      "id": "PikminStatic",
+      "owner": {"classes": ["PikminComponent"]},
+      "fields": [
+        {"name": "PikminComponent.bPlayerJoined", "type": "bool"}
+      ]
+    },
+    {
+      "row": "CakTrigger",
+      "half": "Static",
+      "id": "CakTriggerStatic",
+      "owner": {"classes": ["CakTriggerComponent"]},
+      "fields": [
+        {"name": "runtime_0x250_shape", "type": "u8", "derived": true},
+        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000"},
+        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000"},
+        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000"}
       ]
     }
   ],
@@ -1458,6 +1512,47 @@
         {"name": "runtime_push_0x148", "type": "bool", "derived": true},
         {"name": "runtime_push_0x14c", "type": "vec", "derived": true},
         {"name": "legacy_push_vector", "type": "vec", "gate": "<0x20220414a", "derived": true}
+      ]
+    },
+    {
+      "class": "CakAmbientSoundActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "CakAmbientSoundActor.AmbientSoundId", "type": "name"},
+        {"name": "CakAmbientSoundActor.AmbientAttachmentRule", "type": "u8"},
+        {"name": "CakAmbientSoundActor.MessageMap", "type": "NameMap", "gate": ">0x20211116a"},
+        {"name": "CakAmbientSoundActor.bIsNotPauseOnSubLevel", "type": "bool", "gate": ">0x20220915a"}
+      ]
+    },
+    {
+      "class": "NPCPLACEACTOR",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "NPCPLACEACTOR.PlaceTag", "type": "name"}
+      ]
+    },
+    {
+      "class": "LookTriggerActor",
+      "slot": "ActorParameter.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "LookTriggerActor.LookTriggerActorTag", "type": "name"},
+        {"name": "LookTriggerActor.Radius", "type": "f32"}
+      ]
+    },
+    {
+      "class": "BridgeFlexibleAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true},
+        {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
+        {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
+        {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
+        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
       ]
     }
   ]
