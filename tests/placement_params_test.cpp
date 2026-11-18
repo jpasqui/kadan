@@ -775,6 +775,224 @@ static void Own()
     CHECK(Taken.size() == 1 && Taken[0] != Ids[7]);
 }
 
+// Gimmicks of the object AI component family: each layout written from authored values and read back, with a gate.
+static Context ObjectChain(std::vector<std::string> Own, const char* Base = "ObjectAIComponent")
+{
+    Context C;
+    C.ComponentChain = std::move(Own);
+    C.ComponentChain.push_back(Base);
+    C.ComponentChain.push_back("CarrotAIComponent");
+    return C;
+}
+static bool RoundTrip(Slot S, const Context& C, const Blob& In, std::uint64_t V, std::vector<std::uint8_t>& Bytes)
+{
+    std::string Error;
+    Blob Back;
+    return Encode(S, C, In, V, Bytes, Error) && Decode(S, C, Bytes, V, Back, Error) && Back.Exact() &&
+        Back.Variant == In.Variant && Lines(In) == Lines(Back);
+}
+static Value Vector(float X, float Y, float Z)
+{
+    Value V;
+    V.Is = Kind::Vec;
+    V.Words[0] = Value::FloatBits(X);
+    V.Words[1] = Value::FloatBits(Y);
+    V.Words[2] = Value::FloatBits(Z);
+    return V;
+}
+static void Gimmicks()
+{
+    std::vector<std::uint8_t> Bytes, Base;
+    // An air wall that opens for actors it searches by CID and tags; the tags and their rule from 0x20221020a.
+    const Context Wall = ObjectChain({"AirWallAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x202210209), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Wall, V, B));
+        *Path(B, "AirWallAIComponent.SearchCID") = NameFromUtf8("Or");
+        Path(B, "AirWallAIComponent.SearchRadius")->SetFloat(100.f);
+        CHECK(bool(Path(B, "AirWallAIComponent.SearchTagList")) == (V > UINT64_C(0x202210209)));
+        if (Value* Tags = Path(B, "AirWallAIComponent.SearchTagList"))
+            Tags->Items = {NameFromUtf8("Or00"), NameFromUtf8("Or01")};
+        CHECK(RoundTrip(Slot::AIStatic, Wall, B, V, Bytes));
+    }
+    // A branch: jump height and link offset; its dynamic blob takes the life component's blob before 0x20220627a.
+    const Context Branch = ObjectChain({"BranchAIComponent"});
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Branch, RowVersion, B));
+        Path(B, "BranchAIParameter.JumpHeight")->SetFloat(35.f);
+        *Path(B, "BranchAIParameter.NavLinkRightOffset") = Vector(0.f, -240.f, 100.f);
+        CHECK(RoundTrip(Slot::AIStatic, Branch, B, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 16 && Bytes[Bytes.size() - 1] == 0x42 && Bytes[Bytes.size() - 13] == 0x42);
+        for (const std::uint64_t V : {UINT64_C(0x202206279), RowVersion})
+        {
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, Branch, V, D));
+            CHECK(bool(Path(D, "legacy_life")) == (V < UINT64_C(0x20220627a)));
+            Path(D, "runtime_branch_0x14")->Bits = 1;
+            CHECK(RoundTrip(Slot::AIDynamic, Branch, D, V, Bytes));
+        }
+    }
+    // Charcoal writes two words no property holds after the object's dynamic blob: 0 and 1.
+    const Context Charcoal = ObjectChain({"CharcoalAIComponent"});
+    {
+        Blob D;
+        CHECK(Fresh(Slot::AIDynamic, Charcoal, RowVersion, D));
+        bool One = false;
+        const auto CharcoalLayouts = Layouts(Slot::AIDynamic, Charcoal);
+        for (const Field& F : CharcoalLayouts[0].Fields)
+            One = One || (F.Name == "deprecated_charcoal_count" && F.Derived && F.RuntimeDefault == 1);
+        CHECK(One);
+        Path(D, "deprecated_charcoal_count")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIDynamic, Charcoal, D, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 8 && Bytes[Bytes.size() - 4] == 1 && Bytes[Bytes.size() - 8] == 0);
+    }
+    // A fire floor's run-time flags; the third from 0x20230325a.
+    const Context Fire = ObjectChain({"FireFloorAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x20230315a), RowVersion})
+    {
+        Blob D;
+        CHECK(Fresh(Slot::AIDynamic, Fire, V, D));
+        CHECK(bool(Path(D, "runtime_firefloor_0x1d")) == (V > UINT64_C(0x202303249)));
+        Path(D, "runtime_firefloor_0x1e")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIDynamic, Fire, D, V, Bytes));
+    }
+    // A dweevil's treasure options after the creature's; its search area from 0x20220422a, its new territory from
+    // 0x20230221a.
+    Context Dweevil;
+    Dweevil.ComponentChain = {"DweevilBaseAIComponent", "TekiAIComponent", "CarrotAIComponent"};
+    for (const std::uint64_t V : {UINT64_C(0x202204219), UINT64_C(0x202302209), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Dweevil, V, B));
+        CHECK(bool(Path(B, "DweevilAIParameter.OtakaraParam.OtakaraSearchArea")) == (V > UINT64_C(0x202204219)));
+        CHECK(bool(Path(B, "DweevilAIParameter.OtakaraParam.NewTerritoryPos")) == (V > UINT64_C(0x202302209)));
+        Path(B, "DweevilAIParameter.OtakaraParam.bInitShoulder")->Bits = 1;
+        if (Value* Area = Path(B, "DweevilAIParameter.OtakaraParam.OtakaraSearchArea"))
+            Area->Find("Radius")->SetFloat(300.f);
+        Path(B, "DweevilAIParameter.EscapeParam.bEnableWallCheck")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIStatic, Dweevil, B, V, Bytes));
+    }
+    // A handle board and a pull nekko: their nav link's points from 0x20230114a.
+    for (const char* Class : {"HandleBoardAIComponent", "PullNekkoAIComponent"})
+    {
+        const Context C = ObjectChain({Class});
+        for (const std::uint64_t V : {UINT64_C(0x202301139), RowVersion})
+        {
+            Blob B;
+            CHECK(Fresh(Slot::AIStatic, C, V, B));
+            Value* Links = Path(B, "PlacedActor.NavLinkForAdjust.Links");
+            CHECK(bool(Links) == (V > UINT64_C(0x202301139)));
+            const Type* Of = FieldType(Slot::AIStatic, C, "PlacedActor.NavLinkForAdjust.Links");
+            if (Links && Of && Of->Item)
+            {
+                Value Link = EmptyOf(*Of->Item, V);
+                *Link.Find("Left") = Vector(0.f, 340.f, -20.f);
+                *Link.Find("Right") = Vector(-27.f, -110.f, -20.f);
+                Links->Items.push_back(Link);
+            }
+            if (Value* Work = Path(B, "HandleBoardAIParameter.WorkNum"))
+                Work->Bits = 20;
+            CHECK(RoundTrip(Slot::AIStatic, C, B, V, Bytes));
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, C, V, D));
+            CHECK(RoundTrip(Slot::AIDynamic, C, D, V, Bytes));
+        }
+    }
+    // A moving floor: its spline's points and rotation, then a nav link's points when the actor has one (the second
+    // layout). A blob is read in the layout it fits.
+    const Context Floor = ObjectChain({"MoveFloorAIComponent"});
+    // Two of its own for each of the object AI base's two (the escape points or none): its own come first.
+    CHECK(Layouts(Slot::AIStatic, Floor).size() == 4);
+    for (int Variant : {0, 1})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Floor, RowVersion, B, Variant));
+        Path(B, "MoveFloorAIParameter.WaitTime")->SetFloat(2.f);
+        const Type* Points = FieldType(Slot::AIStatic, Floor, "SplinePoints");
+        CHECK(Points && Points->Item);
+        if (Points && Points->Item)
+            for (int I = 0; I < 2; ++I)
+            {
+                Value Point = EmptyOf(*Points->Item, RowVersion);
+                Point.Find("InputKey")->SetFloat(float(I));
+                *Point.Find("Scale") = Vector(1.f, 1.f, 1.f);
+                Point.Find("Type")->Bits = 1;
+                Path(B, "SplinePoints")->Items.push_back(Point);
+            }
+        CHECK(bool(Path(B, "PlacedActor.NavLink.Links")) == (Variant == 1));
+        if (Value* Links = Path(B, "PlacedActor.NavLink.Links"))
+        {
+            const Type* Of = FieldType(Slot::AIStatic, Floor, "PlacedActor.NavLink.Links", 1);
+            Links->Items.push_back(EmptyOf(*Of->Item, RowVersion));
+        }
+        CHECK(RoundTrip(Slot::AIStatic, Floor, B, RowVersion, Bytes));
+        CHECK(Bytes.size() == (Variant ? Base.size() + 28 : Bytes.size()));
+        if (!Variant)
+            Base = Bytes;
+    }
+    Blob Old;
+    CHECK(Fresh(Slot::AIStatic, Floor, UINT64_C(0x202208229), Old) && !Path(Old, "MoveFloorAIParameter.WarpOffset"));
+    // A fishing rope's jump and its work count.
+    const Context Rope = ObjectChain({"RopeFishingAIComponent"});
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Rope, RowVersion, B));
+        Path(B, "RopeFishingAIParameter.JumpForceXY")->SetFloat(500.f);
+        Path(B, "RopeFishingAIParameter.ManualWorkNum")->Bits = 5;
+        CHECK(RoundTrip(Slot::AIStatic, Rope, B, RowVersion, Bytes));
+        CHECK(Bytes.size() >= 4 && Bytes[Bytes.size() - 4] == 5);
+    }
+    // A sprinkler: its valve, its decal's place, then its water; the flat effect from 0x20220124b and
+    // bSprinklerOnly from 0x20220825a.
+    const Context Sprinkler = ObjectChain({"SprinklerAIComponent", "ValveGimmickBaseAIComponent"});
+    for (const std::uint64_t V : {UINT64_C(0x20220124a), UINT64_C(0x202208249), RowVersion})
+    {
+        Blob B;
+        CHECK(Fresh(Slot::AIStatic, Sprinkler, V, B));
+        *Path(B, "ValveGimmickBaseAIComponent.ValveID") = NameFromUtf8("valve0");
+        *Path(B, "decal_world_location") = Vector(-518.f, 144.4f, -15.f);
+        Path(B, "SprinklerAIParameter.WaterRange")->SetFloat(225.f);
+        CHECK(bool(Path(B, "SprinklerAIParameter.bUseFlatEffect")) == (V > UINT64_C(0x20220124a)));
+        CHECK(bool(Path(B, "SprinklerAIParameter.bSprinklerOnly")) == (V > UINT64_C(0x202208249)));
+        CHECK(RoundTrip(Slot::AIStatic, Sprinkler, B, V, Bytes));
+    }
+    // A string: its fall height, and whether it has fallen.
+    const Context String = ObjectChain({"StringAIComponent"});
+    {
+        Blob B, D;
+        CHECK(Fresh(Slot::AIStatic, String, RowVersion, B) && Fresh(Slot::AIDynamic, String, RowVersion, D));
+        Path(B, "StringAIParameter.FallHeight")->SetFloat(150.f);
+        Path(D, "StringAIParameter.bFalled")->Bits = 1;
+        CHECK(RoundTrip(Slot::AIStatic, String, B, RowVersion, Bytes));
+        CHECK(RoundTrip(Slot::AIDynamic, String, D, RowVersion, Bytes) && Bytes.size() >= 4 && Bytes.back() == 0);
+    }
+    // A pushed box: its warp place, then its nav link's points (from 0x20230114a) or, for a box with a spline, the
+    // spline's points; its dynamic blob has a legacy vector before 0x20220414a.
+    const Context Box = ObjectChain({"PushGimmickAIComponent"});
+    // Two of its own for each of the object AI base's two (the escape points or none): its own come first.
+    CHECK(Layouts(Slot::AIStatic, Box).size() == 4);
+    {
+        Blob Y, X;
+        CHECK(Fresh(Slot::AIStatic, Box, RowVersion, Y, 0) && Fresh(Slot::AIStatic, Box, RowVersion, X, 1));
+        *Path(Y, "PushGimmickAIParameter.WarpPos") = Vector(0.f, 150.f, 30.f);
+        const Type* Of = FieldType(Slot::AIStatic, Box, "PlacedActor.NavLinkForAdjust.Links");
+        Path(Y, "PlacedActor.NavLinkForAdjust.Links")->Items.push_back(EmptyOf(*Of->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, Y, RowVersion, Bytes));
+        const Type* Points = FieldType(Slot::AIStatic, Box, "SplinePoints", 1);
+        Path(X, "SplinePoints")->Items.push_back(EmptyOf(*Points->Item, RowVersion));
+        CHECK(RoundTrip(Slot::AIStatic, Box, X, RowVersion, Bytes));
+        for (const std::uint64_t V : {UINT64_C(0x202204149), RowVersion})
+        {
+            Blob D;
+            CHECK(Fresh(Slot::AIDynamic, Box, V, D));
+            CHECK(bool(Path(D, "legacy_push_vector")) == (V < UINT64_C(0x20220414a)));
+            CHECK(RoundTrip(Slot::AIDynamic, Box, D, V, Bytes));
+        }
+    }
+}
+
 static std::vector<std::uint8_t> FromHex(const std::string& Text)
 {
     std::vector<std::uint8_t> Out;
@@ -956,6 +1174,7 @@ int main(int Count, char** Args)
         return DescribeLayouts(Args[2], Args[3]);
     Own();
     CompleteOwners();
+    Gimmicks();
     if (Failures)
     {
         std::cout << Failures << " failures\n";
