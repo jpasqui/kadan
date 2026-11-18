@@ -96,17 +96,16 @@ bool FileIdentity(const FString& File, FString& Id, FString& Written)
     return false;
 #endif
 }
+// A file's read-only mark is not part of its custody. Kadan takes off the mark an earlier version left on a game
+// asset's file, and a "readonly" field an older receipt holds is not compared.
 bool GuardFile(FAutomationTestBase& Test, const FString& Path, const TSharedPtr<FJsonObject>& Row)
 {
     FString Id, Written, AfterId, AfterWritten;
-    bool ReadOnly = false;
-    const bool HasReadOnly = Row.IsValid() && Row->TryGetBoolField(TEXT("readonly"), ReadOnly);
     return Test.TestTrue(*FString::Printf(TEXT("Proof file ID/hash/mtime remains exact: %s"), *Path),
         Row.IsValid() && FileIdentity(Path, Id, Written) &&
             P4ExactNativeString(Id, Row->GetStringField(TEXT("file_id"))) &&
             P4ExactNativeString(Written, Row->GetStringField(TEXT("mtime_filetime"))) &&
             Hash(Path, Row->GetStringField(TEXT("sha256"))) &&
-            (!HasReadOnly || IFileManager::Get().IsReadOnly(*Path) == ReadOnly) &&
             FileIdentity(Path, AfterId, AfterWritten) && P4ExactNativeString(Id, AfterId) &&
             P4ExactNativeString(Written, AfterWritten));
 }
@@ -127,7 +126,6 @@ TSharedRef<FJsonObject> SavedFiles(FAutomationTestBase& Test, const FString& Hea
         Row->SetStringField(TEXT("file_id"), Id);
         Row->SetStringField(TEXT("mtime_filetime"), Written);
         Row->SetStringField(TEXT("sha256"), Sha);
-        Row->SetBoolField(TEXT("readonly"), IFileManager::Get().IsReadOnly(*File));
         Files->SetObjectField(File, Row);
     }
     return Files;
@@ -146,13 +144,6 @@ bool GuardEnvSaved(FAutomationTestBase& Test, const FString& Header, const TShar
     if (!GuardSaved(Test, Files) ||
         !Test.TestTrue(TEXT("Saved Env custody has at most four exact companion files"), Files->Values.Num() <= 4))
         return false;
-    for (const auto& Pair : Files->Values)
-    {
-        bool ReadOnly = false;
-        if (!Test.TestTrue(TEXT("Saved Env custody explicitly includes readonly flags"),
-                Pair.Value->AsObject()->TryGetBoolField(TEXT("readonly"), ReadOnly)))
-            return false;
-    }
     int32 Found = 0;
     for (const TCHAR* Extension : {TEXT("uasset"), TEXT("uexp"), TEXT("ubulk"), TEXT("uptnl")})
     {
