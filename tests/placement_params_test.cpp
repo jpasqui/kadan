@@ -1336,6 +1336,15 @@ static void CompleteOwners()
     CHECK(!Complete(Slot::AIStatic, {"NotAGameAIComponent", "NoraSpawnerAIComponent", "CarrotAIComponent"}));
     CHECK(!Complete(Slot::LifeDynamic, {"NoraSpawnerAIComponent", "CarrotAIComponent"}));
     CHECK(!Complete(Slot::AIStatic, {}));
+    // A complete blob is written for a new placement only when no field of it is one the game takes from the actor's
+    // components: a geyser's nav links are, a sprout spawner has none.
+    Context Nora, Geyser;
+    Nora.ComponentChain = {"NoraSpawnerAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    CHECK(Writable(Slot::AIStatic, Nora, Nora.ComponentChain));
+    CHECK(Complete(Slot::AIStatic, Geyser.ComponentChain) && !Writable(Slot::AIStatic, Geyser, Geyser.ComponentChain));
+    Field Links;
+    CHECK(FieldOf(Slot::AIStatic, Geyser, "NavLinkComponent.Links", Links) && Links.FromActor && Links.Derived);
     // Every listed slot of an owner that is not of a chain has its own layout.
     const auto Rows = Generated::CompleteRows();
     CHECK(Rows.Count > 0);
