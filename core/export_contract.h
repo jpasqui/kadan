@@ -78,7 +78,19 @@ inline bool DerivedNames(const Descriptor& Mod, Names& Result, std::string& Erro
     for (char C : Mod.Id) Slug += C == '.' ? '_' : C;
     // A live preview's mod has its packages in Kadan's preview folder, every other mod in its own folder.
     const std::string Folder = PreviewModId(Mod.Id) ? P4_PREVIEW_FOLDER "/" : P4_MODS_FOLDER "/";
-    Result = Names{Folder + Slug, "kadan_" + Slug}; return true;
+    // The container is the ID too, so a mod's .pak reads as its own beside other mods' (99_P.pak).
+    Result = Names{Folder + Slug, Slug}; return true;
+}
+// The name Kadan 0.3.1 gave a mod's container. An earlier export with it is still this mod's own to replace.
+inline std::string LegacyContainer(const Names& Naming) { return "kadan_" + Naming.Container; }
+// The name of a mod's shader library, ShaderArchive-<name>-<format>.ushaderbytecode in its .pak. Tsuchi takes only
+// letters, digits and underscores there and gives the engine one library per name, so the name is a code made from
+// the ID rather than the ID, which may have dots and hyphens.
+inline std::string ShaderLibraryName(const Descriptor& Mod) {
+    std::uint64_t Hash = UINT64_C(14695981039346656037);
+    for (unsigned char C : Mod.Id) Hash = (Hash ^ C) * UINT64_C(1099511628211);
+    std::ostringstream Hex; Hex.imbue(std::locale::classic()); Hex << std::hex << std::setw(16) << std::setfill('0') << Hash;
+    return "kadan_" + Hex.str();
 }
 inline bool Plain(const std::string& Text) {
     if (Text.empty() || Text.size() > 127) return false;
@@ -336,5 +348,13 @@ inline bool AllowedFile(const Descriptor& Mod, const std::string& Relative, std:
     for (const char* Extension : {".pak", ".ucas", ".utoc"})
         if (Relative == Own + Naming.Container + "_P" + Extension) return true;
     Error = "The mod carries an unexpected file"; return false;
+}
+// A file of this mod's earlier export that a new export may replace: one it would make, or its container under the
+// name Kadan 0.3.1 gave it.
+inline bool AllowedPriorFile(const Descriptor& Mod, const std::string& Relative, std::string& Error) {
+    Names Naming; if (!DerivedNames(Mod, Naming, Error)) return false;
+    for (const char* Extension : {".pak", ".ucas", ".utoc"})
+        if (Relative == "romfs/tsuchi/mods/" + Mod.Id + '/' + LegacyContainer(Naming) + "_P" + Extension) return true;
+    return AllowedFile(Mod, Relative, Error);
 }
 } } // namespace P4MapKit::Export

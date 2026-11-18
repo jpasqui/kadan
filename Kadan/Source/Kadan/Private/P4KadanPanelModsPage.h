@@ -48,6 +48,8 @@ class FKadanModsPage
     SKadanPanel &Host;
     FString SuggestedEdenOutput;
     FString ExportSummary, ExportDetails, ExportIssueNext;
+    // Why the last export stopped, shown in a window once the progress window has closed. Empty when it did not.
+    FString ExportStoppedReport;
     TMap<FString, FString> IssueMapCache;
     bool IdentityIssue = false, MapIssue = false;
     FString ModId, ModName, ModVersion = TEXT("1.0.0"), SelectionFolder;
@@ -125,6 +127,8 @@ class FKadanModsPage
     void ReviewExport(bool PublishReadyStatus = true);
 
     void ExportMod();
+    // Shows why the last export stopped, after its progress window has closed.
+    void ShowExportStopped();
 
     bool HasUnsavedModIdentity() const;
 

@@ -1,6 +1,7 @@
 #include "P4CreatorSurfaceAdvice.h"
 #include "P4CreatorSource.h"
 #include "Engine/StaticMesh.h"
+#include "Factories/FbxStaticMeshImportData.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "StaticMeshAttributes.h"
 #include "StaticMeshResources.h"
@@ -24,6 +25,58 @@ FString P4MeshCollisionExplanation(const UStaticMesh* Mesh)
               "This mesh uses its own triangles for collision. Complex Collision Mesh can stay empty and Customized Collision can stay off.");
 }
 
+namespace
+{
+bool ReadsVertexColors(UMaterialInterface* Interface)
+{
+    UMaterial* Material = Interface ? Interface->GetMaterial() : nullptr;
+    if (!Material)
+        return false;
+    FStaticParameterSet Parameters;
+    if (UMaterialInstance* Instance = Cast<UMaterialInstance>(Interface))
+        Instance->GetStaticParameterValues(Parameters);
+    TArray<UMaterialExpression*> Expressions;
+    if (!Material->GetAllReferencedExpressions(Expressions, &Parameters))
+        return false;
+    return Expressions.ContainsByPredicate(
+        [](const UMaterialExpression* Expression) { return Expression && Expression->IsA<UMaterialExpressionVertexColor>(); });
+}
+}
+
+FString P4IgnoredVertexColorsNote(UStaticMesh* Mesh)
+{
+    if (!IsInGameThread() || !IsValid(Mesh) || !P4IsCreatorAsset(Mesh) || Mesh->GetNumSourceModels() < 1)
+        return FString();
+    const auto* Import = Cast<UFbxStaticMeshImportData>(Mesh->AssetImportData);
+    if (!Import || Import->VertexColorImportOption == EVertexColorImportOption::Replace)
+        return FString();
+    const FMeshDescription* Description = Mesh->GetMeshDescription(0);
+    if (!Description || !Description->VertexInstances().Num())
+        return FString();
+    // Colors that differ came from an earlier import or from mesh painting in Unreal: they are the creator's own.
+    const auto Colors = FStaticMeshConstAttributes(*Description).GetVertexInstanceColors();
+    bool Started = false;
+    FVector4 First;
+    for (const FVertexInstanceID Corner : Description->VertexInstances().GetElementIDs())
+    {
+        const FVector4 Color = Colors[Corner];
+        if (!Started)
+            First = Color;
+        else if (!Color.Equals(First, 1.e-3f))
+            return FString();
+        Started = true;
+    }
+    for (const FStaticMaterial& Slot : Mesh->StaticMaterials)
+        if (ReadsVertexColors(Slot.MaterialInterface))
+            return FString::Printf(
+                TEXT(
+                    "%s was imported with Vertex Color Import Option set to %s, so it has none of the vertex colors painted in its file and every vertex has the same color. Its material %s reads vertex colors as masks, for blends and fades. Open the mesh, set Vertex Color Import Option to Replace in its Import Settings and reimport it."),
+                *Mesh->GetName(),
+                Import->VertexColorImportOption == EVertexColorImportOption::Ignore ? TEXT("Ignore") : TEXT("Override"),
+                *Slot.MaterialInterface->GetName());
+    return FString();
+}
+
 TArray<FP4CreatorSurfaceAdvice> P4InspectCreatorSurface(UStaticMesh* Mesh)
 {
     TArray<FP4CreatorSurfaceAdvice> Out;
@@ -32,6 +85,14 @@ TArray<FP4CreatorSurfaceAdvice> P4InspectCreatorSurface(UStaticMesh* Mesh)
     const FMeshDescription* Description = Mesh->GetMeshDescription(0);
     if (!Description)
         return Out;
+    const FString Ignored = P4IgnoredVertexColorsNote(Mesh);
+    if (!Ignored.IsEmpty())
+    {
+        FP4CreatorSurfaceAdvice Row;
+        Row.Code = TEXT("mesh-vertex-colors-not-imported");
+        Row.Message = Ignored;
+        Out.Add(MoveTemp(Row));
+    }
     const FStaticMeshConstAttributes Attributes(*Description);
     const auto Positions = Attributes.GetVertexPositions();
     const auto Normals = Attributes.GetVertexInstanceNormals();

@@ -108,9 +108,13 @@ bool RunOnce(const FString& Executable, const TArray<FString>& Args, double Time
     {
         P4PulseExportProgress();
         Drain();
-        if (!Okay || FPlatformTime::Seconds() >= Deadline)
+        // A cancel stops the tool: the export's work folder is reset the next time anyway.
+        const bool Canceled = Okay && P4ExportCancelRequested();
+        if (!Okay || Canceled || FPlatformTime::Seconds() >= Deadline)
         {
-            if (Okay)
+            if (Canceled)
+                Error = P4ExportCanceledMessage();
+            else if (Okay)
                 Error = TEXT("Container tool timed out");
             Okay = false;
             FPlatformProcess::TerminateProc(Process, true);

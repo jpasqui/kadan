@@ -356,11 +356,19 @@ void FP4KadanImportRun::ReportWorldImport(FAssetImport& Item, const FP4OriginalL
         for (const FString& Name : Imported.UneditableOriginalActors)
             Omitted.Add(MakeShared<FJsonValueString>(Name));
         Reply->SetArrayField(TEXT("uneditable_original_actors"), Omitted);
-        if (Imported.IsValid())
-            Warnings.AddUnique(FString::Printf(
-                TEXT("%s keeps %d original actors in the game, so they cannot be edited here. ") TEXT(
-                    "They need a package that did not import or a class Kadan cannot rebuild yet. The import report names the reason."),
-                *Asset->Package, Imported.UneditableOriginalActors.Num()));
+        if (Imported.IsValid() && Imported.UneditableOriginalActors.Num())
+        {
+            // Said first in the import's notes: these objects are in the game but not in the editor's level.
+            TArray<FString> Some(Imported.UneditableOriginalActors.GetData(),
+                FMath::Min(Imported.UneditableOriginalActors.Num(), 4));
+            const FString Reason = Imported.ClassProblems.Num() ? Imported.ClassProblems[0] : Imported.GameBackedReason;
+            Warnings.Insert(FString::Printf(TEXT("%s%s: %d of the game's objects stay in the game and are not shown in "
+                                                 "the editor, such as %s. They are still there after you export.%s"),
+                                P4KadanNotInEditorPrefix, *FPackageName::GetShortName(Asset->Package),
+                                Imported.UneditableOriginalActors.Num(), *FString::Join(Some, TEXT(", ")),
+                                Reason.IsEmpty() ? TEXT("") : *(TEXT(" Why: ") + Reason)),
+                0);
+        }
     }
     if (Imported.DifferencesKnown)
         Reply->SetNumberField(TEXT("differences"), Imported.Differences);

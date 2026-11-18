@@ -3,6 +3,46 @@
 #include "P4KadanPathPicker.h"
 #include "DesktopPlatformModule.h"
 
+bool P4KadanSearchMatches(const FString& Package, const FString& Search)
+{
+    const FString Text = Search.TrimStartAndEnd();
+    if (Text.IsEmpty())
+        return true;
+    int32 Wild = INDEX_NONE;
+    if (!Text.FindChar(TCHAR('*'), Wild) && !Text.FindChar(TCHAR('?'), Wild))
+        return Package.Contains(Text);
+    // Anywhere in the path, as a search without wildcards. Unreal's own wildcard match lets ? stand for no character
+    // too and tries every way to split the path between several *, so this one walks the path once: on a mismatch it
+    // goes back only to the last *, which then takes one more character.
+    const FString Pattern = TEXT("*") + Text + TEXT("*");
+    const int32 PathLength = Package.Len(), PatternLength = Pattern.Len();
+    int32 At = 0, In = 0, Star = INDEX_NONE, StarAt = 0;
+    while (At < PathLength)
+    {
+        if (In < PatternLength && Pattern[In] == TCHAR('*'))
+        {
+            Star = In++;
+            StarAt = At;
+        }
+        else if (In < PatternLength &&
+            (Pattern[In] == TCHAR('?') || FChar::ToUpper(Pattern[In]) == FChar::ToUpper(Package[At])))
+        {
+            ++In;
+            ++At;
+        }
+        else if (Star != INDEX_NONE)
+        {
+            In = Star + 1;
+            At = ++StarAt;
+        }
+        else
+            return false;
+    }
+    while (In < PatternLength && Pattern[In] == TCHAR('*'))
+        ++In;
+    return In == PatternLength;
+}
+
 namespace P4KadanEditorPrivate
 {
 
@@ -126,17 +166,22 @@ TSharedRef<SWidget> FKadanImportPage::ProjectSetupStrip()
                       .Text_Lambda(
                           [this]()
                           {
+                              // When setup cannot help (P4Stubs missing or not loaded), the reason is the message.
                               return Label(RestartRequired
                                       ? TEXT("Setup is saved. Restart Unreal Editor to finish it. The first start after "
                                              "setup may take a while: Unreal compiles thousands of shaders for the "
                                              "game's renderer, and the loading screen stays near 39% until they're done.")
+                                      : !P4KadanSetupCanFinish() ? ProjectSetupReason
                                       : TEXT("This project needs the game's settings before importing. Setup replaces "
-                                             "its collision and navigation settings and restarts Unreal. The first "
+                                             "its collision, navigation and renderer settings and its world settings "
+                                             "class, keeps a copy of the earlier DefaultEngine.ini, and restarts "
+                                             "Unreal. The first "
                                              "start after setup may take a while: Unreal compiles thousands of "
                                              "shaders for the game's renderer."));
                           })] +
              SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                 [SNew(SBox).Visibility_Lambda([this]() { return RestartRequired ? EVisibility::Collapsed : EVisibility::Visible; })
+                 [SNew(SBox).Visibility_Lambda([this]()
+                     { return RestartRequired || !P4KadanSetupCanFinish() ? EVisibility::Collapsed : EVisibility::Visible; })
                          [Host.Action(
                              TEXT("Set up project"),
                              [this]()
@@ -164,7 +209,7 @@ TSharedRef<SWidget> FKadanImportPage::FilterRow()
                 .Style(FEditorStyle::Get(), "SpecialEditableTextBox")
                 .Tag(TEXT("KadanSearch"))
                 .Text_Lambda([this]() { return Label(Search); })
-                .HintText(Label(TEXT("Search")))
+                .HintText(Label(TEXT("Search (* matches any text)")))
                 .OnTextChanged_Lambda(
                     [this](const FText& Text)
                     {
@@ -406,7 +451,7 @@ void FKadanImportPage::Filter()
         Folder.LeftChopInline(1, false);
     for (const auto& Asset : Assets)
     {
-        if (!Search.IsEmpty() && !Asset->Package.Contains(Search))
+        if (!P4KadanSearchMatches(Asset->Package, Search))
             continue;
         if (!Folder.IsEmpty() && Asset->Package != Folder && !Asset->Package.StartsWith(Folder + TEXT("/")))
             continue;
