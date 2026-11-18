@@ -261,7 +261,7 @@ static void Own()
             Got.ComponentTransform);
         CHECK(FieldOf(Slot::ActorStatic, None, "GActor.DemoBindName", Got) && !Got.Derived && Got.CountOf.empty());
         Slot Found = Slot::ActorStatic;
-        CHECK(Slots().size() == 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
+        CHECK(Slots().size() >= 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
             !SlotOf("Hash", true, Found));
         // The object each blob is read from, and how drops are numbered.
         for (const auto& One : Slots())
@@ -709,11 +709,96 @@ static int DescribeLayouts(const char* ChainsFile, const char* OutFile)
     return 0;
 }
 
+// Characters, Pikmin, ambient sounds and the actors with options of their own after GActor's.
+static void People()
+{
+    const Context None;
+    std::vector<std::uint8_t> Bytes, Again;
+    std::string Error;
+    Blob Back;
+    // A character's looks: nine ids, the same at every version.
+    Slot S = Slot::ActorStatic;
+    CHECK(SlotOf("CharacterEdit", true, S) && S == Slot::CharacterEditStatic);
+    Blob Look;
+    CHECK(Fresh(Slot::CharacterEditStatic, None, RowVersion, Look) && Look.Root.Members.size() == 9);
+    Path(Look, "CharacterEditComponent.BodyId")->Bits = 3;
+    Path(Look, "CharacterEditComponent.FaceEyeColorId")->Bits = 7;
+    CHECK(Encode(Slot::CharacterEditStatic, None, Look, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 36 && Bytes[0] == 3 && Bytes[32] == 7);
+    CHECK(Decode(Slot::CharacterEditStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Look) == Lines(Back));
+    Blob OldLook;
+    CHECK(Fresh(Slot::CharacterEditStatic, None, UINT64_C(0x202101019), OldLook) && OldLook.Root.Members.size() == 9);
+    // A Pikmin: whether it has joined the player, one bool word.
+    Blob Sprout;
+    CHECK(Fresh(Slot::PikminStatic, None, RowVersion, Sprout));
+    Path(Sprout, "PikminComponent.bPlayerJoined")->Bits = 1;
+    CHECK(Encode(Slot::PikminStatic, None, Sprout, RowVersion, Bytes, Error));
+    CHECK((Bytes == std::vector<std::uint8_t>{1, 0, 0, 0}));
+    CHECK(Decode(Slot::PikminStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Sprout) == Lines(Back));
+    // A sound trigger's shape: no property holds it; the game starts it as no shape with the default extents.
+    Field Got;
+    CHECK(FieldOf(Slot::CakTriggerStatic, None, "runtime_0x260_capsule_half_height", Got) && Got.Derived &&
+        Got.RuntimeDefault == UINT64_C(0x42300000));
+    Blob Shape;
+    CHECK(Fresh(Slot::CakTriggerStatic, None, RowVersion, Shape) && Shape.Root.Members.size() == 7);
+    for (const char* Name : {"runtime_0x254_box_extent_x", "runtime_0x268_sphere_radius"})
+        Path(Shape, Name)->SetFloat(40.f);
+    CHECK(Encode(Slot::CakTriggerStatic, None, Shape, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() == 25 && Bytes[0] == 0);
+    CHECK(Decode(Slot::CakTriggerStatic, None, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Shape) == Lines(Back));
+    // An ambient sound actor: its sound, how it attaches, its messages and pausing, after GActor's options.
+    Context Ambient;
+    Ambient.ActorChain = {"CakAmbientSoundActor", "GActor", "Actor", "Object"};
+    Context Plain;
+    Plain.ActorChain = {"GActor", "Actor", "Object"};
+    Blob Sound, Actor;
+    CHECK(Fresh(Slot::ActorStatic, Ambient, RowVersion, Sound) && Fresh(Slot::ActorStatic, Plain, RowVersion, Actor));
+    CHECK(Sound.Root.Members.size() == Actor.Root.Members.size() + 4);
+    *Path(Sound, "CakAmbientSoundActor.AmbientSoundId") = NameFromUtf8("Amb_Cave");
+    Path(Sound, "CakAmbientSoundActor.AmbientAttachmentRule")->Bits = 1;
+    Path(Sound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel")->Bits = 1;
+    const Type* Map = FieldType(Slot::ActorStatic, Ambient, "CakAmbientSoundActor.MessageMap");
+    CHECK(Map && Map->Is == Kind::Array && Map->Item);
+    if (Map && Map->Item)
+    {
+        Value Pair = EmptyOf(*Map->Item, RowVersion);
+        *Pair.Find("Key") = NameFromUtf8("Start");
+        *Pair.Find("Value") = NameFromUtf8("Play");
+        Path(Sound, "CakAmbientSoundActor.MessageMap")->Items.push_back(Pair);
+    }
+    CHECK(Encode(Slot::ActorStatic, Ambient, Sound, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 4 && Bytes[Bytes.size() - 4] == 1);
+    CHECK(Decode(Slot::ActorStatic, Ambient, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Sound) == Lines(Back));
+    Blob OldSound;
+    CHECK(Fresh(Slot::ActorStatic, Ambient, UINT64_C(0x20211116a), OldSound) &&
+        Path(OldSound, "CakAmbientSoundActor.AmbientAttachmentRule") &&
+        !Path(OldSound, "CakAmbientSoundActor.MessageMap") &&
+        !Path(OldSound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel"));
+    CHECK(Fresh(Slot::ActorStatic, Ambient, UINT64_C(0x20220915a), OldSound) &&
+        Path(OldSound, "CakAmbientSoundActor.MessageMap") &&
+        !Path(OldSound, "CakAmbientSoundActor.bIsNotPauseOnSubLevel"));
+    // An NPC's place: its tag after GActor's options.
+    Context Place;
+    Place.ActorChain = {"NPCPLACEACTOR", "GActor", "Actor", "Object"};
+    Blob Spot;
+    CHECK(Fresh(Slot::ActorStatic, Place, RowVersion, Spot));
+    *Path(Spot, "NPCPLACEACTOR.PlaceTag") = NameFromUtf8("LeafPlace");
+    CHECK(Encode(Slot::ActorStatic, Place, Spot, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 14 && std::string(Bytes.end() - 10, Bytes.end() - 1) == "LeafPlace" && Bytes[Bytes.size() - 14] == 10);
+    CHECK(Decode(Slot::ActorStatic, Place, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Spot) == Lines(Back));
+}
+
 int main(int Count, char** Args)
 {
     if (Count == 4 && std::string(Args[1]) == "--layouts")
         return DescribeLayouts(Args[2], Args[3]);
     Own();
+    People();
     if (Failures)
     {
         std::cout << Failures << " failures\n";
