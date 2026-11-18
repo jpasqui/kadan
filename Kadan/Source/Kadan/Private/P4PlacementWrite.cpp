@@ -521,10 +521,11 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
             }
             if (Options(Slot.S, Context, Placed) == Options(Slot.S, Context, Default))
                 continue;
-            if (!Complete(Owner, Slot))
+            if (!Writable(Owner, Slot, Context))
             {
                 // Kadan knows only a part of this blob for the owner's class, and the game would read past a short
-                // one: the game keeps the class's values, and the creator hears of the options set on it.
+                // one, or the blob holds what the game takes from the actor's components and Kadan does not fill yet:
+                // the game keeps the class's values, and the creator hears of the options set on it.
                 TArray<FString> Changed;
                 for (const auto& Member : Placed.Root.Members)
                 {

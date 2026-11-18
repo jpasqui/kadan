@@ -108,11 +108,12 @@ UActorComponent* ChainComponentOf(AActor* Actor)
     return nullptr;
 }
 
-// Whether Kadan knows the whole blob of a slot for its owner: the layout data lists the owner's most derived
-// native class for the slot, as the game's placement lists were checked.
-bool Complete(UObject* Owner, const P::SlotName& Slot)
+// Whether Kadan can write the whole blob of a slot for its owner: the layout data lists the owner's most derived
+// native class for the slot, as the game's placement lists were checked, and no field of it is one the game takes
+// from the actor that Kadan does not fill.
+bool Writable(UObject* Owner, const P::SlotName& Slot, const P::Context& Context)
 {
-    return Owner && P::Complete(Slot.S, NativeChain(Owner->GetClass()));
+    return Owner && P::Writable(Slot.S, Context, NativeChain(Owner->GetClass()));
 }
 
 // A field the creator's values do not set: one no property holds, or a count of the actor's.

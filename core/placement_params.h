@@ -69,6 +69,9 @@ struct Field
     bool Drops = false; // an array of drops, each with a generator number (UniqueId)
     std::string DropKey; // drops that are generators of their own: the word of their numbers' keys
     std::string DropList; // the sibling that lists those numbers
+    // The game writes the actor's own value (a component's place, its nav links, a spline's points), which a writer
+    // does not fill yet: a blob with such a field is not written for a new placement.
+    bool FromActor = false;
 };
 struct Type
 {
@@ -279,6 +282,7 @@ struct Tables
             One.Drops = Row.Drops;
             One.DropKey = Row.DropKey;
             One.DropList = Row.DropList;
+            One.FromActor = Row.FromActor;
             Out.push_back(std::move(One));
         }
         return Out;
@@ -802,6 +806,38 @@ inline bool Complete(Slot S, const std::vector<std::string>& OwnerChain)
             return true;
     }
     return false;
+}
+
+// Whether a writer can write a slot's whole blob for a new placement of an actor in context C, its owner of the
+// native classes OwnerChain: the slot is complete for the owner (above), and no layout of it holds a field the game
+// takes from the actor that a writer does not fill (FromActor), searched through its types.
+inline bool Writable(Slot S, const Context& C, const std::vector<std::string>& OwnerChain)
+{
+    if (!Complete(S, OwnerChain))
+        return false;
+    std::vector<const Type*> Seen;
+    struct Search
+    {
+        std::vector<const Type*>& Seen;
+        bool In(const std::vector<Field>& Fields)
+        {
+            for (const Field& One : Fields)
+                if (One.FromActor || (One.Of && In(*One.Of)))
+                    return true;
+            return false;
+        }
+        bool In(const Type& T)
+        {
+            if (std::find(Seen.begin(), Seen.end(), &T) != Seen.end())
+                return false;
+            Seen.push_back(&T);
+            return In(T.Members) || (T.Item && In(*T.Item));
+        }
+    } Find{Seen};
+    for (const Layout& One : Layouts(S, C))
+        if (Find.In(One.Fields))
+            return false;
+    return true;
 }
 
 // The slot a row's blob name and half are, or false when the blob is not one of these.

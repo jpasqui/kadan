@@ -18,7 +18,9 @@
     "classes, else the first component of the first class that has one, not of except. An owner with no classes is the actor.",
     "complete: per slot, the most derived native classes of owners for which the slot's layouts are the whole blob: every",
     "blob of the slot of such owners in the game's placement lists read and wrote back byte for byte. Kadan writes a new",
-    "placement's blob only for these. tools/placement_census.cpp checks the game's lists and prints them."
+    "placement's blob only for these. tools/placement_census.cpp checks the game's lists and prints them.",
+    "from_actor: the game writes the actor's own value there (a component's place, its nav links, a spline's points),",
+    "which a writer does not fill yet; a new placement's blob with such a field is not written either."
   ],
   "complete": [
     {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "MoveFloorActor", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "StringActor", "VarGateBaseActor", "WaterBoxNavActor", "YBoxActor"]},
@@ -651,7 +653,7 @@
       "id": "CakTriggerStatic",
       "owner": {"classes": ["CakTriggerComponent"]},
       "fields": [
-        {"name": "runtime_0x250_shape", "type": "u8", "derived": true},
+        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "from_actor": true},
         {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
         {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
         {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
@@ -1168,8 +1170,8 @@
       "fields": [
         {"name": "FenceFallAIParameter.SwitchID", "type": "name"},
         {"name": "FenceFallAIParameter.bEnableLockOtakara", "type": "bool"},
-        {"name": "AkComponentLocation", "type": "vec", "derived": true},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true}
+        {"name": "AkComponentLocation", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
       ]
     },
     {
@@ -1195,7 +1197,7 @@
       "fields": [
         {"name": "GeyserAIParameter.bSetCrystal", "type": "bool"},
         {"name": "GeyserAIParameter.StopQueenDistXY", "type": "f32"},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true}
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
       ]
     },
     {
@@ -1213,11 +1215,11 @@
       "base": "inherit",
       "fields": [
         {"name": "ConveyorNavAIParameter.SwitchID", "type": "name"},
-        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true},
-        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true},
-        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true},
-        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true},
-        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true}
+        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
+        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
+        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "from_actor": true},
+        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "from_actor": true},
+        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "from_actor": true}
       ]
     },
     {
@@ -1278,7 +1280,7 @@
         {"name": "TriggerDoorAIParameter.OpenWaitTime", "type": "f32"},
         {"name": "TriggerDoorAIParameter.bEnableAirWall", "type": "bool", "gate": ">0x202112239"},
         {"name": "TriggerDoorAIParameter.bNoCollisionAirWall", "type": "bool", "gate": ">0x202301239"},
-        {"name": "SearchBox", "type": "BoxCollision", "derived": true},
+        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "from_actor": true},
         {"name": "TriggerDoorAIParameter.CIDList", "type": "NameArray"}
       ]
     },
@@ -1410,7 +1412,7 @@
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
           {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
         ],
         [
@@ -1418,7 +1420,7 @@
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
           {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
           {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
         ]
@@ -1465,7 +1467,7 @@
       "slot": "AI.Static",
       "base": "inherit",
       "fields": [
-        {"name": "decal_world_location", "type": "vec", "derived": true},
+        {"name": "decal_world_location", "type": "vec", "derived": true, "from_actor": true},
         {"name": "SprinklerAIParameter.WaterRange", "type": "f32"},
         {"name": "SprinklerAIParameter.OpenTime", "type": "f32"},
         {"name": "SprinklerAIParameter.bUseFlatEffect", "type": "bool", "gate": ">0x20220124a"},
@@ -1500,7 +1502,7 @@
         ],
         [
           {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true}
         ]
       ]
     },
@@ -1548,7 +1550,7 @@
       "base": "inherit",
       "fields": [
         {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
-        {"name": "runtime_0x1188_x", "type": "f32", "derived": true},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true, "from_actor": true},
         {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
         {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
         {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},

@@ -41,6 +41,7 @@ struct FieldRow {
     bool Drops;
     const char* DropKey;
     const char* DropList;
+    bool FromActor;
 };
 // A named type: its kind, its item type, or its members as Count field rows from First.
 struct TypeRow {
@@ -89,7 +90,7 @@ template <class T> struct Table {
 
 FIELD_KEYS = {
     "name", "type", "gate", "when", "stop_if_set", "derived", "runtime_default", "count_of", "component_tag",
-    "component_transform", "drops", "drop_key", "drop_list",
+    "component_transform", "drops", "drop_key", "drop_list", "from_actor",
 }
 
 
@@ -142,6 +143,7 @@ def field_row(field):
             number(field.get("runtime_default", 0)), text(field.get("count_of", "")),
             text(field.get("component_tag", "")), boolean(field.get("component_transform", False)),
             boolean(field.get("drops", False)), text(field.get("drop_key", "")), text(field.get("drop_list", "")),
+            boolean(field.get("from_actor", False)),
         ]) + "},"
     )
 
