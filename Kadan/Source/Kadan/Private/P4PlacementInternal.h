@@ -32,6 +32,7 @@ FString Wide(const std::string& Text);
 bool Derives(const UClass* Class, const TCHAR* Native);
 UObject* OwnerOf(AActor* Actor, const P::SlotName& Slot);
 UActorComponent* ChainComponentOf(AActor* Actor);
+bool Writable(UObject* Owner, const P::SlotName& Slot, const P::Context& Context);
 bool NotAProperty(const P::Field& Field);
 std::vector<P::Field> LayoutFields(P::Slot Slot, const P::Context& Context, int Variant = 0);
 const P::Field* FieldNamed(const std::vector<P::Field>& Fields, const std::string& Name);

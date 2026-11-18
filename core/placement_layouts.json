@@ -15,7 +15,26 @@
     "drops: an array of drops; drop_key: its drops are generators of their own, numbered from the list with keys of the actor,",
     "this word and their place, and listed in the sibling drop_list. Drops without drop_key get no number.",
     "A slot's owner is the component its blob is read from: the one the actor's property holds when it is of one of the",
-    "classes, else the first component of the first class that has one, not of except. An owner with no classes is the actor."
+    "classes, else the first component of the first class that has one, not of except. An owner with no classes is the actor.",
+    "complete: per slot, the most derived native classes of owners for which the slot's layouts are the whole blob: every",
+    "blob of the slot of such owners in the game's placement lists read and wrote back byte for byte. Kadan writes a new",
+    "placement's blob only for these. tools/placement_census.cpp checks the game's lists and prints them.",
+    "from_actor: the game writes the actor's own value there (a component's place, its nav links, a spline's points),",
+    "which a writer does not fill yet; a new placement's blob with such a field is not written either."
+  ],
+  "complete": [
+    {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "MoveFloorActor", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "StringActor", "VarGateBaseActor", "WaterBoxNavActor", "YBoxActor"]},
+    {"slot": "AI.Static", "classes": ["ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "CrackPotAIComponent", "DownFloorAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FireFloorAIComponent", "HamboAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KareHamboAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "MarAIComponent", "MitsuMochiAIComponent", "NamazuAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "RopeBranchAIComponent", "SenbeiBaseAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "VarGateAIComponent", "WaterBoxAIComponent"]},
+    {"slot": "AI.Dynamic", "classes": ["AirWallAIComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BridgeFlexibleAIComponent", "ChappyAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "FrogAIComponent", "GeyserAIComponent", "HamboAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KareHamboAIComponent", "KochappyAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "VarGateAIComponent", "WaterBoxNavAIComponent"]},
+    {"slot": "Life.Dynamic", "classes": ["LifeComponent"]},
+    {"slot": "Strategy.Static", "classes": ["CarrotDestroyStrategyComponent", "CarrotGenseiStrategyComponent", "CarrotOtakaraStrategyComponent", "CarrotSeijinStrategyComponent"]},
+    {"slot": "CakEmitterConfig.Static", "classes": ["CakEmitterConfigComponent"]},
+    {"slot": "CakAudioTable.Static", "classes": ["CakAudioTableComponent"]},
+    {"slot": "Affordance.Static", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
+    {"slot": "Affordance.Dynamic", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RideAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
+    {"slot": "ActionMarker.Static", "classes": ["ActionMarkerComponent"]},
+    {"slot": "CakSimpleState.Static", "classes": ["CakSimpleStateComponent"]},
+    {"slot": "CakMultiplePosition.Static", "classes": ["CakMultiplePositionComponent"]}
   ],
   "types": [
     {
@@ -268,6 +287,70 @@
       ]
     },
     {
+      "name": "NavLink",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"},
+        {"name": "LeftProjectHeight", "type": "f32"},
+        {"name": "MaxFallDownLength", "type": "f32"},
+        {"name": "Direction", "type": "u8"},
+        {"name": "SnapRadius", "type": "f32"},
+        {"name": "SnapHeight", "type": "f32"},
+        {"name": "SupportsAgentBits", "type": "u32"},
+        {"name": "bUseSnapHeight", "type": "u8"},
+        {"name": "bSnapToCheapestArea", "type": "u8"}
+      ]
+    },
+    {
+      "name": "NavLinkArray",
+      "kind": "array",
+      "item": "NavLink"
+    },
+    {
+      "name": "NavLinkEnds",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"},
+        {"name": "Direction", "type": "u8"},
+        {"name": "bUseSnapHeight", "type": "u8"}
+      ]
+    },
+    {
+      "name": "NavLinkEndsArray",
+      "kind": "array",
+      "item": "NavLinkEnds"
+    },
+    {
+      "name": "NavLinkPlace",
+      "kind": "struct",
+      "members": [
+        {"name": "Location", "type": "vec"},
+        {"name": "Links", "type": "NavLinkEndsArray"}
+      ]
+    },
+    {
+      "name": "GuruguruWindow",
+      "kind": "struct",
+      "members": [
+        {"name": "GuruguruDist", "type": "f32", "gate": ">0x20220628a"}
+      ]
+    },
+    {
+      "name": "NavLinkPoint",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"}
+      ]
+    },
+    {
+      "name": "NavLinkPoints",
+      "kind": "array",
+      "item": "NavLinkPoint"
+    },
+    {
       "name": "SplinePoint",
       "kind": "struct",
       "members": [
@@ -281,9 +364,22 @@
       ]
     },
     {
-      "name": "SplinePointArray",
+      "name": "SplinePoints",
       "kind": "array",
       "item": "SplinePoint"
+    },
+    {
+      "name": "NamePair",
+      "kind": "struct",
+      "members": [
+        {"name": "Key", "type": "name"},
+        {"name": "Value", "type": "name"}
+      ]
+    },
+    {
+      "name": "NameMap",
+      "kind": "array",
+      "item": "NamePair"
     }
   ],
   "lists": [
@@ -313,6 +409,26 @@
         {"name": "OtakaraAIParameter.InitTransformAfterFalling.Scale3D", "type": "vec", "gate": ">0x20230220a"},
         {"name": "OtakaraAIParameter.bUseFightCamera", "type": "bool"},
         "@SniffDynamic"
+      ]
+    },
+    {
+      "name": "ObjectAIStaticHead",
+      "fields": [
+        {"name": "ObjectAIParameter.DropParameter.DropItemParameter", "type": "DropItems", "drops": true},
+        {"name": "ObjectAIParameter.DropParameter.DropActorParameter", "type": "DropActor"},
+        {"name": "ObjectAIParameter.DropParameter.DebugUniqueIdList", "type": "U64Array"},
+        {"name": "ObjectAIParameter.DropParameter.bEnableFreezeBothDrop", "type": "bool", "gate": ">0x202303179"},
+        {"name": "ObjectAIParameter.bIgnoreLaterTask", "type": "bool"},
+        {"name": "ObjectAIParameter.bIgnoreCompleteUI", "type": "bool", "gate": ">0x202204209"},
+        {"name": "ObjectAIParameter.CompleteUIOffset", "type": "vec"},
+        {"name": "ObjectAIParameter.bEnableOptimizeWaterBoxContext", "type": "bool"},
+        {"name": "ObjectAIParameter.bDisableSoftEdge", "type": "bool"},
+        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyFrom", "type": "bool", "gate": ">0x20220318a"},
+        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyTo", "type": "bool", "gate": ">0x20220318a"},
+        {"name": "ObjectAIParameter.LinkNarrowSpaceBoxID", "type": "name", "gate": ">0x202202159"},
+        {"name": "ObjectAIParameter.LinkWarpTriggerID", "type": "name", "gate": ">0x20221215a"},
+        {"name": "ObjectAIParameter.NavMeshTriggerID", "type": "name", "gate": ">0x202206159"},
+        {"name": "ObjectAIParameter.EscapePointSerializeNum", "type": "u8"}
       ]
     },
     {
@@ -576,6 +692,47 @@
       ]
     },
     {
+      "row": "CharacterEdit",
+      "half": "Static",
+      "id": "CharacterEditStatic",
+      "owner": {"classes": ["CharacterEditComponent"]},
+      "fields": [
+        {"name": "CharacterEditComponent.BodyId", "type": "i32"},
+        {"name": "CharacterEditComponent.HairId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceId", "type": "i32"},
+        {"name": "CharacterEditComponent.BodyColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.HairColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.MakeUpColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.FacialExpId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceSkinColorId", "type": "i32"},
+        {"name": "CharacterEditComponent.FaceEyeColorId", "type": "i32"}
+      ]
+    },
+    {
+      "row": "Pikmin",
+      "half": "Static",
+      "id": "PikminStatic",
+      "owner": {"classes": ["PikminComponent"]},
+      "fields": [
+        {"name": "PikminComponent.bPlayerJoined", "type": "bool"}
+      ]
+    },
+    {
+      "row": "CakTrigger",
+      "half": "Static",
+      "id": "CakTriggerStatic",
+      "owner": {"classes": ["CakTriggerComponent"]},
+      "fields": [
+        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "from_actor": true},
+        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
+        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000"},
+        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000"},
+        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000"}
+      ]
+    },
+    {
       "row": "PortalTrigger",
       "half": "Static",
       "id": "PortalTriggerStatic",
@@ -600,8 +757,8 @@
       "id": "NavMeshTriggerStatic",
       "owner": {"classes": ["NavMeshTriggerComponent"]},
       "fields": [
-        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true},
-        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true},
+        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
         {"name": "CIDList", "type": "NameArray"},
         {"name": "NavMeshTriggerID", "type": "name", "gate": ">0x202206209"}
       ]
@@ -672,24 +829,16 @@
       "class": "ObjectAIComponent",
       "slot": "AI.Static",
       "base": "replace",
-      "fields": [
-        {"name": "ObjectAIParameter.DropParameter.DropItemParameter", "type": "DropItems", "drops": true},
-        {"name": "ObjectAIParameter.DropParameter.DropActorParameter", "type": "DropActor"},
-        {"name": "ObjectAIParameter.DropParameter.DebugUniqueIdList", "type": "U64Array"},
-        {"name": "ObjectAIParameter.DropParameter.bEnableFreezeBothDrop", "type": "bool", "gate": ">0x202303179"},
-        {"name": "ObjectAIParameter.bIgnoreLaterTask", "type": "bool"},
-        {"name": "ObjectAIParameter.bIgnoreCompleteUI", "type": "bool", "gate": ">0x202204209"},
-        {"name": "ObjectAIParameter.CompleteUIOffset", "type": "vec"},
-        {"name": "ObjectAIParameter.bEnableOptimizeWaterBoxContext", "type": "bool"},
-        {"name": "ObjectAIParameter.bDisableSoftEdge", "type": "bool"},
-        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyFrom", "type": "bool", "gate": ">0x20220318a"},
-        {"name": "ObjectAIParameter.bDisableSoftEdgeOnlyTo", "type": "bool", "gate": ">0x20220318a"},
-        {"name": "ObjectAIParameter.LinkNarrowSpaceBoxID", "type": "name", "gate": ">0x202202159"},
-        {"name": "ObjectAIParameter.LinkWarpTriggerID", "type": "name", "gate": ">0x20221215a"},
-        {"name": "ObjectAIParameter.NavMeshTriggerID", "type": "name", "gate": ">0x202206159"},
-        {"name": "ObjectAIParameter.EscapePointSerializeNum", "type": "u8"},
-        {"name": "EscapePoints", "type": "EscapePoints", "derived": true, "component_tag": "EscapePoint"},
-        "@SniffStatic"
+      "variants": [
+        [
+          "@ObjectAIStaticHead",
+          {"name": "EscapePoints", "type": "EscapePoints", "derived": true, "component_tag": "EscapePoint"},
+          "@SniffStatic"
+        ],
+        [
+          "@ObjectAIStaticHead",
+          "@SniffStatic"
+        ]
       ]
     },
     {
@@ -1176,6 +1325,400 @@
       ]
     },
     {
+      "class": "FenceFallAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "FenceFallAIParameter.SwitchID", "type": "name"},
+        {"name": "FenceFallAIParameter.bEnableLockOtakara", "type": "bool"},
+        {"name": "AkComponentLocation", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+      ]
+    },
+    {
+      "class": "FenceFallAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_0x9f9", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "class": "HibaBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "HibaAIParameter.WaitAddTime", "type": "f32"}
+      ]
+    },
+    {
+      "class": "GeyserAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "GeyserAIParameter.bSetCrystal", "type": "bool"},
+        {"name": "GeyserAIParameter.StopQueenDistXY", "type": "f32"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+      ]
+    },
+    {
+      "class": "ConveyorBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ConveyorBaseAIParameter.SwitchID", "type": "name"},
+        {"name": "ConveyorBaseAIParameter.DriveSpeed", "type": "f32"}
+      ]
+    },
+    {
+      "class": "ConveyorNavAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ConveyorNavAIParameter.SwitchID", "type": "name"},
+        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
+        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
+        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "from_actor": true},
+        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "from_actor": true},
+        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "from_actor": true}
+      ]
+    },
+    {
+      "class": "CrushJellyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_word", "type": "i32", "gate": "<0x20220131a", "derived": true, "runtime_default": "0x1"},
+        {"name": "legacy_flag", "type": "bool", "gate": "<0x20220131a", "derived": true, "runtime_default": "0x1"},
+        {"name": "CrushJellyAIParameter.bFreezeStart", "type": "bool"},
+        {"name": "CrushJellyAIParameter.SearchCIDList", "type": "NameArray", "gate": ">0x202208039"}
+      ]
+    },
+    {
+      "class": "AreaBaseCampComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "AreaBaseCampComponent.BaseCampId", "type": "i32"},
+        {"name": "AreaBaseCampComponent.bDeactivateByExit", "type": "bool"},
+        {"name": "AreaBaseCampParameter.SafeAreaBound.Radius", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SafeAreaOffset", "type": "vec"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfX", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfY", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfZ", "type": "f32"},
+        {"name": "AreaBaseCampParameter.ForceFloweringRadius", "type": "f32"},
+        {"name": "AreaBaseCampParameter.StateChangeDelayTime", "type": "f32", "gate": ">0x20211126a"},
+        {"name": "AreaBaseCampParameter.GuruguruDist", "type": "f32", "gate": ">0x202207069"},
+        {"name": "AreaBaseCampParameter.CIDList", "type": "NameArray"}
+      ]
+    },
+    {
+      "class": "AreaBaseCampComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_base_camp_id", "type": "i32", "gate": "<0x20220629b", "derived": true},
+        {"name": "AreaBaseCampComponent.CampState", "type": "u8", "gate": ">0x20220629a"},
+        {"name": "runtime_0xa6c", "type": "bool", "gate": ">0x20211208a", "derived": true},
+        {"name": "legacy_guruguru", "type": "GuruguruWindow", "gate": "<0x20220736a", "derived": true}
+      ]
+    },
+    {
+      "class": "SwitchBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "SwitchBaseAIParameter.SwitchID", "type": "name"}
+      ]
+    },
+    {
+      "class": "TriggerDoorAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TriggerDoorAIParameter.SwitchID", "type": "name"},
+        {"name": "TriggerDoorAIParameter.CompleteUIType", "type": "i32", "gate": ">0x20230116a"},
+        {"name": "TriggerDoorAIParameter.OpenWaitTime", "type": "f32"},
+        {"name": "TriggerDoorAIParameter.bEnableAirWall", "type": "bool", "gate": ">0x202112239"},
+        {"name": "TriggerDoorAIParameter.bNoCollisionAirWall", "type": "bool", "gate": ">0x202301239"},
+        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "from_actor": true},
+        {"name": "TriggerDoorAIParameter.CIDList", "type": "NameArray"}
+      ]
+    },
+    {
+      "class": "TriggerDoorAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "TriggerDoorAIParameter.bIsAlreadyOpen", "type": "bool"}
+      ]
+    },
+    {
+      "class": "ValveAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ValveAIParam.ValveID", "type": "name"},
+        {"name": "ValveAIParam.BuiltWorkType", "type": "i32"},
+        {"name": "ValveAIParam.DemoID", "type": "i32", "gate": ">0x20211223a"}
+      ]
+    },
+    {
+      "class": "ValveAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "ValveAIParam.WorkType", "type": "i32"},
+        {"name": "runtime_0x10c4", "type": "i32", "derived": true},
+        {"name": "runtime_0x10c8", "type": "bool", "derived": true},
+        {"name": "runtime_0x10cc", "type": "i32", "derived": true},
+        {"name": "runtime_0x10d0", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "class": "HappyDoorAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "HappyDoorAIParameter.HappyDoorID", "type": "name"}
+      ]
+    },
+    {
+      "class": "AirWallAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "AirWallAIComponent.SearchCID", "type": "name"},
+        {"name": "AirWallAIComponent.SearchRadius", "type": "f32"},
+        {"name": "AirWallAIComponent.SearchTagList", "type": "NameArray", "gate": ">0x202210209"},
+        {"name": "AirWallAIComponent.bCheckAtAnd", "type": "bool", "gate": ">0x202210209"}
+      ]
+    },
+    {
+      "class": "BranchAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "BranchAIParameter.JumpHeight", "type": "f32"},
+        {"name": "BranchAIParameter.NavLinkRightOffset", "type": "vec"}
+      ]
+    },
+    {
+      "class": "BranchAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_life", "type": "ByteArray", "gate": "<0x20220627a", "derived": true},
+        {"name": "runtime_branch_0x14", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "class": "CharcoalAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_life", "type": "ByteArray", "gate": "<0x20220627a", "derived": true},
+        {"name": "deprecated_charcoal_flag", "type": "bool", "derived": true},
+        {"name": "deprecated_charcoal_count", "type": "i32", "derived": true, "runtime_default": "0x1"}
+      ]
+    },
+    {
+      "class": "FireFloorAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_firefloor_0x1c", "type": "bool", "derived": true},
+        {"name": "runtime_firefloor_0x1e", "type": "bool", "derived": true},
+        {"name": "runtime_firefloor_0x1d", "type": "bool", "gate": ">0x202303249", "derived": true}
+      ]
+    },
+    {
+      "class": "DweevilBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "DweevilAIParameter.OtakaraParam.bInitShoulder", "type": "bool"},
+        {"name": "DweevilAIParameter.OtakaraParam.bEnableWallClimb", "type": "bool"},
+        {"name": "DweevilAIParameter.OtakaraParam.bUpdateTerritoryWhenShoulder", "type": "bool"},
+        {"name": "DweevilAIParameter.OtakaraParam.OtakaraSearchArea", "type": "Cylinder", "gate": ">0x202204219"},
+        {"name": "DweevilAIParameter.OtakaraParam.bUseNewTerritoryWhenShoulder", "type": "bool", "gate": ">0x202302209"},
+        {"name": "DweevilAIParameter.OtakaraParam.NewTerritoryPos", "type": "vec", "gate": ">0x202302209"},
+        {"name": "DweevilAIParameter.EscapeParam.bEnableWallCheck", "type": "bool"}
+      ]
+    },
+    {
+      "class": "HandleBoardAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "HandleBoardAIParameter.WorkNum", "type": "i32"},
+        {"name": "PlacedActor.NavLinkForAdjust.Links", "type": "NavLinkPoints", "gate": ">0x202301139"}
+      ]
+    },
+    {
+      "class": "HandleBoardAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "HandleBoardAIParameter.bWorkEnd", "type": "bool"}
+      ]
+    },
+    {
+      "class": "MoveFloorAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "variants": [
+        [
+          {"name": "MoveFloorAIParameter.WaitTime", "type": "f32"},
+          {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
+          {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
+          {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
+        ],
+        [
+          {"name": "MoveFloorAIParameter.WaitTime", "type": "f32"},
+          {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
+          {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
+          {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
+          {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
+        ]
+      ]
+    },
+    {
+      "class": "PullNekkoAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "PullNekkoAIParameter.bSoilInvisible", "type": "bool"},
+        {"name": "PlacedActor.NavLinkForAdjust.Links", "type": "NavLinkPoints", "gate": ">0x202301139"}
+      ]
+    },
+    {
+      "class": "PullNekkoAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_pullnekko_0x128", "type": "i32", "derived": true}
+      ]
+    },
+    {
+      "class": "RopeFishingAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "RopeFishingAIParameter.JumpForceXY", "type": "f32"},
+        {"name": "RopeFishingAIParameter.JumpForceZ", "type": "f32"},
+        {"name": "RopeFishingAIParameter.RopeAng", "type": "f32"},
+        {"name": "RopeFishingAIParameter.ManualWorkNum", "type": "i32"}
+      ]
+    },
+    {
+      "class": "ValveGimmickBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ValveGimmickBaseAIComponent.ValveID", "type": "name"}
+      ]
+    },
+    {
+      "class": "SprinklerAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "decal_world_location", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "SprinklerAIParameter.WaterRange", "type": "f32"},
+        {"name": "SprinklerAIParameter.OpenTime", "type": "f32"},
+        {"name": "SprinklerAIParameter.bUseFlatEffect", "type": "bool", "gate": ">0x20220124a"},
+        {"name": "SprinklerAIParameter.FlatEffectOffsetZ", "type": "f32", "gate": ">0x20220124a"},
+        {"name": "SprinklerAIParameter.bSprinklerOnly", "type": "bool", "gate": ">0x202208249"}
+      ]
+    },
+    {
+      "class": "StringAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "StringAIParameter.FallHeight", "type": "f32"}
+      ]
+    },
+    {
+      "class": "StringAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "StringAIParameter.bFalled", "type": "bool"}
+      ]
+    },
+    {
+      "class": "PushGimmickAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "variants": [
+        [
+          {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
+          {"name": "PlacedActor.NavLinkForAdjust.Links", "type": "NavLinkPoints", "gate": ">0x202301139"}
+        ],
+        [
+          {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true}
+        ]
+      ]
+    },
+    {
+      "class": "PushGimmickAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "runtime_push_0x148", "type": "bool", "derived": true},
+        {"name": "runtime_push_0x14c", "type": "vec", "derived": true},
+        {"name": "legacy_push_vector", "type": "vec", "gate": "<0x20220414a", "derived": true}
+      ]
+    },
+    {
+      "class": "CakAmbientSoundActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "CakAmbientSoundActor.AmbientSoundId", "type": "name"},
+        {"name": "CakAmbientSoundActor.AmbientAttachmentRule", "type": "u8"},
+        {"name": "CakAmbientSoundActor.MessageMap", "type": "NameMap", "gate": ">0x20211116a"},
+        {"name": "CakAmbientSoundActor.bIsNotPauseOnSubLevel", "type": "bool", "gate": ">0x20220915a"}
+      ]
+    },
+    {
+      "class": "NPCPLACEACTOR",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "NPCPLACEACTOR.PlaceTag", "type": "name"}
+      ]
+    },
+    {
+      "class": "LookTriggerActor",
+      "slot": "ActorParameter.Static",
+      "base": "replace",
+      "fields": [
+        {"name": "LookTriggerActor.LookTriggerActorTag", "type": "name"},
+        {"name": "LookTriggerActor.Radius", "type": "f32"}
+      ]
+    },
+    {
+      "class": "BridgeFlexibleAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true, "from_actor": true},
+        {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
+        {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
+        {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
+        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
+      ]
+    },
+    {
       "class": "ActorSpawnerComponent",
       "slot": "AI.Static",
       "base": "replace",
@@ -1190,8 +1733,8 @@
       "variants": [
         [
           "@PortalTriggerStatic",
-          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true},
-          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true},
+          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
+          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true, "from_actor": true},
           {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
           {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
         ],
@@ -1213,7 +1756,7 @@
         ],
         [
           "@NarrowSpaceTriggerStatic",
-          {"name": "SplineComponent.SplinePoints", "type": "SplinePointArray", "derived": true},
+          {"name": "SplineComponent.SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
           {"name": "InputKeyOffset", "type": "f32"}
         ]
       ]
