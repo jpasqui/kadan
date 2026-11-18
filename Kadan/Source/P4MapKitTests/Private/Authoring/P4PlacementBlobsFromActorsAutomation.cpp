@@ -10,8 +10,18 @@ bool FP4PlacementBlobsFromActorsTest::RunTest(const FString&)
 {
     using namespace P4ExportDriverTest;
     // Caves chosen so that every class with a filled field has rows in them.
+    // Between them they hold rows of every class with a filled field: fences, geysers, conveyors and sprinklers,
+    // moving floors, pushed boxes, route splines and narrow spaces, portals and nav mesh triggers, trigger doors,
+    // sound triggers, dirt mounds and crystal crabs, demo areas, the flexible bridge and the sidecut wall.
     static const TCHAR* const Maps[] = {
-        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave033/Cave033_F00/Cave033_F00_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/Cave000_F00_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave002/Cave002_F01/Cave002_F01_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave005/Cave005_F00/Cave005_F00_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave005/Cave005_F01/Cave005_F01_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave006/Cave006_F02/Cave006_F02_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave008/Cave008_F00/Cave008_F00_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave011/Cave011_F00/Cave011_F00_P"),
+        TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave011/Cave011_F01/Cave011_F01_P"),
     };
     const FString Root = FPlatformMisc::GetEnvironmentVariable(TEXT("P4_NATIVE_ROOT"));
     if (Root.IsEmpty() || FPlatformMisc::GetEnvironmentVariable(TEXT("P4_NATIVE_ORIGINAL_CONTAINERS")).IsEmpty())

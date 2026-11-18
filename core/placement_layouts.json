@@ -3,15 +3,18 @@
     "The per-placement blobs of a placement row, as the game's native serializers write them (placement_params.h).",
     "Generate placement_layouts.h from this file with tools/make_placement_layouts.py.",
     "A slot is one blob of a row: its fields start every layout of the slot. A slot with a chain also takes the parts of",
-    "the classes of the actor's native class chain (actor) or its AI component's (component), walked from the base class",
-    "down: a part with base replace replaces the stream of the classes above it, one with base inherit appends to it.",
+    "the classes of the actor's native class chain (actor), its AI component's (component) or the slot's owner's (owner),",
+    "walked from the base class down: a part with base replace replaces the stream of the classes above it, one with base",
+    "inherit appends to it.",
     "A part with variants has several layouts, tried in order when a blob is read.",
     "A field's type is a scalar (bool i32 u32 f32 u8 u16 u64 name vec rot quat) or one of the types. An item @Name in a",
     "field list is the fields of that list. Gates compare the row version: > above, < below, = equal.",
     "derived: no property holds the field; a writer gives it runtime_default, or count_of (the item count of the owner",
     "property), component_tag (a run of the world locations of the actor's scene components with that tag, in the",
-    "actor's component order, as many as its counter says) or component_transform (the actor's component of the field's",
-    "name; the field is there only when the actor has it) say how it is filled.",
+    "actor's component order, as many as its counter says) or component_transform (the actor's first component with the",
+    "field's name as a tag, which the game finds with GetComponentsByTag: its world transform, then its properties; the",
+    "field is there only when the actor has such a component) say how it is filled.",
+    "when_class: the field is there only when the actor has a component of that native class (FindComponentByClass).",
     "drops: an array of drops; drop_key: its drops are generators of their own, numbered from the list with keys of the actor,",
     "this word and their place, and listed in the sibling drop_list. Drops without drop_key get no number.",
     "A slot's owner is the component its blob is read from: the one the actor's property holds when it is of one of the",
@@ -28,15 +31,16 @@
   ],
   "complete": [
     {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CakAmbientSoundActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "ExcavationActor", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "LookTriggerActor", "MoveFloorActor", "NPCPLACEACTOR", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "RouteSplineActor", "StringActor", "VarGateBaseActor", "WATERBOX", "WaterBoxNavActor", "YBoxActor"]},
-    {"slot": "AI.Static", "classes": ["ActorSpawnerComponent", "AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
+    {"slot": "AI.Static", "classes": ["ActorSpawnerComponent", "AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "BridgeFlexibleAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
     {"slot": "AI.Dynamic", "classes": ["AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "BridgeFlexibleAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "HoneyAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
     {"slot": "Life.Dynamic", "classes": ["LifeComponent"]},
     {"slot": "Strategy.Static", "classes": ["CarrotDestroyStrategyComponent", "CarrotGenseiStrategyComponent", "CarrotOtakaraStrategyComponent", "CarrotSeijinStrategyComponent"]},
     {"slot": "CakEmitterConfig.Static", "classes": ["CakEmitterConfigComponent"]},
     {"slot": "CakAudioTable.Static", "classes": ["CakAudioTableComponent"]},
-    {"slot": "Affordance.Static", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
+    {"slot": "Affordance.Static", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RideAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
     {"slot": "Affordance.Dynamic", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RideAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
     {"slot": "ActionMarker.Static", "classes": ["ActionMarkerComponent"]},
+    {"slot": "DemoTrigger.Static", "classes": ["DemoTriggerComponent"]},
     {"slot": "CakSimpleState.Static", "classes": ["CakSimpleStateComponent"]},
     {"slot": "CakMultiplePosition.Static", "classes": ["CakMultiplePositionComponent"]},
     {"slot": "CharacterEdit.Static", "classes": ["CharacterEditComponent"]},
@@ -302,6 +306,15 @@
         {"name": "SphereRadius", "type": "f32"}
       ]
     },
+    {
+      "name": "NavLinkLeftRight",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"}
+      ]
+    },
+    {"name": "NavLinkLeftRightArray", "kind": "array", "item": "NavLinkLeftRight"},
     {
       "name": "NavLink",
       "kind": "struct",
@@ -674,6 +687,7 @@
       "row": "Affordance",
       "half": "Static",
       "id": "AffordanceStatic",
+      "chain": "owner",
       "owner": {"property": "AffordanceComponent", "classes": ["CarrotAffordanceComponent"], "except": "AttackAffordanceComponent"},
       "fields": [
         {"name": "CarrotAffordanceComponent.bOnceOnWork", "type": "bool"},
@@ -1812,7 +1826,9 @@
         {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
         {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
         {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
-        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
+        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkLeftRightArray", "gate": ">0x202301069", "derived": true,
+         "when_class": "NavLinkComponent", "fill": "nav_link_ends", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -2181,6 +2197,14 @@
           {"name": "TateanaAIParameter.NumDig", "type": "i32"},
           {"name": "runtime_0xa40", "type": "i32", "derived": true, "runtime_default": "0xffffffff"}
         ]
+      ]
+    },
+    {
+      "class": "RideAffordanceComponent",
+      "slot": "Affordance.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "RideAffordanceComponent.NeedWeight", "type": "i32"}
       ]
     }
   ]

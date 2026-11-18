@@ -224,7 +224,7 @@ static void Own()
     CHECK(Decode(Slot::DemoTriggerStatic, None, Bytes, RowVersion, Back, Error) && Back.Tail == Demo.Tail);
     CHECK(Encode(Slot::DemoTriggerStatic, None, Back, RowVersion, Again, Error) && Again == Bytes);
     Context Colliders;
-    Colliders.Components = {"DemoBoxColl", "DemoSphereColl", "Other"};
+    Colliders.ComponentTags = {"DemoBoxColl", "DemoSphereColl", "Other"};
     Blob Shapes;
     CHECK(Fresh(Slot::DemoTriggerStatic, Colliders, RowVersion, Shapes));
     Path(Shapes, "DemoBoxColl")->Find("Rotation")->Words[3] = Value::FloatBits(1.f);
@@ -236,7 +236,7 @@ static void Own()
         CHECK(std::find(Got.begin(), Got.end(), "DemoSphereColl.SphereRadius=f:42480000") != Got.end());
     }
     Context OneCollider;
-    OneCollider.Components = {"DemoSphereColl"};
+    OneCollider.ComponentTags = {"DemoSphereColl"};
     CHECK(Fresh(Slot::DemoTriggerStatic, OneCollider, RowVersion, Back) && !Path(Back, "DemoBoxColl") &&
         Path(Back, "DemoSphereColl"));
     // What a writer fills without a property: placeholders, run-time defaults, counts and component values.
@@ -1559,7 +1559,7 @@ static int DescribeLayouts(const char* ChainsFile, const char* OutFile)
             continue;
         Context C;
         (Parts[0] == "actor" ? C.ActorChain : C.ComponentChain) = Split(Parts[1], ',');
-        C.Components = {"DemoBoxColl", "DemoSphereColl"};
+        C.ComponentTags = {"DemoBoxColl", "DemoSphereColl"};
         ++Chains;
         for (const auto& One : Slots())
         {
@@ -1604,6 +1604,77 @@ static void CompleteOwners()
         for (const SlotName& Name : Slots())
             if (Name.S == Rows.Rows[I].Id && !Name.Chain)
                 CHECK(!Layouts(Name.S, Context()).empty());
+}
+
+// Fields that are in a blob by what the actor's components are: a demo trigger's collision by its tag (as
+// DemoTriggerComponent's serializer finds it with GetComponentsByTag), a flexible bridge's nav link ends when the
+// actor has a NavLinkComponent (FindComponentByClass), and a ride affordance's own field after the affordance's,
+// by the native classes of the slot's owner.
+static void ComponentsOfTheActor()
+{
+    // A component of the name without the tag is not the game's collision.
+    Context Named;
+    Named.Components = {"DemoBoxColl", "DemoSphereColl"};
+    Blob Demo;
+    CHECK(Fresh(Slot::DemoTriggerStatic, Named, RowVersion, Demo) && !Path(Demo, "DemoBoxColl") &&
+        !Path(Demo, "DemoSphereColl"));
+    Context Tagged;
+    Tagged.Components = {"DemoTrigger", "OverlapArea"};
+    Tagged.ComponentTags = {"DemoBoxColl"};
+    CHECK(Fresh(Slot::DemoTriggerStatic, Tagged, RowVersion, Demo) && Path(Demo, "DemoBoxColl") &&
+        !Path(Demo, "DemoSphereColl"));
+    CHECK(Complete(Slot::DemoTriggerStatic, {"DemoTriggerComponent", "CarrotTriggerComponent"}) &&
+        Writable(Slot::DemoTriggerStatic, Tagged, {"DemoTriggerComponent", "CarrotTriggerComponent"}));
+
+    Context Bridge;
+    Bridge.ComponentChain = {"BridgeFlexibleAIComponent", "BridgeAIComponent", "BuildObjectAIComponent",
+        "ObjectAIComponent", "CarrotAIComponent"};
+    Field Links;
+    CHECK(!FieldOf(Slot::AIStatic, Bridge, "NavLinkComponent.Links", Links));
+    Bridge.ComponentClasses = {"NavLinkComponent", "PrimitiveComponent", "SceneComponent", "ActorComponent"};
+    CHECK(FieldOf(Slot::AIStatic, Bridge, "NavLinkComponent.Links", Links) && Links.Derived && !Links.FromActor &&
+        Links.Fill == "nav_link_ends" && Links.FillClass == "NavLinkComponent" &&
+        Links.WhenClass == "NavLinkComponent" &&
+        Links.Gate == '>' && Links.Version == UINT64_C(0x202301069) && Links.Of->Is == Kind::Array &&
+        Links.Of->Item->Members.size() == 2 && Links.Of->Item->Members[0].Name == "Left" &&
+        Links.Of->Item->Members[1].Name == "Right");
+    // Each link is its Left and Right: 24 bytes after the count.
+    Blob Ends, Back;
+    std::vector<std::uint8_t> None, One;
+    std::string Error;
+    CHECK(Fresh(Slot::AIStatic, Bridge, RowVersion, Ends) && Encode(Slot::AIStatic, Bridge, Ends, RowVersion, None, Error));
+    Value Link = EmptyOf(*Links.Of->Item, RowVersion);
+    Link.Find("Left")->Words[1] = Value::FloatBits(-175.f);
+    Link.Find("Right")->Words[1] = Value::FloatBits(440.f);
+    Path(Ends, "NavLinkComponent.Links")->Items.push_back(Link);
+    CHECK(Encode(Slot::AIStatic, Bridge, Ends, RowVersion, One, Error) && One.size() == None.size() + 24);
+    CHECK(Decode(Slot::AIStatic, Bridge, One, RowVersion, Back, Error) && Back.Exact() && Lines(Back) == Lines(Ends));
+    CHECK(Fresh(Slot::AIStatic, Bridge, UINT64_C(0x202301069), Ends) && !Path(Ends, "NavLinkComponent.Links"));
+    // Its vector at +0x1188 is the constructor's constant, and its links are filled: the whole blob is written.
+    CHECK(Complete(Slot::AIStatic, Bridge.ComponentChain) && Writable(Slot::AIStatic, Bridge, Bridge.ComponentChain));
+
+    for (const SlotName& Name : Slots())
+        if (Name.S == Slot::AffordanceStatic)
+            CHECK(Name.Chain == 'o');
+    Context Ride;
+    const std::vector<std::string> RideChain = {"RideAffordanceComponent", "CarrotAffordanceComponent",
+        "CarrotActorComponent", "ActorComponent", "Object"};
+    Ride.OwnerChains[Slot::AffordanceStatic] = RideChain;
+    Field Weight;
+    CHECK(!FieldOf(Slot::AffordanceStatic, Context(), "RideAffordanceComponent.NeedWeight", Weight));
+    CHECK(FieldOf(Slot::AffordanceStatic, Ride, "RideAffordanceComponent.NeedWeight", Weight) && !Weight.Derived &&
+        Weight.Of->Is == Kind::I32);
+    const std::size_t Common = Layouts(Slot::AffordanceStatic, Context())[0].Fields.size();
+    CHECK(Layouts(Slot::AffordanceStatic, Ride).size() == 1 &&
+        Layouts(Slot::AffordanceStatic, Ride)[0].Fields.size() == Common + 1 &&
+        Layouts(Slot::AffordanceStatic, Ride)[0].Fields.back().Name == "RideAffordanceComponent.NeedWeight");
+    // An owner with no part of its own reads the affordance's fields alone; the dynamic half does not follow the owner.
+    Context Station;
+    Station.OwnerChains[Slot::AffordanceStatic] = {"StationAffordanceComponent", "CarrotAffordanceComponent"};
+    CHECK(Layouts(Slot::AffordanceStatic, Station)[0].Fields.size() == Common);
+    Ride.OwnerChains[Slot::AffordanceDynamic] = RideChain;
+    CHECK(!FieldOf(Slot::AffordanceDynamic, Ride, "RideAffordanceComponent.NeedWeight", Weight));
+    CHECK(Writable(Slot::AffordanceStatic, Ride, RideChain));
 }
 
 // Characters, Pikmin, ambient sounds and the actors with options of their own after GActor's.
@@ -1886,6 +1957,7 @@ int main(int Count, char** Args)
     People();
     SpawnersAndTriggers();
     ShapeFillers();
+    ComponentsOfTheActor();
     if (Failures)
     {
         std::cout << Failures << " failures\n";

@@ -10,6 +10,7 @@ TArrayView<const FFillerKind> FillerKinds()
         TArray<FFillerKind> Out;
         Out.Append(NavFillers().GetData(), NavFillers().Num());
         Out.Append(ShapeFillers().GetData(), ShapeFillers().Num());
+        Out.Append(LastFillers().GetData(), LastFillers().Num());
         return Out;
     }();
     return All;
