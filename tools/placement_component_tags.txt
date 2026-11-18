@@ -1,0 +1,15 @@
+# Component tags of placeable classes whose blobs the game's serializers find by tag (tools/placement_chains.py --tags).
+# Read from the classes' Blueprints where Kadan had them (DemoAreaBox, QuestAreaBox, QuestAreaSphere), the rest
+# inferred from their rows (a 44-byte sphere): P4MapKit.Editor.PlacementBlobsFromActors checks them against the editor's.
+# <class path> TAB <component>=<tag>[,<tag>...][;...]
+/Game/Carrot4/Placeables/Gimmicks/DemoAreaBox/GDemoAreaBox.GDemoAreaBox_C	OverlapArea=DemoBoxColl
+/Game/Carrot4/Placeables/Gimmicks/QuestAreaBox/GQuestAreaBox.GQuestAreaBox_C	OverlapArea=DemoBoxColl
+/Game/Carrot4/Placeables/Gimmicks/QuestAreaBox/GQuestAreaSphere.GQuestAreaSphere_C	OverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Camp/GOnyonCamp04.GOnyonCamp04_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Camp/GOnyonCampDummy.GOnyonCampDummy_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Madori/GMadoriRuins.GMadoriRuins_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Madori/GMadoriRuinsForExit.GMadoriRuinsForExit_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Onyon/GOnyonCarryBoost.GOnyonCarryBoost_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/Objects/Survivor/GSurvivorA.GSurvivorA_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/WorkObjects/Bridge/GBridgeFlexibleCave.GBridgeFlexibleCave_C	DemoOverlapArea=DemoSphereColl
+/Game/Carrot4/Placeables/WorkObjects/Shizai/GBridgeStation.GBridgeStation_C	DemoOverlapArea=DemoSphereColl

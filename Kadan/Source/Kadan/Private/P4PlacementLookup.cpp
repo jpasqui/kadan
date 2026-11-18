@@ -279,12 +279,14 @@ int32 CountOf(UObject* Owner, const TCHAR* Path)
     return Array ? FScriptArrayHelper(Array, Data).Num() : 0;
 }
 
-USceneComponent* SceneComponentNamed(AActor* Actor, const FName Name)
+// The actor's first component with the tag, as AActor::GetComponentsByTag lists them (its owned components), when it
+// is a scene component.
+USceneComponent* SceneComponentTagged(AActor* Actor, const FName Tag)
 {
-    TInlineComponentArray<USceneComponent*> Components(Actor);
-    for (USceneComponent* Component : Components)
-        if (Component && Component->GetFName() == Name)
-            return Component;
+    TInlineComponentArray<UActorComponent*> Components(Actor);
+    for (UActorComponent* Component : Components)
+        if (Component && Component->ComponentHasTag(Tag))
+            return Cast<USceneComponent>(Component);
     return nullptr;
 }
 
@@ -299,7 +301,8 @@ bool TaggedRun(AActor* Actor, const std::string& Tag, uint64 Count, std::vector<
     return true;
 }
 
-// The context a gameplay object's blobs are read in: its native classes and its AI component's.
+// The context a gameplay object's blobs are read in: its native classes and its AI component's, its components'
+// names, tags and native classes, and the native classes of the owner of each slot that follows its owner's chain.
 P::Context ContextOf(AActor* Actor)
 {
     P::Context Context;
@@ -308,8 +311,21 @@ P::Context ContextOf(AActor* Actor)
         Context.ComponentChain = NativeChain(Component->GetClass());
     TInlineComponentArray<UActorComponent*> Components(Actor);
     for (const UActorComponent* Component : Components)
-        if (Component)
-            Context.Components.push_back(Utf8(Component->GetName()));
+    {
+        if (!Component)
+            continue;
+        Context.Components.push_back(Utf8(Component->GetName()));
+        for (const FName& Tag : Component->ComponentTags)
+            Context.ComponentTags.push_back(Utf8(Tag.ToString()));
+        for (const std::string& Class : NativeChain(Component->GetClass()))
+            if (std::find(Context.ComponentClasses.begin(), Context.ComponentClasses.end(), Class) ==
+                Context.ComponentClasses.end())
+                Context.ComponentClasses.push_back(Class);
+    }
+    for (const P::SlotName& Slot : P::Slots())
+        if (Slot.Chain == 'o')
+            if (UObject* Owner = OwnerOf(Actor, Slot))
+                Context.OwnerChains[Slot.S] = NativeChain(Owner->GetClass());
     return Context;
 }
 
