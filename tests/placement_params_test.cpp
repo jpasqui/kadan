@@ -611,9 +611,9 @@ static void SpawnersAndTriggers()
         *Path(Door, "ToLevelName") = NameFromUtf8("Cave000_F01");
         Path(Door, "ToBaseCampId")->Bits = UINT64_C(0xffffffff);
         Path(Door, "ShowIconDist")->SetFloat(500.f);
-        CHECK(bool(Path(Door, "TriggerBox.BoxExtent")) == (Variant == 0));
+        CHECK(bool(Path(Door, "Trigger.BoxExtent")) == (Variant == 0));
         if (Variant == 0)
-            Path(Door, "TriggerBox.BoxExtent")->Words[0] = Value::FloatBits(100.f);
+            Path(Door, "Trigger.BoxExtent")->Words[0] = Value::FloatBits(100.f);
         CHECK(RoundTrip(Slot::PortalTriggerStatic, Portal, Door, RowVersion, Bytes, Back));
         CHECK(Bytes.size() > 5 && Bytes[0] == 4 && Bytes[1] == 1);
         Sizes[Variant] = Bytes.size();

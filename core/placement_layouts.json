@@ -1190,8 +1190,8 @@
       "variants": [
         [
           "@PortalTriggerStatic",
-          {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true},
-          {"name": "TriggerBox.WorldLocation", "type": "vec", "derived": true},
+          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true},
+          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true},
           {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
           {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
         ],
