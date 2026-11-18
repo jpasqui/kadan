@@ -731,10 +731,10 @@ inline std::vector<Layout> Layouts(Slot S, const Context& C)
             // Each layout so far, followed by each of this part's variants in turn.
             std::vector<std::vector<Field>> Next;
             for (const auto& Variant : Variants)
-                for (const auto& Own : Part->Variants)
+                for (const auto& Added : Part->Variants)
                 {
                     Next.push_back(Variant);
-                    Next.back().insert(Next.back().end(), Own.begin(), Own.end());
+                    Next.back().insert(Next.back().end(), Added.begin(), Added.end());
                 }
             Variants = std::move(Next);
         }
