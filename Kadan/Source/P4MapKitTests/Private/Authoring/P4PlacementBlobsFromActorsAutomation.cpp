@@ -53,6 +53,7 @@ bool FP4PlacementBlobsFromActorsTest::RunTest(const FString&)
             Settings.GamePaks = Request.GamePaksDirectory;
             Settings.Retoc = Request.Tools.Retoc;
             Settings.Repak = Request.Tools.Repak;
+            Settings.AllowGameBackedLevels = true;
             const FP4KadanImportResult Import = P4KadanImportMap(Settings, Map, true);
             for (const FString& Problem : Import.Problems)
                 AddInfo(TEXT("Not imported. ") + Problem);
@@ -68,6 +69,7 @@ bool FP4PlacementBlobsFromActorsTest::RunTest(const FString&)
         if (!TestTrue(FString(TEXT("the map's placement lists are read: ")) + Error,
                 !Lists.IsEmpty() && P4ReadGamePlacementLists(Lists, Rows, Error) && Rows.Num() > 0))
             return false;
+        int32 MapCompared = 0;
         for (ULevel* Level : World->GetLevels())
             for (AActor* Actor : Level ? Level->Actors : TArray<AActor*>())
             {
@@ -79,10 +81,12 @@ bool FP4PlacementBlobsFromActorsTest::RunTest(const FString&)
                 if (!Here)
                     continue;
                 Compared.FindOrAdd(Actor->GetClass()->GetName()) += Here;
-                Total += Here;
+                MapCompared += Here;
                 for (const FString& Line : Differences)
                     AddError(FString::Printf(TEXT("%s (%s): %s"), *Actor->GetName(), *Actor->GetClass()->GetName(), *Line));
             }
+        TestTrue(FString(TEXT("filled fields were compared in ")) + Map, MapCompared > 0);
+        Total += MapCompared;
     }
     Compared.KeySort(TLess<FString>());
     for (const auto& Pair : Compared)
