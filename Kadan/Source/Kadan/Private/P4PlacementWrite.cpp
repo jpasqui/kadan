@@ -566,6 +566,29 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
             }
             Told.Blobs.Add(SlotKey(Slot), TArray<uint8>(Bytes.data(), int32(Bytes.size())));
         }
+        // A value the creator set that neither a blob of the row nor the row's own settings hold does not reach the
+        // game, which makes the object from its row: the creator hears of it, as for the game's own objects.
+        {
+            TInlineComponentArray<UActorComponent*> Parts(Actor);
+            TArray<UObject*> Objects{Actor};
+            for (UActorComponent* Part : Parts)
+                if (Part)
+                    Objects.Add(Part);
+            for (UObject* Object : Objects)
+            {
+                const TArray<TPair<FProperty*, bool>> Held = HeldOptions(Actor, Object, Context);
+                for (const FString& Name : EditedFromClass(Object))
+                {
+                    const FProperty* Property = Object->GetClass()->FindPropertyByName(FName(*Name));
+                    if (!GameProperty(Property) || (Object == Actor && RowSetting(Property)) ||
+                        Held.ContainsByPredicate([&](const TPair<FProperty*, bool>& One) { return One.Key == Property; }))
+                        continue;
+                    Out.Told.Add(FString::Printf(
+                        TEXT("%s: the change to %s does not reach the game: the game makes the object from its placement row, which does not hold this value."),
+                        *Actor->GetName(), *((Object == Actor ? FString() : Object->GetName() + TEXT(".")) + Name)));
+                }
+            }
+        }
         Out.Rows.Add(MoveTemp(Told));
     }
     // The list asset of the map, holding the placement list.
