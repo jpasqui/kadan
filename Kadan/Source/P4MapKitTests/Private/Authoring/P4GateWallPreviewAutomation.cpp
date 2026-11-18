@@ -38,6 +38,7 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
         Settings.GamePaks = Request.GamePaksDirectory;
         Settings.Retoc = Request.Tools.Retoc;
         Settings.Repak = Request.Tools.Repak;
+        Settings.AllowGameBackedLevels = true;
         const FP4KadanImportResult Import = P4KadanImportMap(Settings, Cave002, true);
         for (const FString& Problem : Import.Problems)
             AddInfo(TEXT("Not imported. ") + Problem);
