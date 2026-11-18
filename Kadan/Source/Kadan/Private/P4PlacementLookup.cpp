@@ -140,7 +140,7 @@ TArray<TPair<FProperty*, bool>> HeldOptions(AActor* Actor, UObject* Object, cons
     {
         if (!Object || OwnerOf(Actor, Slot) != Object || NotAnOption(SlotKey(Slot)))
             continue;
-        const bool Can = Writable(Object, Slot, Context);
+        const bool Can = P::Complete(Slot.S, NativeChain(Object->GetClass()));
         for (const P::Field& Field : LayoutFields(Slot.S, Context))
         {
             FProperty* Property = NotAProperty(Field) ? nullptr : TopOption(Object, Wide(Field.Name));
