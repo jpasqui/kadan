@@ -15,7 +15,8 @@ parent that is inside it or in the engine. Tagged serialization stores object re
 their class, so this does not change what is cooked. "full" writes every class of the game modules.
 
 Expose. "game" (default) gives each property the editor flags the game has. "all" also makes every
-saved property editable, which the level importer needs to set values.
+saved property editable, which the level importer needs to set values; the ones the game does not edit
+are hidden in the Details panel (EditCondition false), so it shows what the game's own editor showed.
 
 Defaults. With --defaults (eden_defaults.py's reading of the running game) every class gets the game's
 default values and default subobjects: its constructor makes the subobjects the game's class default
@@ -703,6 +704,10 @@ class Generator:
             out.append(('Visible' if const else 'Edit') + where)
             if flags & F_FIXED:
                 out.append('EditFixedSize')
+            if not edit:
+                # Editable for Kadan's own code only: the Details panel shows what the game's editor showed,
+                # so a property the game does not edit is hidden there.
+                meta += ['EditCondition="false"', 'EditConditionHides']
         if blueprint and not static_array and not delegate:
             if flags & F_BP:
                 out.append('BlueprintReadOnly' if flags & F_BP_RO else 'BlueprintReadWrite')

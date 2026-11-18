@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import gen_headers  # noqa: E402
 import regenerate  # noqa: E402
 import stub_build  # noqa: E402
 
@@ -40,6 +41,28 @@ class PinnedInputs(unittest.TestCase):
     def test_pinned_bytes_are_read(self):
         (self.folder / 'inputs/evidence.json').write_bytes(self.data)
         self.assertEqual(stub_build.input_bytes('native_engine_evidence', self.folder), self.data)
+
+
+class DetailsPanel(unittest.TestCase):
+    """The stubs show in the Details panel what the game's editor showed."""
+
+    def specifiers(self, flags, expose='all'):
+        generator = gen_headers.Generator.__new__(gen_headers.Generator)
+        generator.expose = expose
+        field = dict(flags=hex(flags), type_detail=dict(kind='IntProperty'), array_dim=1)
+        return generator.specifiers(field, False, False)
+
+    def test_a_property_the_game_edits_is_shown(self):
+        made = self.specifiers(gen_headers.F_EDIT)
+        self.assertIn('EditAnywhere', made)
+        self.assertNotIn('EditCondition', made)
+
+    def test_a_property_only_kadan_edits_is_hidden(self):
+        made = self.specifiers(0)
+        self.assertIn('EditAnywhere', made)
+        self.assertIn('meta=(EditCondition="false", EditConditionHides)', made)
+        self.assertEqual(self.specifiers(0, expose='game'), '')
+        self.assertNotIn('Edit', self.specifiers(gen_headers.F_TRANSIENT))
 
 
 class Compare(unittest.TestCase):
