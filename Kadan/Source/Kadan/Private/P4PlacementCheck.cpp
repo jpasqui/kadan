@@ -67,9 +67,9 @@ TArray<FString> P4PlacementOptionDifferences(AActor* Actor, const FP4GamePlaceme
             if (Known && !Layout.Fill.empty())
             {
                 P::Value Filled = P::EmptyOf(*Layout.Of, Slot->Static ? Row.AssetVersion : Row.GeneratorVersion);
-                FString Why;
-                if (!FillFromActor(Actor, Owner, Layout, Filled, Why))
-                    Out.Add(Key + TEXT(" ") + Why);
+                FString Unfilled;
+                if (!FillFromActor(Actor, Owner, Layout, Filled, Unfilled))
+                    Out.Add(Key + TEXT(" ") + Unfilled);
                 else if (Canonical(Filled, Name) != Canonical(Member.second, Name))
                 {
                     const std::vector<std::string> Mine = Canonical(Filled, Name), Game = Canonical(Member.second, Name);
