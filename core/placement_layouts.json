@@ -287,6 +287,36 @@
       "name": "NavLinkArray",
       "kind": "array",
       "item": "NavLink"
+    },
+    {
+      "name": "NavLinkEnds",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"},
+        {"name": "Direction", "type": "u8"},
+        {"name": "bUseSnapHeight", "type": "u8"}
+      ]
+    },
+    {
+      "name": "NavLinkEndsArray",
+      "kind": "array",
+      "item": "NavLinkEnds"
+    },
+    {
+      "name": "NavLinkPlace",
+      "kind": "struct",
+      "members": [
+        {"name": "Location", "type": "vec"},
+        {"name": "Links", "type": "NavLinkEndsArray"}
+      ]
+    },
+    {
+      "name": "GuruguruWindow",
+      "kind": "struct",
+      "members": [
+        {"name": "GuruguruDist", "type": "f32", "gate": ">0x20220628a"}
+      ]
     }
   ],
   "lists": [
@@ -1046,6 +1076,146 @@
       "base": "inherit",
       "fields": [
         {"name": "runtime_0x9f9", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "class": "HibaBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "HibaAIParameter.WaitAddTime", "type": "f32"}
+      ]
+    },
+    {
+      "class": "GeyserAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "GeyserAIParameter.bSetCrystal", "type": "bool"},
+        {"name": "GeyserAIParameter.StopQueenDistXY", "type": "f32"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true}
+      ]
+    },
+    {
+      "class": "ConveyorBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ConveyorBaseAIParameter.SwitchID", "type": "name"},
+        {"name": "ConveyorBaseAIParameter.DriveSpeed", "type": "f32"}
+      ]
+    },
+    {
+      "class": "ConveyorNavAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ConveyorNavAIParameter.SwitchID", "type": "name"},
+        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true},
+        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true},
+        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true},
+        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true},
+        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true}
+      ]
+    },
+    {
+      "class": "CrushJellyAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_word", "type": "i32", "gate": "<0x20220131a", "derived": true, "runtime_default": "0x1"},
+        {"name": "legacy_flag", "type": "bool", "gate": "<0x20220131a", "derived": true, "runtime_default": "0x1"},
+        {"name": "CrushJellyAIParameter.bFreezeStart", "type": "bool"},
+        {"name": "CrushJellyAIParameter.SearchCIDList", "type": "NameArray", "gate": ">0x202208039"}
+      ]
+    },
+    {
+      "class": "AreaBaseCampComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "AreaBaseCampComponent.BaseCampId", "type": "i32"},
+        {"name": "AreaBaseCampComponent.bDeactivateByExit", "type": "bool"},
+        {"name": "AreaBaseCampParameter.SafeAreaBound.Radius", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SafeAreaOffset", "type": "vec"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfX", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfY", "type": "f32"},
+        {"name": "AreaBaseCampParameter.SearchBound.HalfZ", "type": "f32"},
+        {"name": "AreaBaseCampParameter.ForceFloweringRadius", "type": "f32"},
+        {"name": "AreaBaseCampParameter.StateChangeDelayTime", "type": "f32", "gate": ">0x20211126a"},
+        {"name": "AreaBaseCampParameter.GuruguruDist", "type": "f32", "gate": ">0x202207069"},
+        {"name": "AreaBaseCampParameter.CIDList", "type": "NameArray"}
+      ]
+    },
+    {
+      "class": "AreaBaseCampComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "legacy_base_camp_id", "type": "i32", "gate": "<0x20220629b", "derived": true},
+        {"name": "AreaBaseCampComponent.CampState", "type": "u8", "gate": ">0x20220629a"},
+        {"name": "runtime_0xa6c", "type": "bool", "gate": ">0x20211208a", "derived": true},
+        {"name": "legacy_guruguru", "type": "GuruguruWindow", "gate": "<0x20220736a", "derived": true}
+      ]
+    },
+    {
+      "class": "SwitchBaseAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "SwitchBaseAIParameter.SwitchID", "type": "name"}
+      ]
+    },
+    {
+      "class": "TriggerDoorAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "TriggerDoorAIParameter.SwitchID", "type": "name"},
+        {"name": "TriggerDoorAIParameter.CompleteUIType", "type": "i32", "gate": ">0x20230116a"},
+        {"name": "TriggerDoorAIParameter.OpenWaitTime", "type": "f32"},
+        {"name": "TriggerDoorAIParameter.bEnableAirWall", "type": "bool", "gate": ">0x202112239"},
+        {"name": "TriggerDoorAIParameter.bNoCollisionAirWall", "type": "bool", "gate": ">0x202301239"},
+        {"name": "SearchBox", "type": "BoxCollision", "derived": true},
+        {"name": "TriggerDoorAIParameter.CIDList", "type": "NameArray"}
+      ]
+    },
+    {
+      "class": "TriggerDoorAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "TriggerDoorAIParameter.bIsAlreadyOpen", "type": "bool"}
+      ]
+    },
+    {
+      "class": "ValveAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ValveAIParam.ValveID", "type": "name"},
+        {"name": "ValveAIParam.BuiltWorkType", "type": "i32"},
+        {"name": "ValveAIParam.DemoID", "type": "i32", "gate": ">0x20211223a"}
+      ]
+    },
+    {
+      "class": "ValveAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "ValveAIParam.WorkType", "type": "i32"},
+        {"name": "runtime_0x10c4", "type": "i32", "derived": true},
+        {"name": "runtime_0x10c8", "type": "bool", "derived": true},
+        {"name": "runtime_0x10cc", "type": "i32", "derived": true},
+        {"name": "runtime_0x10d0", "type": "bool", "derived": true}
+      ]
+    },
+    {
+      "class": "HappyDoorAIComponent",
+      "slot": "AI.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "HappyDoorAIParameter.HappyDoorID", "type": "name"}
       ]
     }
   ]

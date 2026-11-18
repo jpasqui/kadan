@@ -589,6 +589,172 @@ static void Own()
         CHECK(Decode(Slot::AIDynamic, Fence, Bytes, RowVersion, Back, Error) && Back.Exact() &&
             Lines(Fallen) == Lines(Back));
     }
+    // Gimmicks and camps of the object AI: a blob filled by name reads back to the same values, and each
+    // version gate takes its field in or out.
+    const auto Same = [&](Slot S, const Context& C, const Blob& In, std::uint64_t V)
+    {
+        std::vector<std::uint8_t> Out;
+        Blob Read;
+        std::string Why;
+        return Encode(S, C, In, V, Out, Why) && Decode(S, C, Out, V, Read, Why) && Read.Exact() &&
+            Read.Variant == In.Variant && Lines(In) == Lines(Read);
+    };
+    const auto Gated = [&](Slot S, const Context& C, const std::string& Name, std::uint64_t Without,
+                           std::uint64_t With)
+    {
+        Blob Old, New;
+        return Fresh(S, C, Without, Old) && Fresh(S, C, With, New) && !Path(Old, Name) && Path(New, Name);
+    };
+    Context Vent;
+    Vent.ComponentChain = {"HibaBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Vent, RowVersion, Options));
+        Path(Options, "HibaAIParameter.WaitAddTime")->SetFloat(2.f);
+        CHECK(Encode(Slot::AIStatic, Vent, Options, RowVersion, Bytes, Error) && Bytes.size() > 4 &&
+            Bytes[Bytes.size() - 1] == 0x40 && Same(Slot::AIStatic, Vent, Options, RowVersion));
+    }
+    Context Geyser;
+    Geyser.ComponentChain = {"GeyserAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Geyser, RowVersion, Options));
+        Path(Options, "GeyserAIParameter.bSetCrystal")->Bits = 1;
+        Path(Options, "GeyserAIParameter.StopQueenDistXY")->SetFloat(-1.f);
+        const Type* Links = FieldType(Slot::AIStatic, Geyser, "NavLinkComponent.Links");
+        CHECK(Links && Links->Item);
+        if (Links && Links->Item)
+            Path(Options, "NavLinkComponent.Links")->Items.push_back(EmptyOf(*Links->Item, RowVersion));
+        CHECK(Same(Slot::AIStatic, Geyser, Options, RowVersion));
+    }
+    Context Belt;
+    Belt.ComponentChain = {"ConveyorAAIComponent", "ConveyorBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Belt, RowVersion, Options));
+        *Path(Options, "ConveyorBaseAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "ConveyorBaseAIParameter.DriveSpeed")->SetFloat(100.f);
+        CHECK(Same(Slot::AIStatic, Belt, Options, RowVersion));
+    }
+    Context NavBelt;
+    NavBelt.ComponentChain = {"ConveyorNavAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, NavBelt, RowVersion, Options));
+        *Path(Options, "ConveyorNavAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "NavModifierALocation")->Words[1] = Value::FloatBits(120.f);
+        const Type* Place = FieldType(Slot::AIStatic, NavBelt, "NavLinkA");
+        CHECK(Place && Place->Is == Kind::Struct);
+        if (Place)
+            for (const Field& F : Place->Members)
+                if (F.Name == "Links" && F.Of->Item)
+                {
+                    Value End = EmptyOf(*F.Of->Item, RowVersion);
+                    End.Find("Direction")->Bits = 1;
+                    Path(Options, "NavLinkA")->Find("Links")->Items.push_back(End);
+                }
+        CHECK(Path(Options, "NavLinkA")->Find("Links")->Items.size() == 1);
+        Path(Options, "TriggerBox")->Find("BoxExtent")->Words[0] = Value::FloatBits(25.f);
+        CHECK(Same(Slot::AIStatic, NavBelt, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, NavBelt, "NavModifierALocation", UINT64_C(0x202207299), UINT64_C(0x20220729a)));
+        CHECK(Gated(Slot::AIStatic, NavBelt, "TriggerBox", UINT64_C(0x202210189), UINT64_C(0x20221018a)));
+    }
+    Context Jelly;
+    Jelly.ComponentChain = {"CrushJellyAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Jelly, RowVersion, Options) && !Path(Options, "legacy_word"));
+        Path(Options, "CrushJellyAIParameter.bFreezeStart")->Bits = 1;
+        Value Cid = NameFromUtf8("BRANCH");
+        Cid.Is = Kind::Name;
+        Path(Options, "CrushJellyAIParameter.SearchCIDList")->Items.push_back(Cid);
+        CHECK(Same(Slot::AIStatic, Jelly, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Jelly, "CrushJellyAIParameter.SearchCIDList", UINT64_C(0x202208039),
+            UINT64_C(0x20220803a)));
+        Blob Old;
+        CHECK(Fresh(Slot::AIStatic, Jelly, UINT64_C(0x202201319), Old) && Path(Old, "legacy_word"));
+    }
+    Context Camp;
+    Camp.ComponentChain = {"AreaBaseCampComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Camp, RowVersion, Options));
+        Path(Options, "AreaBaseCampComponent.BaseCampId")->Bits = 3;
+        Path(Options, "AreaBaseCampParameter.SafeAreaBound.Radius")->SetFloat(150.f);
+        Path(Options, "AreaBaseCampParameter.ForceFloweringRadius")->SetFloat(1000.f);
+        Value Cid = NameFromUtf8("ElecMushi");
+        Cid.Is = Kind::Name;
+        Path(Options, "AreaBaseCampParameter.CIDList")->Items.push_back(Cid);
+        CHECK(Same(Slot::AIStatic, Camp, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Camp, "AreaBaseCampParameter.GuruguruDist", UINT64_C(0x202207069),
+            UINT64_C(0x20220706a)));
+        Blob State;
+        CHECK(Fresh(Slot::AIDynamic, Camp, RowVersion, State) && !Path(State, "legacy_base_camp_id") &&
+            !Path(State, "legacy_guruguru"));
+        Path(State, "AreaBaseCampComponent.CampState")->Bits = 4;
+        CHECK(Encode(Slot::AIDynamic, Camp, State, RowVersion, Bytes, Error) && Bytes.size() == 17 && Bytes[12] == 4);
+        CHECK(Same(Slot::AIDynamic, Camp, State, RowVersion));
+        // Between 0x20220628b and 0x202207369 the dynamic blob also has the circling distance.
+        for (const std::uint64_t V : {UINT64_C(0x20220628a), UINT64_C(0x20220628b), UINT64_C(0x202207369),
+                 UINT64_C(0x20220736a)})
+        {
+            Blob Window;
+            CHECK(Fresh(Slot::AIDynamic, Camp, V, Window));
+            CHECK(Encode(Slot::AIDynamic, Camp, Window, V, Bytes, Error));
+            const bool Has = V > UINT64_C(0x20220628a) && V < UINT64_C(0x20220736a);
+            CHECK(Bytes.size() == (V < UINT64_C(0x20220629b) ? 20u : 17u) + (Has ? 4u : 0u));
+        }
+    }
+    Context Switch;
+    Switch.ComponentChain = {
+        "TwinSwitchAIComponent", "SwitchBaseAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Switch, RowVersion, Options));
+        *Path(Options, "SwitchBaseAIParameter.SwitchID") = NameFromUtf8("switch01");
+        CHECK(Same(Slot::AIStatic, Switch, Options, RowVersion));
+    }
+    Context Door;
+    Door.ComponentChain = {"TriggerDoorAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Door, RowVersion, Options));
+        *Path(Options, "TriggerDoorAIParameter.SwitchID") = NameFromUtf8("switch00");
+        Path(Options, "TriggerDoorAIParameter.OpenWaitTime")->SetFloat(1.5f);
+        Path(Options, "TriggerDoorAIParameter.bEnableAirWall")->Bits = 1;
+        Path(Options, "SearchBox")->Find("Scale3D")->Words[2] = Value::FloatBits(1.f);
+        CHECK(Same(Slot::AIStatic, Door, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Door, "TriggerDoorAIParameter.CompleteUIType", UINT64_C(0x20230116a),
+            UINT64_C(0x20230116b)));
+        CHECK(Gated(Slot::AIStatic, Door, "TriggerDoorAIParameter.bNoCollisionAirWall", UINT64_C(0x202301239),
+            UINT64_C(0x20230123a)));
+        Blob Open;
+        CHECK(Fresh(Slot::AIDynamic, Door, RowVersion, Open));
+        Path(Open, "TriggerDoorAIParameter.bIsAlreadyOpen")->Bits = 1;
+        CHECK(Same(Slot::AIDynamic, Door, Open, RowVersion));
+    }
+    Context Valve;
+    Valve.ComponentChain = {"ValveAIComponent", "BuildObjectAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Valve, RowVersion, Options));
+        *Path(Options, "ValveAIParam.ValveID") = NameFromUtf8("valve00");
+        Path(Options, "ValveAIParam.DemoID")->Bits = 2;
+        CHECK(Same(Slot::AIStatic, Valve, Options, RowVersion));
+        CHECK(Gated(Slot::AIStatic, Valve, "ValveAIParam.DemoID", UINT64_C(0x20211223a), UINT64_C(0x20211223b)));
+        Blob Turned;
+        CHECK(Fresh(Slot::AIDynamic, Valve, RowVersion, Turned));
+        Path(Turned, "ValveAIParam.WorkType")->Bits = 1;
+        CHECK(Same(Slot::AIDynamic, Valve, Turned, RowVersion));
+    }
+    Context Happy;
+    Happy.ComponentChain = {"HappyDoorAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    {
+        Blob Options;
+        CHECK(Fresh(Slot::AIStatic, Happy, RowVersion, Options));
+        *Path(Options, "HappyDoorAIParameter.HappyDoorID") = NameFromUtf8("door00");
+        CHECK(Same(Slot::AIStatic, Happy, Options, RowVersion));
+    }
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
     CHECK(List == ListWord("example.cave", "/game/maps/cave000_f00_p") &&
