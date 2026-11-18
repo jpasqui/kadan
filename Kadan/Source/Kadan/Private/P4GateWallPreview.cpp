@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Editor.h"
+#include "EditorUndoClient.h"
 #include "Engine/Level.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/CollisionProfile.h"
@@ -41,7 +42,25 @@ TMap<TWeakObjectPtr<AActor>, FGate>& Gates()
     return Held;
 }
 
-FDelegateHandle PreChangeHandle, ChangedHandle, BeginMoveHandle, EndMoveHandle, MovedHandle, AddedHandle, UndoHandle;
+FDelegateHandle PreChangeHandle, ChangedHandle, BeginMoveHandle, EndMoveHandle, MovedHandle, AddedHandle;
+
+// An undo or redo puts the gates' components back as the transaction recorded them: they are drawn again after.
+class FGateUndo final : public FEditorUndoClient
+{
+public:
+    void PostUndo(bool) override
+    {
+        Again();
+    }
+    void PostRedo(bool) override
+    {
+        Again();
+    }
+
+private:
+    static void Again();
+};
+TUniquePtr<FGateUndo> Undo;
 
 bool DerivesNative(const UClass* Class, const TCHAR* Name)
 {
@@ -341,6 +360,12 @@ bool Show(AActor* Gate, FGate& State)
 }
 } // namespace
 
+void FGateUndo::Again()
+{
+    if (GEditor)
+        P4ApplyGateWallPreviews(GEditor->GetEditorWorldContext().World());
+}
+
 bool P4IsGateWall(const AActor* Actor)
 {
     return Actor && DerivesNative(Actor->GetClass(), TEXT("VarGateBaseActor"));
@@ -439,13 +464,11 @@ void P4StartGateWallPreviews()
         MovedHandle = GEditor->OnActorMoved().AddLambda([](AActor* Actor) { P4ApplyGateWallPreview(Actor); });
     if (!AddedHandle.IsValid() && GEngine)
         AddedHandle = GEngine->OnLevelActorAdded().AddLambda([](AActor* Actor) { P4ApplyGateWallPreview(Actor); });
-    if (!UndoHandle.IsValid())
-        UndoHandle = FEditorDelegates::PostUndoRedo.AddLambda(
-            []()
-            {
-                if (GEditor)
-                    P4ApplyGateWallPreviews(GEditor->GetEditorWorldContext().World());
-            });
+    if (!Undo)
+    {
+        Undo = MakeUnique<FGateUndo>();
+        GEditor->RegisterForUndo(Undo.Get());
+    }
 }
 
 void P4StopGateWallPreviews()
@@ -462,10 +485,11 @@ void P4StopGateWallPreviews()
     }
     if (GEngine)
         GEngine->OnLevelActorAdded().Remove(AddedHandle);
-    FEditorDelegates::PostUndoRedo.Remove(UndoHandle);
+    if (Undo && GEditor)
+        GEditor->UnregisterForUndo(Undo.Get());
+    Undo.Reset();
     BeginMoveHandle.Reset();
     EndMoveHandle.Reset();
     MovedHandle.Reset();
     AddedHandle.Reset();
-    UndoHandle.Reset();
 }

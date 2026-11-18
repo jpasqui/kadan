@@ -162,7 +162,8 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
     {
         FEditPropertyChain Chain;
         Chain.AddHead(Length);
-        Gate->PreEditChange(Chain);
+        // The chain form, as the Details panel calls it: it tells the delegates before the value changes.
+        static_cast<UObject*>(Gate)->PreEditChange(Chain);
         Length->SetPropertyValue_InContainer(Gate, Value);
         FPropertyChangedEvent Event(Length, EPropertyChangeType::ValueSet);
         Gate->PostEditChangeProperty(Event);
