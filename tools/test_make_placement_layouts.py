@@ -24,11 +24,21 @@ class PlacementLayouts(unittest.TestCase):
         self.assertIn('{"T", "bool", \'>\', UINT64_C(0x5),', made)
         marked = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
                                                            fields=[dict(name='L', type='i32', derived=True, from_actor=True)])]))
-        self.assertIn('"", "", false, false, "", "", true, "", "", "", ""},', marked)
+        self.assertIn('"", "", false, false, "", "", true, "", "", "", "", ""},', marked)
         filled = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
                                                            fields=[dict(name='P', type='vec', derived=True, fill='place',
                                                                         fill_class='AkComponent')])]))
-        self.assertIn('false, "place", "AkComponent", "", ""},', filled)
+        self.assertIn('false, "place", "AkComponent", "", "", ""},', filled)
+        present = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
+                                                            fields=[dict(name='L', type='i32', derived=True,
+                                                                         when_class='NavLinkComponent')])]))
+        self.assertIn('false, "", "", "", "", "NavLinkComponent"},', present)
+        owned = layouts.generate(dict(data, slots=[dict(row='AI', half='Static', id='AIStatic', chain='owner', owner={})]))
+        self.assertIn('{"AI", true, Slot::AIStatic, \'o\', 2, 0, "", "", ""},', owned)
+        for bad in (dict(data, slots=[dict(row='AI', half='Static', id='AIStatic', chain='sideways', owner={})]),
+                    dict(data, types=data['types'] * 2)):
+            with self.assertRaises(ValueError):
+                layouts.generate(bad)
         for bad in (dict(name='P', type='vec', fill='place'), dict(name='P', type='vec', derived=True, fill_tag='T')):
             with self.assertRaises(ValueError):
                 layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace', fields=[bad])]))

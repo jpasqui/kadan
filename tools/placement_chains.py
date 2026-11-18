@@ -12,6 +12,9 @@ derived class that derives CarrotAIComponent. Components are the actor's compone
 most derived class first, then the components its native classes declare, as name=classes (classes colon
 separated), semicolon separated; a native class's component has a * before its name. That one is its declared
 class, perhaps a base of the one the game makes, and in the editor its property often holds nothing.
+
+The census also reads a fifth column when a line has one: the components' tags (name=tag,tag; semicolon separated),
+which the game finds some components by. Reflection does not hold them, so this tool does not write it.
 """
 import json
 import re

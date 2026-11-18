@@ -53,7 +53,7 @@ bool ResolvePlacementField(
 const FNumericProperty* Numeric(const FProperty* Field);
 bool ToValue(const FProperty* Field, const void* Data, const P::Type& Type, P::Value& Out, FString& Error);
 int32 CountOf(UObject* Owner, const TCHAR* Path);
-USceneComponent* SceneComponentNamed(AActor* Actor, const FName Name);
+USceneComponent* SceneComponentTagged(AActor* Actor, const FName Tag);
 bool ComponentValue(AActor* Actor, const P::Field& Field, P::Value& Out, FString& Error);
 bool TaggedRun(AActor* Actor, const std::string& Tag, uint64 Count, std::vector<P::Value>& Out);
 bool FromValue(const FProperty* Field, void* Data, const P::Type& Type, const P::Value& In, FString& Error);

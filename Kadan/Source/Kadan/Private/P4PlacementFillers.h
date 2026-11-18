@@ -27,4 +27,5 @@ TArray<UActorComponent*> ComponentsFor(AActor* Actor, const P::Field& Field);
 // Kinds, by file. Each file lists its own in a FFillerKind array returned here.
 TArrayView<const FFillerKind> NavFillers();    // P4PlacementFillNav.cpp: places and nav links
 TArrayView<const FFillerKind> ShapeFillers();  // P4PlacementFillShapes.cpp: splines, boxes and the rest
+TArrayView<const FFillerKind> LastFillers();   // P4PlacementFillLast.cpp: a nav link component's link ends
 } // namespace P4PlacementDetail

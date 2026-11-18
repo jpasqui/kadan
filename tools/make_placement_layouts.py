@@ -46,6 +46,7 @@ struct FieldRow {
     const char* FillClass;
     const char* FillTag;
     const char* FillName;
+    const char* WhenClass;
 };
 // A named type: its kind, its item type, or its members as Count field rows from First.
 struct TypeRow {
@@ -56,9 +57,10 @@ struct TypeRow {
     int First;
     int Count;
 };
-// A blob of a row: Chain is 'a' for the actor's native classes, 'c' for its AI component's, 0 for none. The
-// owner is the actor's component the blob is read from: the one the actor's OwnerProperty holds when it is of
-// one of OwnerClasses (a comma list), else the first of the first class, not of OwnerExcept. No classes: the actor.
+// A blob of a row: Chain is 'a' for the actor's native classes, 'c' for its AI component's, 'o' for its owner's
+// (below), 0 for none. The owner is the actor's component the blob is read from: the one the actor's OwnerProperty
+// holds when it is of one of OwnerClasses (a comma list), else the first of the first class, not of OwnerExcept.
+// No classes: the actor.
 struct SlotRow {
     const char* Row;
     bool Static;
@@ -95,7 +97,7 @@ template <class T> struct Table {
 FIELD_KEYS = {
     "name", "type", "gate", "when", "stop_if_set", "derived", "runtime_default", "count_of", "component_tag",
     "component_transform", "drops", "drop_key", "drop_list", "from_actor",
-    "fill", "fill_class", "fill_tag", "fill_name",
+    "fill", "fill_class", "fill_tag", "fill_name", "when_class",
 }
 
 
@@ -153,7 +155,7 @@ def field_row(field):
             text(field.get("component_tag", "")), boolean(field.get("component_transform", False)),
             boolean(field.get("drops", False)), text(field.get("drop_key", "")), text(field.get("drop_list", "")),
             boolean(field.get("from_actor", False)), text(field.get("fill", "")), text(field.get("fill_class", "")),
-            text(field.get("fill_tag", "")), text(field.get("fill_name", "")),
+            text(field.get("fill_tag", "")), text(field.get("fill_name", "")), text(field.get("when_class", "")),
         ]) + "},"
     )
 
@@ -161,6 +163,9 @@ def field_row(field):
 def generate(data):
     lists = {entry["name"]: entry["fields"] for entry in data["lists"]}
     fields, types, slots, parts = [], [], [], []
+    names = [entry["name"] for entry in data["types"]]
+    if len(set(names)) != len(names):
+        raise ValueError("a type name is used twice")
     for entry in data["types"]:
         members = expand(entry.get("members", []), lists)
         types.append("        {" + ", ".join([
@@ -172,7 +177,9 @@ def generate(data):
     for entry in data["slots"]:
         own = expand(entry.get("fields", []), lists)
         owner = entry.get("owner", {})
-        chain = {"actor": "'a'", "component": "'c'"}.get(entry.get("chain", ""), "0")
+        if entry.get("chain", "") not in ("", "actor", "component", "owner"):
+            raise ValueError(f"slot {entry['id']}: chain {entry['chain']!r}")
+        chain = {"actor": "'a'", "component": "'c'", "owner": "'o'"}.get(entry.get("chain", ""), "0")
         if entry["half"] not in ("Static", "Dynamic"):
             raise ValueError(f"slot {entry['id']}: half {entry['half']!r}")
         slots.append("        {" + ", ".join([
