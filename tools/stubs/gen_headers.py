@@ -729,8 +729,8 @@ class Generator:
             out.append('Export')
         if flags & F_EXPOSE_ON_SPAWN and flags & F_BP and blueprint:
             meta.append('ExposeOnSpawn="true"')
-        if any(word.startswith(('Edit', 'Visible', 'Blueprint')) for word in out):
-            out.append('Category="Game"')
+        # No category: the game's are not in its files, so the Details panel files each property under the class
+        # that declares it, as Unreal does for a property declared without one (a plugin module may leave it out).
         if meta:
             out.append(f'meta=({", ".join(meta)})')
         return ', '.join(out)

@@ -56,6 +56,7 @@ class DetailsPanel(unittest.TestCase):
         made = self.specifiers(gen_headers.F_EDIT)
         self.assertIn('EditAnywhere', made)
         self.assertNotIn('EditCondition', made)
+        self.assertNotIn('Category', made)
 
     def test_a_property_only_kadan_edits_is_hidden(self):
         made = self.specifiers(0)
