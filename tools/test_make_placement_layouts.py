@@ -24,7 +24,14 @@ class PlacementLayouts(unittest.TestCase):
         self.assertIn('{"T", "bool", \'>\', UINT64_C(0x5),', made)
         marked = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
                                                            fields=[dict(name='L', type='i32', derived=True, from_actor=True)])]))
-        self.assertIn('"", "", false, false, "", "", true},', marked)
+        self.assertIn('"", "", false, false, "", "", true, "", "", "", ""},', marked)
+        filled = layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace',
+                                                           fields=[dict(name='P', type='vec', derived=True, fill='place',
+                                                                        fill_class='AkComponent')])]))
+        self.assertIn('false, "place", "AkComponent", "", ""},', filled)
+        for bad in (dict(name='P', type='vec', fill='place'), dict(name='P', type='vec', derived=True, fill_tag='T')):
+            with self.assertRaises(ValueError):
+                layouts.generate(dict(data, classes=[dict(**{'class': 'X'}, slot='AI.Static', base='replace', fields=[bad])]))
 
     def test_complete_owners_are_listed_and_checked(self):
         base = dict(types=[], lists=[], classes=[],
