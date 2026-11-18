@@ -150,6 +150,10 @@ namespace P4ExportDriverTest
     // P4ExportMaterialRow.cpp: a row of creator cubes, one per everyday material made from scratch, placed from At.
     bool AddMaterialRow(FAutomationTestBase& Test, UWorld* World, const FString& Root, const FVector& At,
         TArray<UObject*>& Made, TArray<FString>& Names, TArray<AActor*>& Actors);
+    // P4ExportMaterialRow.cpp: a cube whose FBX file has painted vertex colors, imported with Vertex Color Import
+    // Option Replace as a creator keeps them, under an unlit material that shows them, placed at At.
+    AActor* AddPaintedCube(FAutomationTestBase& Test, UWorld* World, const FString& Root, const FVector& At,
+        TArray<UObject*>& Made);
 
     bool CookedNames(const FString& Header, std::vector<std::string>& Names);
     bool Has(const std::vector<std::string>& Names, const char* Name);
