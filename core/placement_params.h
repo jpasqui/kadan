@@ -72,6 +72,9 @@ struct Field
     // The game writes the actor's own value (a component's place, its nav links, a spline's points), which a writer
     // does not fill yet: a blob with such a field is not written for a new placement.
     bool FromActor = false;
+    // A derived field the game's serializer takes from the actor's components, and how a writer fills it the same
+    // way: a fill kind (the plugin's P4PlacementFillers.h lists them) with the component class, tag or name it reads.
+    std::string Fill, FillClass, FillTag, FillName;
 };
 struct Type
 {
@@ -283,6 +286,10 @@ struct Tables
             One.DropKey = Row.DropKey;
             One.DropList = Row.DropList;
             One.FromActor = Row.FromActor;
+            One.Fill = Row.Fill;
+            One.FillClass = Row.FillClass;
+            One.FillTag = Row.FillTag;
+            One.FillName = Row.FillName;
             Out.push_back(std::move(One));
         }
         return Out;

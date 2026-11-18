@@ -1,5 +1,6 @@
 // Placement export: the placement list of a mod's map, its rows and their blobs.
 #include "P4PlacementInternal.h"
+#include "P4PlacementFillers.h"
 
 using namespace P4PlacementDetail;
 
@@ -62,6 +63,14 @@ bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor
                 Value.Bits = uint32(Count);
             if (Field.StopIfSet)
                 Out.UnreadFields = Value.Set();
+            continue;
+        }
+        // Taken from the actor's components, as the game's serializer takes it. The class's defaults hold no options
+        // of it, so they keep the game's start value.
+        if (!Field.Fill.empty() && !ClassDefaults)
+        {
+            if (!FillFromActor(Actor, Owner, Field, Value, Error))
+                return false;
             continue;
         }
         // Written as the game starts it: dropped on load, or run-time state.

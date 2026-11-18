@@ -42,6 +42,10 @@ struct FieldRow {
     const char* DropKey;
     const char* DropList;
     bool FromActor;
+    const char* Fill;
+    const char* FillClass;
+    const char* FillTag;
+    const char* FillName;
 };
 // A named type: its kind, its item type, or its members as Count field rows from First.
 struct TypeRow {
@@ -91,6 +95,7 @@ template <class T> struct Table {
 FIELD_KEYS = {
     "name", "type", "gate", "when", "stop_if_set", "derived", "runtime_default", "count_of", "component_tag",
     "component_transform", "drops", "drop_key", "drop_list", "from_actor",
+    "fill", "fill_class", "fill_tag", "fill_name",
 }
 
 
@@ -127,6 +132,10 @@ def expand(fields, lists):
                 raise ValueError(f"unknown field list {field!r}")
             out.extend(expand(lists[field[1:]], lists))
             continue
+        if any(key in field for key in ("fill_class", "fill_tag", "fill_name")) and not field.get("fill"):
+            raise ValueError(f"{field.get('name')}: fill arguments without a fill")
+        if field.get("fill") and not field.get("derived"):
+            raise ValueError(f"{field.get('name')}: a filled field is derived")
         unknown = set(field) - FIELD_KEYS
         if unknown:
             raise ValueError(f"{field.get('name')}: unknown keys {sorted(unknown)}")
@@ -143,7 +152,8 @@ def field_row(field):
             number(field.get("runtime_default", 0)), text(field.get("count_of", "")),
             text(field.get("component_tag", "")), boolean(field.get("component_transform", False)),
             boolean(field.get("drops", False)), text(field.get("drop_key", "")), text(field.get("drop_list", "")),
-            boolean(field.get("from_actor", False)),
+            boolean(field.get("from_actor", False)), text(field.get("fill", "")), text(field.get("fill_class", "")),
+            text(field.get("fill_tag", "")), text(field.get("fill_name", "")),
         ]) + "},"
     )
 

@@ -49,6 +49,11 @@ KADAN_API FString P4GamePlacementFolder(const FString& GameRoot, const FString& 
 // containers into this project, as export reads them. Empty when neither has them.
 KADAN_API FString P4MapPlacementFolder(const FString& GameFolder, const FString& LevelPackage);
 
+// The fields of the actor's row that the game takes from the actor's components, each compared with what Kadan's
+// filler takes from the actor (P4PlacementFillers.h): how many were compared; a line in Differences for each that
+// differs or could not be filled.
+KADAN_API int32 P4PlacementFilledFields(AActor* Actor, const FP4GamePlacementRow& Row, TArray<FString>& Differences);
+
 // What a level's gameplay objects took from the game's placement lists.
 struct FP4PlacementOptionsReport
 {

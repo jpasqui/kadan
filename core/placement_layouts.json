@@ -20,7 +20,9 @@
     "blob of the slot of such owners in the game's placement lists read and wrote back byte for byte. Kadan writes a new",
     "placement's blob only for these. tools/placement_census.cpp checks the game's lists and prints them.",
     "from_actor: the game writes the actor's own value there (a component's place, its nav links, a spline's points),",
-    "which a writer does not fill yet; a new placement's blob with such a field is not written either."
+    "which a writer does not fill yet; a new placement's blob with such a field is not written either.",
+    "fill: a derived field a writer fills from the actor's components as the game's serializer does: the kind (the plugin's",
+    "P4PlacementFillers.h), with fill_class, fill_tag or fill_name for the component it reads. Checked against the game's rows."
   ],
   "complete": [
     {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CakAmbientSoundActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "ExcavationActor", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "LookTriggerActor", "MoveFloorActor", "NPCPLACEACTOR", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "RouteSplineActor", "StringActor", "VarGateBaseActor", "WATERBOX", "WaterBoxNavActor", "YBoxActor"]},
