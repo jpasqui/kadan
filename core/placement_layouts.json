@@ -266,6 +266,54 @@
         {"name": "Scale3D", "type": "vec"},
         {"name": "SphereRadius", "type": "f32"}
       ]
+    },
+    {
+      "name": "LinearColor",
+      "kind": "struct",
+      "members": [
+        {"name": "R", "type": "f32"},
+        {"name": "G", "type": "f32"},
+        {"name": "B", "type": "f32"},
+        {"name": "A", "type": "f32"}
+      ]
+    },
+    {
+      "name": "Vector2D",
+      "kind": "struct",
+      "members": [
+        {"name": "X", "type": "f32"},
+        {"name": "Y", "type": "f32"}
+      ]
+    },
+    {
+      "name": "IntPoint",
+      "kind": "struct",
+      "members": [
+        {"name": "X", "type": "i32"},
+        {"name": "Y", "type": "i32"}
+      ]
+    },
+    {
+      "name": "ExcavationInitialWarper",
+      "kind": "struct",
+      "members": [
+        {"name": "Offset", "type": "Vector2D"},
+        {"name": "Radius", "type": "f32"},
+        {"name": "CentralAngle", "type": "f32"},
+        {"name": "Height", "type": "f32"},
+        {"name": "LimitLevel", "type": "f32"},
+        {"name": "LimitRadius", "type": "f32"},
+        {"name": "LimitPenumbra", "type": "f32"},
+        {"name": "LinerShape", "type": "name"},
+        {"name": "BitmapShape", "type": "name"},
+        {"name": "CellSize", "type": "f32"},
+        {"name": "RotateAngle", "type": "f32"}
+      ]
+    },
+    {
+      "name": "ExcavationInitialWarperArray",
+      "kind": "array",
+      "item": "ExcavationInitialWarper"
     }
   ],
   "lists": [
@@ -486,6 +534,13 @@
         {"name": "CakMultiplePositionComponent.MultiplePositions", "type": "TransformArray"},
         {"name": "CakMultiplePositionComponent.ShapesCount", "type": "i32", "stop_if_set": true, "count_of": "Shapes"}
       ]
+    },
+    {
+      "row": "ActorParameter",
+      "half": "Dynamic",
+      "id": "ActorDynamic",
+      "chain": "actor",
+      "owner": {}
     }
   ],
   "classes": [
@@ -994,6 +1049,46 @@
       "base": "inherit",
       "fields": [
         {"name": "DownFloorAIComponent.bWorkEnd", "type": "bool"}
+      ]
+    },
+    {
+      "class": "ExcavationAIComponent",
+      "slot": "AI.Dynamic",
+      "base": "inherit",
+      "fields": [
+        {"name": "ExcavationParam.SaveSlotInterval", "type": "f32"},
+        {"name": "ExcavationParam.ItemRadius", "type": "f32"},
+        {"name": "ExcavationParam.SaveSlotRadiusRatio", "type": "f32"},
+        {"name": "ExcavationParam.SaveLaunchVelZ", "type": "f32"},
+        {"name": "runtime_0x7c", "type": "i32", "derived": true},
+        {"name": "unused_vector", "type": "vec", "derived": true},
+        {"name": "ExcavationParam.bWorkEndKill", "type": "bool", "gate": ">0x202110049"},
+        {"name": "runtime_name_0x80", "type": "name", "gate": ">0x202208029", "derived": true},
+        {"name": "runtime_bool_0x88", "type": "bool", "gate": ">0x202208169", "derived": true}
+      ]
+    },
+    {
+      "class": "ExcavationActor",
+      "slot": "ActorParameter.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "ExcavationActor.HeightOffset", "type": "f32", "gate": ">0x202111259"},
+        {"name": "drawer_terrain_tag", "type": "u32", "derived": true, "runtime_default": "0x80400002"},
+        {"name": "ExcavationActor.EffectColor", "type": "LinearColor"},
+        {"name": "ExcavationActor.bCastDynamicShadow", "type": "bool"},
+        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true}
+      ]
+    },
+    {
+      "class": "ExcavationActor",
+      "slot": "ActorParameter.Dynamic",
+      "base": "replace",
+      "fields": [
+        {"name": "ExcavationActor.WarperCount", "type": "i32"},
+        {"name": "ExcavationActor.InitialWarpers", "type": "ExcavationInitialWarperArray"},
+        {"name": "PlacedActor.HMC.Material", "type": "name"},
+        {"name": "PlacedActor.HMC.Extent", "type": "vec"},
+        {"name": "PlacedActor.HMC.GridStep", "type": "IntPoint"}
       ]
     }
   ]

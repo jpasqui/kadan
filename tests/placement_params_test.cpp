@@ -261,8 +261,9 @@ static void Own()
             Got.ComponentTransform);
         CHECK(FieldOf(Slot::ActorStatic, None, "GActor.DemoBindName", Got) && !Got.Derived && Got.CountOf.empty());
         Slot Found = Slot::ActorStatic;
-        CHECK(Slots().size() == 13 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
+        CHECK(Slots().size() >= 14 && SlotOf("AI", false, Found) && Found == Slot::AIDynamic &&
             !SlotOf("Hash", true, Found));
+        CHECK(SlotOf("ActorParameter", false, Found) && Found == Slot::ActorDynamic);
         // The object each blob is read from, and how drops are numbered.
         for (const auto& One : Slots())
         {
@@ -533,6 +534,62 @@ static void Own()
         }
         CHECK(Read && Back.Exact() && Lines(Options) == Lines(Back));
     }
+    // A dirt mound: its component's dynamic blob takes the save-slot values after the object's, and its actor
+    // writes its height offset, color and shadow (static) and its warpers and height map (dynamic).
+    Context Mound;
+    Mound.ActorChain = {"ExcavationActor", "GActor"};
+    Mound.ComponentChain = {"ExcavationAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    for (const std::uint64_t V : {UINT64_C(0x202110049), UINT64_C(0x20211004a), UINT64_C(0x202208029),
+             UINT64_C(0x20220802a), UINT64_C(0x202208169), RowVersion})
+    {
+        Blob Saved;
+        CHECK(Fresh(Slot::AIDynamic, Mound, V, Saved));
+        CHECK(bool(Path(Saved, "ExcavationParam.bWorkEndKill")) == (V > UINT64_C(0x202110049)));
+        CHECK(bool(Path(Saved, "runtime_name_0x80")) == (V > UINT64_C(0x202208029)));
+        CHECK(bool(Path(Saved, "runtime_bool_0x88")) == (V > UINT64_C(0x202208169)));
+        Path(Saved, "ExcavationParam.SaveSlotInterval")->SetFloat(2.5f);
+        Path(Saved, "ExcavationParam.SaveLaunchVelZ")->SetFloat(3.f);
+        CHECK(Encode(Slot::AIDynamic, Mound, Saved, V, Bytes, Error));
+        CHECK(Decode(Slot::AIDynamic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Saved) == Lines(Back));
+    }
+    for (const std::uint64_t V : {UINT64_C(0x202111259), UINT64_C(0x20211125a), UINT64_C(0x202207059), RowVersion})
+    {
+        Blob Look;
+        CHECK(Fresh(Slot::ActorStatic, Mound, V, Look));
+        CHECK(bool(Path(Look, "ExcavationActor.HeightOffset")) == (V > UINT64_C(0x202111259)));
+        CHECK(bool(Path(Look, "drawer_terrain_material")) == (V > UINT64_C(0x202207059)));
+        Path(Look, "ExcavationActor.EffectColor")->Find("A")->SetFloat(1.f);
+        Path(Look, "ExcavationActor.bCastDynamicShadow")->Bits = 1;
+        CHECK(Encode(Slot::ActorStatic, Mound, Look, V, Bytes, Error));
+        CHECK(Decode(Slot::ActorStatic, Mound, Bytes, V, Back, Error) && Back.Exact() && Lines(Look) == Lines(Back));
+    }
+    bool TerrainTag = false;
+    const auto MoundLayouts = Layouts(Slot::ActorStatic, Mound);
+    for (const Field& F : MoundLayouts[0].Fields)
+        TerrainTag = TerrainTag || (F.Name == "drawer_terrain_tag" && F.Derived && F.RuntimeDefault == 0x80400002);
+    CHECK(TerrainTag);
+    Blob Dug;
+    CHECK(Fresh(Slot::ActorDynamic, Mound, RowVersion, Dug));
+    Path(Dug, "ExcavationActor.WarperCount")->Bits = 16;
+    const Type* Warpers = FieldType(Slot::ActorDynamic, Mound, "ExcavationActor.InitialWarpers");
+    CHECK(Warpers && Warpers->Is == Kind::Array && Warpers->Item);
+    if (Warpers && Warpers->Item)
+    {
+        Value Warper = EmptyOf(*Warpers->Item, RowVersion);
+        Warper.Find("Radius")->SetFloat(100.f);
+        Warper.Find("Offset")->Find("Y")->SetFloat(-20.f);
+        *Warper.Find("LinerShape") = NameFromUtf8("None");
+        Path(Dug, "ExcavationActor.InitialWarpers")->Items.push_back(Warper);
+    }
+    *Path(Dug, "PlacedActor.HMC.Material") = NameFromUtf8("/Game/Soil.Soil");
+    Path(Dug, "PlacedActor.HMC.GridStep")->Find("X")->Bits = 18;
+    CHECK(Encode(Slot::ActorDynamic, Mound, Dug, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 8 && Bytes[0] == 16 && Bytes[4] == 1); // the warper count, then one warper
+    CHECK(Decode(Slot::ActorDynamic, Mound, Bytes, RowVersion, Back, Error) && Back.Exact() && Lines(Dug) == Lines(Back));
+    // An actor without a dynamic part has no layout for that blob.
+    Context Bare;
+    Bare.ActorChain = {"GActor"};
+    CHECK(Layouts(Slot::ActorDynamic, Bare).empty());
     // Placement numbers: Kadan's range, the same on every run, and different for every name.
     const std::uint32_t List = ListWord("example.cave", "/Game/Maps/Cave000_F00_P");
     CHECK(List == ListWord("example.cave", "/game/maps/cave000_f00_p") &&
