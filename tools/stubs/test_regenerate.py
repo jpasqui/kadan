@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_plugin  # noqa: E402
 import gen_headers  # noqa: E402
 import regenerate  # noqa: E402
 import stub_build  # noqa: E402
@@ -64,6 +65,17 @@ class DetailsPanel(unittest.TestCase):
         self.assertIn('meta=(EditCondition="false", EditConditionHides)', made)
         self.assertEqual(self.specifiers(0, expose='game'), '')
         self.assertNotIn('Edit', self.specifiers(gen_headers.F_TRANSIENT))
+
+
+class ActionList(unittest.TestCase):
+    def test_every_produced_file_gets_its_folder(self):
+        folder = Path(tempfile.mkdtemp())
+        actions = folder / 'actions.json'
+        dll = folder / 'Plugins/P4Stubs/Binaries/Win64/UE4Editor-Carrot4.dll'
+        obj = folder / 'Intermediate/Module.Carrot4.cpp.obj'
+        actions.write_text(json.dumps(dict(Actions=[dict(ProducedItems=[str(dll)], PrerequisiteItems=[str(folder / 'x.h')]),
+                                                    dict(ProducedItems=[str(obj)])])), encoding='utf-8')
+        self.assertEqual(build_plugin.output_folders(actions), sorted({dll.parent, obj.parent}))
 
 
 class Compare(unittest.TestCase):

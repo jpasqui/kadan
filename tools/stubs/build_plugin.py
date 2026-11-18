@@ -59,6 +59,25 @@ def run(command, log, timeout, engine):
                           timeout=timeout, cwd=str(Path(engine) / 'Engine/Source')).returncode
 
 
+def output_folders(actions):
+    """The folders of the files an action list produces. UnrealBuildTool's Execute mode runs the actions without
+    making them, so a first build (no Binaries yet) fails to link without them."""
+    found = set()
+
+    def walk(value, produced=False):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                walk(item, produced or key == 'ProducedItems')
+        elif isinstance(value, list):
+            for item in value:
+                walk(item, produced)
+        elif produced and isinstance(value, str) and value:
+            found.add(Path(value).parent)
+
+    walk(json.loads(Path(actions).read_text(encoding='utf-8-sig')))
+    return sorted(found)
+
+
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('host')
@@ -96,6 +115,8 @@ def main(argv):
                     replaced = adapt_generated(plugin)
                     log.write('replaced generated registrations: ' + json.dumps(replaced) + '\n')
                     print('registered under /Script/Engine:', ', '.join(n for names in replaced.values() for n in names))
+                    for folder in output_folders(actions):
+                        folder.mkdir(parents=True, exist_ok=True)
                     code = run([ubt, '-Mode=Execute', f'-Actions={actions}'], log, args.timeout, args.engine)
     finally:
         lock.close()
