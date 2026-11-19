@@ -112,15 +112,23 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
         return nullptr;
     };
 
-    // The map's own pieces and values, as the level holds them: with the previews out.
+    const auto SavedPieces = [&]()
+    {
+        TArray<FPiece> Pieces;
+        TInlineComponentArray<UStaticMeshComponent*> Meshes(Gate);
+        for (UStaticMeshComponent* Mesh : Meshes)
+            if (Mesh && Mesh->ComponentHasTag(TEXT("AddWall")))
+                Pieces.Add(Describe(Mesh));
+        return Sorted(MoveTemp(Pieces));
+    };
+
+    // Import can rebuild construction-script components. Keep the editor's saved state to check that
+    // suspending the preview restores it, and check the drawn pieces against the original layout separately.
     TArray<FPiece> Level;
     FVector FarSide, NavAt, NavExtent, LaterAt, LaterExtent, InsideScale;
     {
         FP4SuspendNativePreviews Out;
-        TInlineComponentArray<UStaticMeshComponent*> Meshes(Gate);
-        for (UStaticMeshComponent* Mesh : Meshes)
-            if (Mesh && Mesh->ComponentHasTag(TEXT("AddWall")))
-                Level.Add(Describe(Mesh));
+        Level = SavedPieces();
         USceneComponent* Far = Component(TEXT("OutSideR"));
         UBoxComponent* Nav = Cast<UBoxComponent>(Component(TEXT("Nav_Box")));
         UBoxComponent* Later = Cast<UBoxComponent>(Component(TEXT("LaterTaskTrigger")));
@@ -135,15 +143,26 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
         InsideScale = Inside->GetRelativeScale3D();
         TestTrue(TEXT("the preview's pieces are out while the previews are"), P4GateWallPreviewPieces(Gate).Num() == 0);
     }
-    TestEqual(TEXT("the level holds the game editor's two pieces of two units"), Level.Num(), 2);
-
-    // Drawn as the game builds it: the same pieces, the far side and boxes where the level has them, and the inside
-    // collision stretched over the gate's five units, which the level leaves at one.
+    // At this length the game builds two width-two pieces and stretches the inside collision over five units.
+    const float Width = FindFProperty<FFloatProperty>(Gate->GetClass(), TEXT("WallWidth"))->GetPropertyValue_InContainer(Gate);
     TestTrue(TEXT("the map opened with the gate drawn"), P4ApplyGateWallPreview(Gate));
     TArray<FPiece> Drawn;
     for (UStaticMeshComponent* Piece : P4GateWallPreviewPieces(Gate))
         Drawn.Add(Describe(Piece));
-    Same(Sorted(Drawn), Sorted(Level), TEXT("the preview's pieces are the level's"));
+    Drawn = Sorted(MoveTemp(Drawn));
+    if (TestEqual(TEXT("the original length draws two wall pieces"), Drawn.Num(), 2))
+    {
+        for (int32 Index = 0; Index < Drawn.Num(); ++Index)
+        {
+            const FPiece& Piece = Drawn[Index];
+            TestEqual(TEXT("the original wall piece has the width-two tags"), Piece.Tags,
+                FString::Printf(TEXT("Wall_1_%d,Width_2,AddWall"), Index));
+            TestTrue(TEXT("the original part hangs on the first unit and has a mesh"),
+                Piece.Parent.Contains(TEXT("Mesh_Inside_00")) && !Piece.Mesh.IsEmpty());
+            TestTrue(TEXT("the original piece is where the game places it"),
+                Piece.Location.Equals(FVector(Width * (1.5f + Index * 2.f), 0.f, 0.f), 0.01f));
+        }
+    }
     {
         UBoxComponent* Nav = Cast<UBoxComponent>(Component(TEXT("Nav_Box")));
         UBoxComponent* Later = Cast<UBoxComponent>(Component(TEXT("LaterTaskTrigger")));
@@ -169,7 +188,6 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
         FPropertyChangedEvent Event(Length, EPropertyChangeType::ValueSet);
         Gate->PostEditChangeProperty(Event);
     };
-    const float Width = FindFProperty<FFloatProperty>(Gate->GetClass(), TEXT("WallWidth"))->GetPropertyValue_InContainer(Gate);
     const float Left = FindFProperty<FFloatProperty>(Gate->GetClass(), TEXT("OutSideLWidth"))->GetPropertyValue_InContainer(Gate);
     const float Right = FindFProperty<FFloatProperty>(Gate->GetClass(), TEXT("OutSideRWidth"))->GetPropertyValue_InContainer(Gate);
     AddInfo(FString::Printf(TEXT("WallWidth %g, OutSideLWidth %g, OutSideRWidth %g"), Width, Left, Right));
@@ -203,6 +221,7 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
         {
             FP4SuspendNativePreviews Out;
             TestEqual(TEXT("no preview piece while the previews are out"), P4GateWallPreviewPieces(Gate).Num(), 0);
+            Same(SavedPieces(), Level, TEXT("suspending the preview restores the level's saved pieces"));
             TestTrue(TEXT("the map's far side while the previews are out"),
                 Component(TEXT("OutSideR"))->GetRelativeLocation().Equals(FarSide, 0.01f));
             TestTrue(TEXT("the map's navigation box while the previews are out"),
@@ -214,10 +233,10 @@ bool FP4GateWallPreviewTest::RunTest(const FString&)
     }
     // The gate's length as it was: the saved pieces again.
     SetLength(Saved);
-    Drawn.Reset();
+    TArray<FPiece> Restored;
     for (UStaticMeshComponent* Piece : P4GateWallPreviewPieces(Gate))
-        Drawn.Add(Describe(Piece));
-    Same(Sorted(Drawn), Sorted(Level), TEXT("the saved length draws the level's pieces again"));
+        Restored.Add(Describe(Piece));
+    Same(Sorted(MoveTemp(Restored)), Drawn, TEXT("the saved length draws the original preview again"));
     return true;
 }
 #endif
