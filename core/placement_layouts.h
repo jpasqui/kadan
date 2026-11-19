@@ -819,7 +819,7 @@ inline Table<FieldRow> FieldRows() {
         {"TekiAIParameter.EatArea", "CakeArea", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},
         {"FrogAIParameter.bNoSearchOuterTerritory", "bool", '>', UINT64_C(0x202201149), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},
         {"KanitamaAIParameter.bAmbush", "bool", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},
-        {"CrystalComponent.CrystalParameters", "CrystalLifeArray", '>', UINT64_C(0x202207079), "", false, true, UINT64_C(0x0), "", "", false, false, "", "", false, "component_property", "CrystalComponent", "", "", ""},
+        {"CrystalComponent.CrystalParameters", "CrystalLifeArray", '>', UINT64_C(0x202207079), "", false, true, UINT64_C(0x0), "", "", false, false, "", "", false, "crystal_lives", "CrystalComponent", "", "", ""},
         {"QueenAIParameter.QueenAIType", "u8", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},
         {"QueenAIParameter.RockBallHeightMin", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},
         {"QueenAIParameter.RockBallHeightMax", "f32", 0, UINT64_C(0x0), "", false, false, UINT64_C(0x0), "", "", false, false, "", "", false, "", "", "", "", ""},

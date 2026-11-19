@@ -2,8 +2,8 @@
 // The fields of a placement row's blobs that the game's serializers take from the actor's components (a sound
 // emitter's place, a nav link component's links, a spline's points, a trigger box's extent), filled the same way.
 // A field names its kind in the layout data ("fill", with "fill_class", "fill_tag" or "fill_name" for the component
-// it reads). Each kind is checked against the game's rows: a blob made from one of the game's imported actors is the
-// game's row, byte for byte (P4MapKit.Editor.PlacementBlobsFromActors).
+// it reads). P4MapKit.Editor.PlacementBlobsFromActors compares these values from imported actors with the fields
+// of the game's original rows.
 #include "P4PlacementInternal.h"
 
 namespace P4PlacementDetail

@@ -1979,7 +1979,7 @@
       "slot": "AI.Dynamic",
       "base": "inherit",
       "fields": [
-        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "fill": "component_property", "fill_class": "CrystalComponent"}
+        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "fill": "crystal_lives", "fill_class": "CrystalComponent"}
       ]
     },
     {
