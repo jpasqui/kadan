@@ -3,6 +3,8 @@
 #include "P4KadanImportInternal.h"
 #include "P4GameBuild.h"
 #include "P4ExportContainer.h"
+#include "P4ExportProgress.h"
+#include "Misc/FeedbackContext.h"
 
 using namespace P4KadanImport;
 
@@ -66,15 +68,14 @@ FP4KadanImportResult FP4KadanImportRun::Execute()
     SetUpMaterialRecovery();
     if (!CheckRequestedSources())
         return Finish();
-    if (!BringInSelected())
-        return Finish();
-    if (!BringInKeptDependencies())
-        return Finish();
-    if (!DiscoverTableClassDeclarations())
+    // Reading and converting the game's files comes before the import knows how many packages it has, and can take
+    // minutes on a first import of a big map, so the progress window opens first and counts the packages after.
+    StartProgress();
+    if (!ReadGameFiles())
         return Finish();
     DeferTableDependents();
     KeepNamedReady = true;
-    StartProgress();
+    CountProgress();
     ImportAssets();
     ScanSeededAssets();
     ImportRemainingDeclaredDependencies();
@@ -181,10 +182,38 @@ bool FP4KadanImportRun::CheckRequestedSources()
 
 void FP4KadanImportRun::StartProgress()
 {
-    Progress = MakeUnique<FScopedSlowTask>(
-        AssetsToImport.Num(), FText::FromString(TEXT("Importing selected game content")));
+    Progress = MakeUnique<FScopedSlowTask>(1.f, FText::FromString(TEXT("Reading and converting the game's files")));
     if (!IsRunningCommandlet())
         Progress->MakeDialog(true);
+}
+
+// The packages the selection needs, read and converted from the game's files. The container tool repaints the
+// progress window while the editor waits on it, and a cancel ends the import after the step it is on, as a cancel
+// later in the import does.
+bool FP4KadanImportRun::ReadGameFiles()
+{
+    FP4ExportProgressScope Repaint(nullptr,
+        [this]()
+        {
+            // Only while this import's window is the innermost one: a nested task keeps its own steps.
+            const FSlowTaskStack& Stack = GWarn->GetScopeStack();
+            if (Stack.Num() && Stack.Last() == Progress.Get())
+                Progress->EnterProgressFrame(0.f);
+        });
+    const auto Stopped = [this]()
+    {
+        Cancelled |= Progress->ShouldCancel();
+        return Cancelled;
+    };
+    return BringInSelected() && !Stopped() && BringInKeptDependencies() && !Stopped() &&
+        DiscoverTableClassDeclarations() && !Stopped();
+}
+
+// From here each package of the import is one step of the progress window.
+void FP4KadanImportRun::CountProgress()
+{
+    Progress->TotalAmountOfWork = FMath::Max(1, AssetsToImport.Num());
+    Progress->DefaultMessage = FText::FromString(TEXT("Importing selected game content"));
     MaterialShouldCancel = [this]()
     {
         return MaterialCancelPoll.ShouldCancel(

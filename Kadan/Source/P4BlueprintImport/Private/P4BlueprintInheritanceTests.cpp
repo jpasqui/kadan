@@ -5,6 +5,12 @@
 #include "P4KadanImport.h"
 #endif
 #include "Engine/DataTable.h"
+#include "EdGraph/EdGraph.h"
+#include "EdGraphSchema_K2.h"
+#include "K2Node_CallFunction.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "UObject/MetaData.h"
 #include "UObject/StructOnScope.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Dom/JsonObject.h"
@@ -260,6 +266,85 @@ bool FP4BlueprintDeclarationFailureTest::RunTest(const FString&)
     UBlueprint* Creator=NewObject<UBlueprint>(CreatorPackage,TEXT("UntouchedCreator"),RF_Public|RF_Standalone);
     TestFalse(TEXT("ordinary untouched creator Blueprint is unaffected"), P4BlueprintReconstructionIncomplete(Creator));
     P4FixtureRetirement::Package(CreatorPackage);
+    return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4BlueprintReimportKeepsCreatorEdits, "P4Blueprints.Reimport.KeepsCreatorEditedBlueprint",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FP4BlueprintReimportKeepsCreatorEdits::RunTest(const FString&)
+{
+    if (!TestNotNull(TEXT("genuine game declaration plugin is loaded"), FindObject<UClass>(nullptr, TEXT("/Script/Carrot4.GActor")))) return false;
+    FInheritanceFixture Fixture;
+    if (!TestTrue(TEXT("owned parent/child plans are written"), Fixture.Write()) || !Fixture.Run(*this, false)) return false;
+    UBlueprint* Parent = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Parent")));
+    UBlueprint* Child = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Child")));
+    if (!TestTrue(TEXT("both generated classes exist"), Parent && Parent->GeneratedClass && Child && Child->GeneratedClass)) return false;
+    TestFalse(TEXT("a fresh import is not a creator edit"), P4BlueprintEditedSinceImport(Parent));
+    FIntProperty* Count = FindFProperty<FIntProperty>(Parent->GeneratedClass, TEXT("ParentCount"));
+    if (!TestNotNull(TEXT("the parent's source variable exists"), Count)) return false;
+    TestEqual(TEXT("the parent's source default is imported"), Count->GetPropertyValue_InContainer(Parent->GeneratedClass->GetDefaultObject()), 31);
+    FString File;
+    if (!TestTrue(TEXT("the edit owns the exact unique imported fixture"), Parent->GetPathName() == Fixture.Object(TEXT("Parent")) &&
+        FPackageName::TryConvertLongPackageNameToFilename(Fixture.Package(TEXT("Parent")), File, TEXT(".uasset")))) return false;
+    FGuid Added;
+    {
+        // The creator's edit: a changed default and a new node, saved. Imported source is readonly even for
+        // these synthetic plans, so the edit is published through the importer's own scopes, and the record
+        // Kadan keeps of a creator edit (P4RecordGameBlueprintEdit) is written as it writes it.
+        P4ImportPublication::FImportScope Import;
+        P4ImportPublication::FSaveScope Save(Parent->GetOutermost());
+        Count->SetPropertyValue_InContainer(Parent->GeneratedClass->GetDefaultObject(), 99);
+        UEdGraph* Graph = FBlueprintEditorUtils::FindEventGraph(Parent);
+        if (!Graph)
+        {
+            Graph = FBlueprintEditorUtils::CreateNewGraph(Parent, TEXT("EventGraph"), UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
+            FBlueprintEditorUtils::AddUbergraphPage(Parent, Graph);
+        }
+        UK2Node_CallFunction* Call = NewObject<UK2Node_CallFunction>(Graph);
+        Call->SetFromFunction(UKismetSystemLibrary::StaticClass()->FindFunctionByName(TEXT("PrintString")));
+        Graph->AddNode(Call);
+        Call->CreateNewGuid();
+        Call->AllocateDefaultPins();
+        Added = Call->NodeGuid;
+        Parent->GetOutermost()->GetMetaData()->SetValue(Parent, TEXT("P4KadanEditedGameBlueprint"), *Parent->GetOutermost()->GetName());
+        if (!TestTrue(TEXT("the creator's edit is saved"),
+            UPackage::SavePackage(Parent->GetOutermost(), Parent, RF_Public | RF_Standalone, *File, GError, nullptr, false, true, SAVE_NoError))) return false;
+    }
+    Child->GetOutermost()->SetDirtyFlag(false);
+    TestTrue(TEXT("the saved edit is recorded"), P4BlueprintEditedSinceImport(Parent));
+    const auto Result = UP4BlueprintImport::RunSelectedNative(Fixture.Directory, FString(),
+        {Fixture.Package(TEXT("Parent")), Fixture.Package(TEXT("Child"))}, true, {}, true);
+    if (!Result.bOk) AddInfo(FString::Join(Result.Errors, TEXT("\n")));
+    TestTrue(TEXT("the reimport succeeds"), Result.bOk);
+    TestTrue(TEXT("the edited Blueprint is named as kept"), Result.KeptCreatorEdits.Contains(Fixture.Package(TEXT("Parent"))));
+    TestFalse(TEXT("the edited Blueprint is not rebuilt"), Result.CompletedPackages.Contains(FName(*Fixture.Package(TEXT("Parent")))));
+    TestFalse(TEXT("the edited Blueprint is not refused"), Result.PackageErrors.Contains(Fixture.Package(TEXT("Parent"))));
+    TestTrue(TEXT("the untouched Blueprint is reimported"), Result.CompletedPackages.Contains(FName(*Fixture.Package(TEXT("Child")))));
+    Parent = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Parent")));
+    Child = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Child")));
+    if (!TestTrue(TEXT("both classes remain"), Parent && Parent->GeneratedClass && Child && Child->GeneratedClass)) return false;
+    Count = FindFProperty<FIntProperty>(Parent->GeneratedClass, TEXT("ParentCount"));
+    TestTrue(TEXT("the creator's default is kept"), Count && Count->GetPropertyValue_InContainer(Parent->GeneratedClass->GetDefaultObject()) == 99);
+    bool NodeKept = false;
+    TArray<UEdGraph*> Graphs;
+    Parent->GetAllGraphs(Graphs);
+    for (UEdGraph* Graph : Graphs)
+        if (Graph)
+            for (UEdGraphNode* Node : Graph->Nodes)
+                NodeKept |= Node && Node->NodeGuid == Added;
+    TestTrue(TEXT("the creator's node is kept"), NodeKept);
+    TestTrue(TEXT("the reimported child is made against the kept parent's class"), Child->GeneratedClass->IsChildOf(Parent->GeneratedClass));
+    TArray<TSharedPtr<FP4KadanSourceAsset>> Selected;
+    for (const TCHAR* Name : {TEXT("Parent"), TEXT("Child")})
+    { auto Asset = MakeShared<FP4KadanSourceAsset>(); Asset->Package = Fixture.Package(Name); Asset->Kind = TEXT("Blueprint"); Selected.Add(Asset); }
+    const auto MapResult = P4KadanBlueprintBatchResult(Result, Selected);
+    TestTrue(TEXT("the map's Blueprint batch succeeds"), MapResult.Ok);
+    TestEqual(TEXT("nothing is reported as not imported"), MapResult.NotImported.Num(), 0);
+    TestTrue(TEXT("the untouched child is imported"), MapResult.Imported.Contains(Fixture.Package(TEXT("Child"))));
+    bool Named = false;
+    for (const FString& Warning : MapResult.Warnings)
+        Named |= Warning.StartsWith(Fixture.Package(TEXT("Parent")) + TEXT(" keeps its existing content"));
+    TestTrue(TEXT("the import's notes name the kept Blueprint"), Named);
     return !HasAnyErrors();
 }
 #endif

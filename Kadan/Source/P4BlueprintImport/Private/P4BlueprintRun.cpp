@@ -89,6 +89,17 @@ namespace P4BlueprintRun
 			return false;
 		}
 
+		// Whether the row's existing asset is a Blueprint the creator has edited since it was imported.
+		bool EditedSinceImport(const FRow& Row)
+		{
+			if (Row.Kind == TEXT("LevelSequence") || !(FPackageName::DoesPackageExist(Row.Package) || FindPackage(nullptr, *Row.Package))) { return false; }
+			FString Why, Name;
+			const TSharedPtr<FJsonObject> Plan = P4Plan::Load(Row.File, Why);
+			if (!Plan.IsValid() || !Plan->TryGetStringField(TEXT("name"), Name) || Name.IsEmpty()) { return false; }
+			UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *(Row.Package + TEXT(".") + Name), nullptr, LOAD_NoWarn | LOAD_Quiet);
+			return Blueprint && !UP4BlueprintImport::IsStandIn(Blueprint) && P4BlueprintEditedSinceImport(Blueprint);
+		}
+
 		class FRun
 		{
 		public:
@@ -165,6 +176,11 @@ namespace P4BlueprintRun
 				if (Result->TryGetArrayField(TEXT("preserved_dependencies"), Preserved))
 				{
 					for (const TSharedPtr<FJsonValue>& Package : *Preserved) { Out->PreservedDependencies.Add(Package->AsString()); }
+				}
+				const TArray<TSharedPtr<FJsonValue>>* KeptEdits = nullptr;
+				if (Result->TryGetArrayField(TEXT("kept_creator_edits"), KeptEdits))
+				{
+					for (const TSharedPtr<FJsonValue>& Package : *KeptEdits) { Out->KeptCreatorEdits.Add(Package->AsString()); }
 				}
 			}
 
@@ -297,12 +313,12 @@ namespace P4BlueprintRun
 				}
 				const TSharedPtr<FJsonObject>* Needs = nullptr;
 				Index->TryGetObjectField(TEXT("needs"), Needs);
-				TSet<FString> Wanted, Preserved;
+				TSet<FString> Wanted, Preserved, KeptEdits;
 				while (Pending.Num())
 				{
 					const FString Package = Pending.Pop(false);
 					const int32* Position = ByPackage.Find(Package);
-					if (!Position || Wanted.Contains(Package) || Preserved.Contains(Package)) { continue; }
+					if (!Position || Wanted.Contains(Package) || Preserved.Contains(Package) || KeptEdits.Contains(Package)) { continue; }
 					if (!Package.StartsWith(TEXT("/Game/")))
 					{
 						if (!FPackageName::DoesPackageExist(Package)) { Error(Package + TEXT(": a required external package is unavailable")); return false; }
@@ -311,6 +327,14 @@ namespace P4BlueprintRun
 					// Unreal excludes its read-only roots from this validator by default. Validate only
 					// the /Game rows we will touch, after protected-mount classification above.
 					if (!FPackageName::IsValidLongPackageName(Package)) { Error(Package + TEXT(": selected import has an invalid Unreal package name")); return false; }
+					// A reimport leaves a Blueprint the creator has edited since it was imported as it is, whether it
+					// was selected or a selected Blueprint needs it: rebuilding it would remove the creator's variables,
+					// nodes and defaults. The Blueprints that need it are made against its existing class.
+					if (Options.bReimport && EditedSinceImport(All[*Position]))
+					{
+						KeptEdits.Add(Package);
+						continue;
+					}
 					// An editor selection may extend a project that already has its parents or graph
 					// dependencies. Preserve their live objects (including edits); no save or provenance
 					// update is authorized for these implicit roots. Explicit reimport still updates the closure.
@@ -358,6 +382,9 @@ namespace P4BlueprintRun
 				TArray<TSharedPtr<FJsonValue>> PreservedPackages;
 				for (const FRow& Row : All) { if (Preserved.Contains(Row.Package)) { PreservedPackages.Add(MakeShared<FJsonValueString>(Row.Package)); } }
 				Result->SetArrayField(TEXT("preserved_dependencies"), PreservedPackages);
+				TArray<TSharedPtr<FJsonValue>> KeptEditPackages;
+				for (const FRow& Row : All) { if (KeptEdits.Contains(Row.Package)) { KeptEditPackages.Add(MakeShared<FJsonValueString>(Row.Package)); } }
+				Result->SetArrayField(TEXT("kept_creator_edits"), KeptEditPackages);
 				const TArray<TSharedPtr<FJsonValue>>* Graphs = nullptr;
 				if (Index->TryGetArrayField(TEXT("with_graphs"), Graphs)) { for (const TSharedPtr<FJsonValue>& Value : *Graphs) { Scripted.Add(Value->AsString()); } }
 				Result->SetNumberField(TEXT("count"), Rows.Num());
