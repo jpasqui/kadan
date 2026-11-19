@@ -292,9 +292,10 @@ bool ToValue(const FProperty* Field, const void* Data, const P::Type& Type, P::V
 
 bool ComponentValue(AActor* Actor, const P::Field& Field, P::Value& Out, FString& Error)
 {
-    USceneComponent* Component = SceneComponentNamed(Actor, FName(*Wide(Field.Name)));
-    // A class's defaults need not instantiate the named construction-script components, while the
-    // placed actor does: the placed actor's component is read for both.
+    // The game's serializer (DemoTriggerComponent's, 0x01af06e0) takes the first component with the field's name as
+    // a tag. A class's defaults need not instantiate the construction-script components, while the placed actor
+    // does: the placed actor's component is read for both.
+    USceneComponent* Component = SceneComponentTagged(Actor, FName(*Wide(Field.Name)));
     if (!Component)
         return true;
     for (auto& Member : Out.Members)

@@ -7,10 +7,10 @@
 // TArray = i32 count then the items, FVector = three f32, enums one byte.
 //
 // The layouts are data: placement_layouts.json, generated into placement_layouts.h. A slot's layout starts with
-// the slot's own fields, then takes the part of each class of the actor's (or its AI component's) native class
-// chain, walked from the base class down. A blob part that is not decoded is kept as bytes (Blob::Tail) and
-// written back unchanged. A blob of a kind that is not covered has no layout, and its bytes are kept whole by
-// the caller.
+// the slot's own fields, then takes the part of each class of the actor's (or its AI component's, or the slot's
+// owner's) native class chain, walked from the base class down. A blob part that is not decoded is kept as bytes
+// (Blob::Tail) and written back unchanged. A blob of a kind that is not covered has no layout, and its bytes are
+// kept whole by the caller.
 #include "placement_layouts.h"
 #include <algorithm>
 #include <cstdint>
@@ -64,14 +64,18 @@ struct Field
     std::string CountOf; // the owner's array property whose item count this is
     // A Repeat of the world locations of the actor's first scene components with this tag, as many as its counter says.
     std::string ComponentTag;
-    bool ComponentTransform = false; // the actor's component of the field's name: its transform, then its properties;
-    // the field is in a layout only when the actor has that component
+    bool ComponentTransform = false; // the actor's first component with the field's name as a tag: its world
+    // transform, then its properties; the field is in a layout only when the actor has such a component
+    std::string WhenClass; // the field is in a layout only when the actor has a component of this native class
     bool Drops = false; // an array of drops, each with a generator number (UniqueId)
     std::string DropKey; // drops that are generators of their own: the word of their numbers' keys
     std::string DropList; // the sibling that lists those numbers
     // The game writes the actor's own value (a component's place, its nav links, a spline's points), which a writer
     // does not fill yet: a blob with such a field is not written for a new placement.
     bool FromActor = false;
+    // A derived field the game's serializer takes from the actor's components, and how a writer fills it the same
+    // way: a fill kind (the plugin's P4PlacementFillers.h lists them) with the component class, tag or name it reads.
+    std::string Fill, FillClass, FillTag, FillName;
 };
 struct Type
 {
@@ -168,12 +172,15 @@ inline void SetDropGeneratorNumbers(Value& Drops, Value* Listed, const std::vect
     }
 }
 
-// What decides a layout: the actor's native classes and its AI component's, most derived first, and the
-// names of the actor's components.
+// What decides a layout: the actor's native classes and its AI component's, most derived first, the names of
+// the actor's components, their tags and their native classes (every class of each one's chain), and for a slot
+// that follows its owner's chain, the native classes of the slot's owner, most derived first.
 struct Context
 {
     std::vector<std::string> ActorChain, ComponentChain;
     std::vector<std::string> Components;
+    std::vector<std::string> ComponentTags, ComponentClasses;
+    std::map<Slot, std::vector<std::string>> OwnerChains;
 };
 
 namespace Detail
@@ -283,6 +290,11 @@ struct Tables
             One.DropKey = Row.DropKey;
             One.DropList = Row.DropList;
             One.FromActor = Row.FromActor;
+            One.Fill = Row.Fill;
+            One.FillClass = Row.FillClass;
+            One.FillTag = Row.FillTag;
+            One.FillName = Row.FillName;
+            One.WhenClass = Row.WhenClass;
             Out.push_back(std::move(One));
         }
         return Out;
@@ -715,7 +727,11 @@ inline std::vector<Layout> Layouts(Slot S, const Context& C)
     if (!Own.empty())
         Variants.push_back(Own);
     const char Chain = T.SlotChains.at(S);
-    const std::vector<std::string>* Classes = Chain == 'a' ? &C.ActorChain : Chain == 'c' ? &C.ComponentChain : nullptr;
+    const auto Owner = C.OwnerChains.find(S);
+    const std::vector<std::string>* Classes = Chain == 'a' ? &C.ActorChain
+        : Chain == 'c'                                    ? &C.ComponentChain
+        : Chain == 'o' && Owner != C.OwnerChains.end()    ? &Owner->second
+                                                          : nullptr;
     if (Classes)
     {
         for (auto Class = Classes->rbegin(); Class != Classes->rend(); ++Class)
@@ -746,7 +762,8 @@ inline std::vector<Layout> Layouts(Slot S, const Context& C)
         L.Known = true;
         for (auto& One : Fields)
         {
-            if (!One.ComponentTransform || Detail::Has(C.Components, One.Name))
+            if ((!One.ComponentTransform || Detail::Has(C.ComponentTags, One.Name)) &&
+                (One.WhenClass.empty() || Detail::Has(C.ComponentClasses, One.WhenClass)))
                 L.Fields.push_back(std::move(One));
         }
         Out.push_back(std::move(L));
