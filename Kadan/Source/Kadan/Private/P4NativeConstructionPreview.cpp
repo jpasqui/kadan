@@ -1,5 +1,6 @@
 #include "P4NativeConstructionPreview.h"
 #include "P4Common.h"
+#include "P4GateWallPreview.h"
 #include "P4MaterialGraph.h"
 #include "P4OriginalBuiltLighting.h"
 #include "Components/DecalComponent.h"
@@ -403,5 +404,6 @@ int32 P4ApplyNativeConstructionPreviews(UWorld* World)
                     ++Applied;
                 }
     }
-    return Applied + P4ApplyOriginalBuiltLightingPreviews(World) + P4ApplyNativeEnvironmentPreviews(World);
+    return Applied + P4ApplyOriginalBuiltLightingPreviews(World) + P4ApplyNativeEnvironmentPreviews(World) +
+        P4ApplyGateWallPreviews(World);
 }

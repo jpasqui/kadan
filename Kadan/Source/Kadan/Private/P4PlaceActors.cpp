@@ -37,6 +37,7 @@
 #include "P4OriginalActorAttachments.h"
 #include "P4OriginalLandscapePreview.h"
 #include "P4NativeConstructionPreview.h"
+#include "P4GateWallPreview.h"
 #include "P4LevelExport.h"
 #include "P4OriginalNavigationMesh.h"
 
@@ -161,6 +162,7 @@ void FKadanModule::AfterEngineInit()
     if (!BlueprintHandle.IsValid())
         BlueprintHandle = GEditor->OnBlueprintCompiled().AddLambda([this]() { Refresh(); });
     P4StartOriginalLandscapeColorPreviews();
+    P4StartGateWallPreviews();
     if (!LayersHandle.IsValid())
         LayersHandle = FWorldDelegates::OnPreWorldInitialization.AddLambda(
             [](UWorld* World, const UWorld::InitializationValues) { P4ShowOriginalLayersForOpen(World); });
@@ -297,6 +299,7 @@ void FKadanModule::ShutdownModule()
     P4StopOriginalComponentReferences();
     P4StopOriginalActorAttachments();
     P4StopOriginalLandscapeColorPreviews();
+    P4StopGateWallPreviews();
     P4UnregisterKadanEditor();
     P4Kadan::ShutdownMutationGuards();
 #if P4_KADAN_TEST_SEAMS
