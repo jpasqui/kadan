@@ -1923,7 +1923,7 @@ static void ShapeFillers()
     Context Crab;
     Crab.ComponentChain = {"KanitamaAIComponent", "TekiAIComponent", "CarrotAIComponent", "CarrotActorComponent",
         "ActorComponent", "Object"};
-    Filled(Slot::AIDynamic, Crab, "CrystalComponent.CrystalParameters", "component_property", "CrystalComponent", "");
+    Filled(Slot::AIDynamic, Crab, "CrystalComponent.CrystalParameters", "crystal_lives", "CrystalComponent", "");
     // Nothing else holds these blobs back: each is written for a new placement.
     CHECK(Writable(Slot::AIStatic, Floor, Floor.ComponentChain));
     CHECK(Writable(Slot::AIStatic, Push, Push.ComponentChain));

@@ -225,10 +225,8 @@ bool TriggerShape(AActor* Actor, UObject*, const P::Field& Field, P::Value& Out,
     return true;
 }
 
-// A property of the actor's first component of the class (FindComponentByClass), the field's path after its first
-// step: KanitamaAIComponent (0x01124390) has its CrystalComponent write its crystals' Life (0x01a96650), a
-// RouteSplineActor (0x00d0ba30) has its RouteSplineComponent write its AreaList and JumpKeyList (0x01ae7580). An
-// actor without one: the game writes nothing.
+// The property on the actor's first component of this class. RouteSplineActor (0x00d0ba30) takes AreaList
+// and JumpKeyList from its RouteSplineComponent (0x01ae7580).
 bool ComponentProperty(AActor* Actor, UObject*, const P::Field& Field, P::Value& Out, FString& Error)
 {
     UActorComponent* Component = FirstFor(Actor, Field, Error);
@@ -245,6 +243,39 @@ bool ComponentProperty(AActor* Actor, UObject*, const P::Field& Field, P::Value&
     return Resolve(Component, Rest, Leaf, Data, Error) && ToValue(Leaf, Data, *Field.Of, Out, Error);
 }
 
+// A fresh placement starts each crystal at its authored maximum. The blob calls this value Life;
+// the editor component's Life is runtime state and can still hold the class's initial value.
+bool CrystalLives(AActor* Actor, UObject*, const P::Field& Field, P::Value& Out, FString& Error)
+{
+    UActorComponent* Component = FirstFor(Actor, Field, Error);
+    if (!Component)
+        return false;
+    const FArrayProperty* Array = FindFProperty<FArrayProperty>(Component->GetClass(), TEXT("CrystalParameters"));
+    const FStructProperty* Crystal = Array ? CastField<FStructProperty>(Array->Inner) : nullptr;
+    const FFloatProperty* MaxLife = Crystal ? FindFProperty<FFloatProperty>(Crystal->Struct, TEXT("MaxLife")) : nullptr;
+    if (!MaxLife || !Field.Of->Item)
+    {
+        Error = TEXT("the crystal component has no authored crystal life array");
+        return false;
+    }
+
+    FScriptArrayHelper Crystals(Array, Array->ContainerPtrToValuePtr<void>(Component));
+    Out.Items.clear();
+    for (int32 Index = 0; Index < Crystals.Num(); ++Index)
+    {
+        P::Value Parameter = P::EmptyOf(*Field.Of->Item, P::RowVersion);
+        P::Value* Life = Parameter.Find("Life");
+        if (!Life)
+        {
+            Error = TEXT("the crystal layout has no Life field");
+            return false;
+        }
+        Life->Bits = P::Value::FloatBits(MaxLife->GetPropertyValue_InContainer(Crystals.GetRawPtr(Index)));
+        Out.Items.push_back(MoveTemp(Parameter));
+    }
+    return true;
+}
+
 // ExcavationActor (0xd05090): its height map's drawer's TerrainMaterial, by its path name. The drawer is the actor's
 // first component of the class. An actor without one: the game writes the actor's own copy, which Kadan does not know.
 bool TerrainMaterial(AActor* Actor, UObject*, const P::Field& Field, P::Value& Out, FString& Error)
@@ -254,7 +285,23 @@ bool TerrainMaterial(AActor* Actor, UObject*, const P::Field& Field, P::Value& O
         return false;
     FProperty* Leaf = nullptr;
     void* Data = nullptr;
-    return Resolve(Drawer, TEXT("TerrainMaterial"), Leaf, Data, Error) && ToValue(Leaf, Data, *Field.Of, Out, Error);
+    if (!Resolve(Drawer, TEXT("TerrainMaterial"), Leaf, Data, Error) || !ToValue(Leaf, Data, *Field.Of, Out, Error))
+        return false;
+
+    const std::string Material = P::NameUtf8(Out);
+    if (Material.empty() || Material == "None")
+    {
+        const FString Package = Actor->GetClass()->GetOutermost()->GetName();
+        const FString Prefix(TEXT("/Game/Carrot4/Placeables/Gimmicks/Excavation/"));
+        // All 12 verified rows of these four stock Blueprint classes hold the same editor-only name.
+        // The material is absent from the shipped packages, so the editor's reconstructed drawer has no object for it.
+        if (Package == Prefix + TEXT("GExcavationM") || Package == Prefix + TEXT("GExcavationOnyon") ||
+            Package == Prefix + TEXT("GExcavationS") || Package == Prefix + TEXT("GExcavationUnder"))
+        {
+            Out = P::NameFromUtf8("/Game/Test/MasterMaterial/Collision/stg/Move_c/MI_Tag_G_Soil_c.MI_Tag_G_Soil_c");
+        }
+    }
+    return true;
 }
 
 const FFillerKind Kinds[] = {
@@ -265,6 +312,7 @@ const FFillerKind Kinds[] = {
     {TEXT("relative_box"), &RelativeBox},
     {TEXT("trigger_shape"), &TriggerShape},
     {TEXT("component_property"), &ComponentProperty},
+    {TEXT("crystal_lives"), &CrystalLives},
     {TEXT("terrain_material"), &TerrainMaterial},
 };
 } // namespace
