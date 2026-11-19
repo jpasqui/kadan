@@ -19,7 +19,7 @@ the affected assets in its own panel, and it writes the details to the log.
 | The Import page says that Kadan can't find its P4Stubs plugin | Close Unreal Editor and put the `P4Stubs` folder from the Kadan zip beside the `Kadan` folder in `Plugins`. Replace both folders when you update. |
 | The Import page says that Unreal did not load a P4Stubs module | Use the `P4Stubs` folder from the same Kadan zip as the `Kadan` folder, and open the project in Unreal Engine 4.26. The Output Log says why Unreal didn't load it. |
 | An import was interrupted | Start the same import again. Kadan keeps what already finished and continues from there. |
-| An imported asset won't let you edit or save | It's read-only. Hover over it in the Content Browser or read its Details for the reason, then use the supported editing route. |
+| An imported asset won't let you edit or save | It's read-only in Kadan. Kadan puts back the change or refuses the save, and says why in a notification and in the Output Log. Hover over it in the Content Browser or read its Details for the reason, then use the supported editing route. Its file on disk stays writable. |
 | What ships asks you to check the game folder | Check the dump selected on the Import page, and choose it again. |
 | What ships asks you to open the map | Open the persistent level of the game map that you changed, the one whose name ends in `_P`. |
 | What ships lists something that can't ship | Read the reason on it, fix it or click **Remove** for the item that brought it in. The list updates by itself. |
@@ -32,6 +32,7 @@ the affected assets in its own panel, and it writes the details to the log.
 | A soft moss or ground edge is hard in the editor | These materials fade by scene depth, which the editor can't draw on an opaque material. Kadan marks them **Preview differs from the game**. Check the edge in the game. |
 | A mesh that you added draws dark in the editor | The game's lights are baked, so a new mesh has no lighting until a build. Use **Build** > **Build Lighting Only**, then save the map. |
 | Saving a game map asks to make its `_BuiltData` file writable, or says it can't save it | Update Kadan. Kadan 0.3.1 tried to save the game's built lighting with the map. Kadan now saves a lighting build that you made in the editor, and leaves the game's built lighting as it is otherwise. |
+| Windows, Explorer or source control says that imported game files are read-only | Earlier versions of Kadan marked them read-only. Kadan no longer marks files. It makes an imported game asset's file writable again when it opens the project or loads the asset, and the game's built lighting when a lighting build changes it. |
 | Another mod is named in a claim conflict | Check [Two mods on at once](/guides/several-mods/#two-mods-on-at-once). Shared map edits and stackable values can coexist, while exclusive claims need a choice. |
 
 ## Reports

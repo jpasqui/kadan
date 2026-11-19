@@ -3,10 +3,11 @@
 A cold import of Cave000 takes over 20 minutes. Most checks only need the imported project, not the
 import, so the import runs once and its project is kept as a fixture. A copy copies the fixture's files
 (Cave000's Content is about 150 MB), which takes a few seconds. Copies used to hard-link Content, but
-a hard link shares its read-only mark with every other link: when one copy was made again, the marks put
-back on the fixture also came back on files another copy's editor had unlocked to save, and that save's
-delete failed. Every copy and every check compares the fixture's files with the sizes and times
-recorded when it was kept, and refuses a fixture that changed.
+a hard link shares the file's attributes with every other link, so a copy's editor could change the
+fixture's files through them. Earlier versions of Kadan marked game packages read-only, and a fixture kept
+from a project they imported still has those marks: they are recorded when it is kept and put back on the
+fixture when a copy is replaced. Every copy and every check compares the fixture's files with the sizes and
+times recorded when it was kept, and refuses a fixture that changed.
 
     py -3.11 tools/kadan_fixture.py keep NAME PROJECT_FOLDER [--note TEXT]
     py -3.11 tools/kadan_fixture.py copy NAME FOLDER [--plugin BUILD_HOST]
@@ -61,8 +62,9 @@ def read_only(path):
 
 
 def remove_file(path):
-    """Kadan marks the game's packages read-only, and a hard link shares that mark with the fixture's
-    file. The mark is cleared to remove the link and put back on the fixture by restore_marks."""
+    """A copy keeps the read-only mark of the fixture's file, which earlier versions of Kadan put on game
+    packages. The mark is cleared to remove the file; if it was a hard link of the fixture's file,
+    restore_marks puts the mark back on the fixture."""
     os.chmod(path, stat.S_IWRITE)
     os.unlink(path)
 
