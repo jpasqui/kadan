@@ -1,6 +1,11 @@
 // Whether and how each asset of a selection can be exported.
 
 #include "P4ExportInternal.h"
+#include "Engine/Texture2DArray.h"
+#include "Engine/TextureCube.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Engine/VolumeTexture.h"
+#include "Materials/MaterialParameterCollection.h"
 #include "Animation/AnimComposite.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/BlendSpaceBase.h"
@@ -228,7 +233,10 @@ FP4ExportAvailability AssetAvailability(
             TEXT("Your skeletal mesh, skeleton, clips, montages and blend spaces can be exported with this mod.");
         return Result;
     }
-    if (const UTexture2D* Texture = Cast<UTexture2D>(Asset))
+    // Textures with pixels of their own, cooked as the game's are: 2D, cube, 2D array and volume.
+    const UTexture* Texture = Cast<UTexture>(Asset);
+    if (Texture && (Texture->IsA<UTexture2D>() || Texture->IsA<UTextureCube>() || Texture->IsA<UTexture2DArray>() ||
+                       Texture->IsA<UVolumeTexture>()))
     {
         if (!Texture->Source.IsValid())
             Result.Reason = TEXT("Your texture has no pixels yet. Import an image into it before exporting it.");
@@ -239,6 +247,15 @@ FP4ExportAvailability AssetAvailability(
                 ? TEXT("Your texture replaces the game's at its path, everywhere the game uses it.")
                 : TEXT("Your texture can be exported with this mod.");
         }
+    }
+    // Saved as they are: a render target's pixels are made by the game when it loads it (cleared to its clear colour,
+    // as in the editor until something draws into it); a parameter collection holds its parameters' defaults.
+    else if (Asset->IsA<UTextureRenderTarget2D>() || Asset->IsA<UMaterialParameterCollection>())
+    {
+        Result.Route = EP4ExportAssetRoute::CreatorData;
+        Result.Reason = Asset->IsA<UMaterialParameterCollection>()
+            ? TEXT("Your material parameter collection can be exported with this mod.")
+            : TEXT("Your render target can be exported with this mod. The game clears it to its clear colour.");
     }
     else if (UStaticMesh* Mesh = Cast<UStaticMesh>(Asset))
     {

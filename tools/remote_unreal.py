@@ -43,8 +43,8 @@ session, use --background NAME --session. This schedules the job in the session 
 in at the desktop, and removes the task when the ended run is inspected with wait or log.
 Somebody has to be logged in there.
 
-Connection configuration is documented in docs/REMOTE_UNREAL.md. The native validation boundaries
-are recorded in docs/NATIVE_REWRITE.md.
+Connection configuration is documented in docs/REMOTE_UNREAL.md. README.md describes the build and
+test commands run through it.
 """
 import argparse
 import base64
@@ -98,6 +98,14 @@ SSH = []
 SMALL = 2**20         # a file up to this size is read whole, with others, before it goes into a tar stream
 BLOCK = 8 * 2**20     # a tar stream goes to ssh this much at a time: small writes with gaps between them crawl
 NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}')
+
+
+def run_name(name):
+    """A run name goes to the desktop on a command line its cmd.exe reads, where & | < > ^ are commands: every
+    action that takes one checks it here, before anything is sent."""
+    if not isinstance(name, str) or not NAME.fullmatch(name):
+        raise SystemExit('a run name is letters, digits, dot, dash and underscore')
+    return name
 
 
 def python_command(value):
@@ -283,7 +291,8 @@ def walk(base, names, skip=()):
         for folder, folders, files in os.walk(str(source)):
             inside = Path(os.path.relpath(folder, str(base))).as_posix()
             folders[:] = sorted(one for one in folders if one not in MADE and not skipped(inside + '/' + one) and not
-                                os.lstat(os.path.join(folder, one)).st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT)
+                                getattr(os.lstat(os.path.join(folder, one)), 'st_file_attributes', 0) &
+                                stat.FILE_ATTRIBUTE_REPARSE_POINT)
             for one in sorted(files):
                 if skipped(inside + '/' + one):
                     continue
@@ -382,8 +391,8 @@ def run(args):
     job = job_of(args)
     if args.session and not args.background:
         raise SystemExit('--session goes with --background NAME')
-    if args.background and not NAME.fullmatch(args.background):
-        raise SystemExit('a run name is letters, digits, dot, dash and underscore')
+    if args.background:
+        run_name(args.background)
     if not args.no_sync:
         sync()
     if args.background:
@@ -409,6 +418,7 @@ def told(header):
 
 
 def wait(args):
+    run_name(args.name)
     offset, lost, unanswered, start = 0, 0, 0, time.time()
     while True:
         # One failed connection says nothing about the run: keep asking for two minutes before giving up.
@@ -445,7 +455,7 @@ def log(args):
         for row in ask('_runs', {}):
             print('{:<28} {}'.format(row['name'], told(row)))
         return 0
-    header, data = poll(args.name, 0)
+    header, data = poll(run_name(args.name), 0)
     lines = data.splitlines(keepends=True)
     sys.stdout.buffer.write(b''.join(lines[-args.tail:]))
     sys.stdout.buffer.flush()
@@ -454,7 +464,7 @@ def log(args):
 
 
 def stop(args):
-    print(ask('_stop', {}, args.name)['told'])
+    print(ask('_stop', {}, run_name(args.name))['told'])
     return 0
 
 
@@ -522,21 +532,53 @@ def within(name, scope):
     return scope is None or any(name == one or name.startswith(one + '/') for one in scope)
 
 
-def alive(pid):
+def creation_time(handle):
+    """When the process of an open handle started, in 100 ns units since 1601 (GetProcessTimes), or None."""
     import ctypes
-    handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))
+    times = [ctypes.c_ulonglong() for _ in range(4)]     # creation, exit, kernel and user time
+    if not ctypes.windll.kernel32.GetProcessTimes(ctypes.c_void_p(handle), *(ctypes.byref(one) for one in times)):
+        return None
+    return times[0].value
+
+
+def opened(pid, created=None):
+    """A handle to the running process with this PID, or None. With `created`, a process that has the PID but
+    started at another time is not the run's: after a reboot or a hard crash state.json stays without done.json,
+    and Windows gives the PID to some other process. Windows does not give the PID to another process while the
+    handle is open. Close it with close()."""
+    import ctypes
+    kernel = ctypes.windll.kernel32
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    handle = kernel.OpenProcess(0x1000, False, int(pid))     # PROCESS_QUERY_LIMITED_INFORMATION
     if not handle:
-        return False
+        return None
     code = ctypes.c_ulong()
-    found = ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code))
-    ctypes.windll.kernel32.CloseHandle(handle)
-    return bool(found) and code.value == 259
+    if kernel.GetExitCodeProcess(ctypes.c_void_p(handle), ctypes.byref(code)) and code.value == 259 and \
+            (created is None or creation_time(handle) == created):
+        return handle
+    close(handle)
+    return None
+
+
+def close(handle):
+    import ctypes
+    ctypes.windll.kernel32.CloseHandle(ctypes.c_void_p(handle))
+
+
+def alive(pid, created=None):
+    """Whether the process with this PID runs, and, with `created`, started at that time. A state.json written
+    before the creation time was recorded has none, and the PID alone is asked about as before."""
+    handle = opened(pid, created)
+    if handle is None:
+        return False
+    close(handle)
+    return True
 
 
 def state_of(name):
     folder = safe(RUNS + '/' + name)
     state, done = read(folder / 'state.json'), read(folder / 'done.json')
-    return dict(name=name, done=done, alive=bool(state) and not done and alive(state['runner']))
+    return dict(name=name, done=done, alive=bool(state) and not done and alive(state['runner'], state.get('runner_created')))
 
 
 def started(job):
@@ -549,6 +591,8 @@ def on_desktop(word, rest):
     if word == '_unpack':
         unpack(sys.stdin.buffer, REPO)
         return 0
+    if word in ('_poll', '_stop', '_start', '_job'):
+        run_name(rest[0] if rest else '')
     if word in ('_state', '_synced'):
         files, scope = request['files'], request['scope']
         wanted = set(files)
@@ -619,11 +663,16 @@ def on_desktop(word, rest):
     elif word == '_stop':
         folder = safe(RUNS + '/' + rest[0])
         state = read(folder / 'state.json')
-        if not state or (folder / 'done.json').is_file() or not alive(state['runner']):
+        # The handle keeps the PID the run's until taskkill has ended it.
+        handle = None if not state or (folder / 'done.json').is_file() else opened(state['runner'], state.get('runner_created'))
+        if handle is None:
             answer = dict(told='{} is not running'.format(rest[0]))
         else:
             # Only the run's own processes: the one that holds the run and everything under it.
-            subprocess.run(['taskkill', '/PID', str(state['runner']), '/T', '/F'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                subprocess.run(['taskkill', '/PID', str(state['runner']), '/T', '/F'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            finally:
+                close(handle)
             write(folder / 'done.json', dict(exit=None, seconds=round(time.time() - state['started'], 1), error='stopped'))
             task = (read(folder / 'job.json') or {}).get('task')
             if task:
@@ -704,6 +753,20 @@ def performance_cores():
     return sum(1 << index for efficiency, index in cpus if efficiency == fastest and index < 64)
 
 
+def own_creation_time():
+    """This process's creation time, which state.json keeps with its PID; None when Windows does not say."""
+    try:
+        handle = opened(os.getpid())
+        if handle is None:
+            return None
+        try:
+            return creation_time(handle)
+        finally:
+            close(handle)
+    except Exception:     # without it the run is recognised by its PID alone, as before
+        return None
+
+
 def run_job(name):
     """Holds one background run: the command's output goes to the run's log, its exit code to done.json."""
     folder = REPO / RUNS / name
@@ -723,7 +786,8 @@ def run_job(name):
         with open(folder / 'log.txt', 'wb') as stream:
             process = subprocess.Popen(command, cwd=str(REPO), env=environment, stdin=subprocess.DEVNULL, stdout=stream,
                                        stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
-            write(folder / 'state.json', dict(runner=os.getpid(), pid=process.pid, started=start))
+            write(folder / 'state.json', dict(runner=os.getpid(), runner_created=own_creation_time(), pid=process.pid,
+                                              started=start))
             code = process.wait()
     except Exception as problem:     # the run's record says why nothing ran
         error = repr(problem)

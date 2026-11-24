@@ -3,8 +3,10 @@
     python tools/check.py [--core] [--tools]
     python tools/check.py --ci --report build/ci/checks.json
 
-The core tests are C++17 programs in tests/ built with Clang (or g++) against core/. The tool tests are the
-unittest modules tools/test_*.py. Without an option both run. The exit code is 0 when everything passed.
+The core tests are C++17 programs in tests/ built with Clang (or g++) against core/. Every tests/*_test.cpp is
+named in CORE_TESTS, MORE_CORE_TESTS or STAGED_TESTS, which run, or in EXCLUDED_TESTS with the reason it does
+not; a test in none of them fails the gate. The tool tests are the unittest modules tools/test_*.py. Without an
+option both run. The exit code is 0 when everything passed.
 """
 import argparse
 import importlib
@@ -33,7 +35,63 @@ CORE_TESTS = (
     'static_mesh_facts_test.cpp', 'table_edit_export_test.cpp',
 )
 # Tests that link the compiler, staged as the plugin builds it (tools/native_custom_backend_sources.py).
-STAGED_TESTS = ('sage_convert_test.cpp',)
+STAGED_TESTS = ('sage_convert_test.cpp', 'maxwell_schedule_test.cpp', 'own_switch_layout_test.cpp')
+# Host tests that need only authored inputs, run after CORE_TESTS. They predate the check for unlisted tests.
+MORE_CORE_TESTS = (
+    'custom_material_archive_test.cpp', 'custom_material_opaque_test.cpp', 'light_function_export_test.cpp',
+    'material_cancel_poll_test.cpp', 'material_collection_prerequisites_test.cpp',
+    'material_eye_adaptation_generic_test.cpp', 'material_family_registry_test.cpp', 'material_game_reads_test.cpp',
+    'material_graph_canon_test.cpp', 'material_recovery_parity_test.cpp', 'material_source_usage_test.cpp',
+    'original_inventory_test.cpp', 'particle_cutout_test.cpp', 'physics_asset_native_test.cpp',
+    'registry_input_lease_unavailable_test.cpp', 'registry_source_contract_test.cpp', 'sage_varyings_test.cpp',
+    'table_row_comparison_test.cpp', 'wwise_inventory_test.cpp', 'wwise_pcm_test.cpp',
+)
+# The tests/*_test.cpp programs the gate does not run, each with the reason. The gate runs a program without
+# arguments and links only the C++ library.
+EXCLUDED_TESTS = {
+    'creator_mesh_package_test.cpp': 'needs a game package header and body as arguments',
+    'exact_fixture_move_test.cpp': 'needs an empty scratch folder as its argument and links bcrypt',
+    'material_binding_metadata_test.cpp': 'needs the extracted game source root as an argument',
+    'material_collection_binding_metadata_test.cpp': 'needs the original source root as an argument',
+    'material_collection_source_test.cpp': 'needs a retained source root as an argument',
+    'material_compiled_coverage_test.cpp': 'needs a shader archive and the extracted game source root as arguments',
+    'material_execution_case_test.cpp': 'needs a material source root as an argument',
+    'material_execution_resources_test.cpp': 'needs a material source root and a JSON receipt as arguments',
+    'material_family_source_validation_test.cpp': 'needs the original source corpus root as an argument',
+    'material_folded_certificates_test.cpp': 'needs a shader archive, the extracted game root and a material index '
+                                             'as arguments',
+    'material_infinite_equality_plan_test.cpp': 'fails: expects lifting +infinity to be refused, but the lifter '
+                                                'emits a PositiveInfinity constant (core/material_lifter_lift.h)',
+    'material_infinite_equality_test.cpp': 'fails: expects lifting +infinity to be refused, but the lifter emits a '
+                                           'PositiveInfinity constant (core/material_lifter_lift.h)',
+    'material_instance_binding_comparison_test.cpp': 'needs a game material instance package and two audit JSON '
+                                                     'files as arguments',
+    'material_source_family_coverage_test.cpp': 'needs a shader archive, source root, canonical records and an '
+                                                'output path as arguments',
+    'material_source_gates_test.cpp': 'needs a shader archive, the extracted game root and a material index as '
+                                      'arguments',
+    'material_source_shadow_canonical_test.cpp': 'needs a shader archive and the extracted game root as arguments',
+    'material_used_resources_test.cpp': 'needs a shader archive, the original corpus root and an output path as '
+                                        'arguments',
+    'mesh_cooked_readback_test.cpp': 'needs a game package header and body and two object names as arguments',
+    'navigation_export_test.cpp': 'a helper tests/test_navigation_export.py drives with arguments; that script '
+                                  'needs navigation tools that are not in this repository',
+    'registry_input_lease_test.cpp': 'needs an empty scratch folder as its argument',
+    'texture_warp_test.cpp': 'links the Windows d3d11 and d3dcompiler libraries for a WARP device',
+}
+
+
+def listed_test_problems(root=None):
+    """A tests/*_test.cpp that no list names, a name in more than one list, and a named test that is not in
+    tests/. A test nobody added to a list would otherwise never run."""
+    present = {path.name for path in (Path(root or ROOT) / 'tests').glob('*_test.cpp')}
+    named = [*CORE_TESTS, *MORE_CORE_TESTS, *STAGED_TESTS, *EXCLUDED_TESTS]
+    problems = ['{} is in none of CORE_TESTS, MORE_CORE_TESTS, STAGED_TESTS and EXCLUDED_TESTS in tools/check.py: '
+                'add it to one'.format(name) for name in sorted(present - set(named))]
+    problems += ['{} is named more than once in the test lists of tools/check.py'.format(name)
+                 for name in sorted({name for name in named if named.count(name) > 1})]
+    problems += ['{} is named in tools/check.py but is not in tests/'.format(name) for name in sorted(set(named) - present)]
+    return problems
 
 
 def preflight(needs_tools=True):
@@ -98,7 +156,12 @@ def core_tests(records=None, strict=False):
     out = ROOT / 'build/tests'
     out.mkdir(parents=True, exist_ok=True)
     failures = []
-    for name in CORE_TESTS:
+    problems = listed_test_problems()
+    for problem in problems:
+        print('FAIL ' + problem, flush=True)
+        if records is not None:
+            records.append(dict(name=problem.split(' ', 1)[0], status='failed', tests_run=0, error=problem))
+    for name in CORE_TESTS + MORE_CORE_TESTS:
         started = time.monotonic()
         record = dict(name=name, status='passed', tests_run=1)
         exe = out / (Path(name).stem + ('.exe' if os.name == 'nt' else ''))
@@ -126,7 +189,13 @@ def core_tests(records=None, strict=False):
         command = [compiler, '-std=c++17', '-O1', '-Wall', '-Wextra', '-I', str(ROOT), '-I', str(ROOT / 'core'),
                    '-I', str(staged), str(ROOT / 'tests' / name), *sources, '-o', str(exe)]
         try:
-            subprocess.run(command, cwd=ROOT, check=True, timeout=1200, stderr=subprocess.DEVNULL)
+            # The staged sources warn a lot; the compiler's output is shown only when the compile fails.
+            compiled = subprocess.run(command, cwd=ROOT, timeout=1200, capture_output=True, text=True, errors='replace')
+            if compiled.returncode:
+                output = (compiled.stdout + compiled.stderr)[-12000:]
+                print(output, flush=True)
+                record['compiler_output'] = output
+                raise subprocess.CalledProcessError(compiled.returncode, command)
             subprocess.run([str(exe)], cwd=ROOT, check=True, timeout=600, stdout=subprocess.DEVNULL)
             print('PASS ' + name, flush=True)
         except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
@@ -136,9 +205,12 @@ def core_tests(records=None, strict=False):
         record['duration_seconds'] = round(time.monotonic() - started, 3)
         if records is not None:
             records.append(record)
-    total = len(CORE_TESTS) + len(STAGED_TESTS)
-    print('{}/{} core tests passed'.format(total - len(failures), total), flush=True)
-    return 1 if failures else 0
+    total = len(CORE_TESTS) + len(MORE_CORE_TESTS) + len(STAGED_TESTS)
+    print('{}/{} core tests passed, {} excluded (EXCLUDED_TESTS in tools/check.py)'.format(
+        total - len(failures), total, len(EXCLUDED_TESTS)), flush=True)
+    if problems:
+        print('{} problems with the test lists in tools/check.py'.format(len(problems)), flush=True)
+    return 1 if failures or problems else 0
 
 
 def tool_modules():
@@ -224,6 +296,8 @@ def main(argv=None):
                           duration_seconds=round(time.monotonic() - started, 3))
             write_report(args.report or ROOT / 'build/ci/checks.json', report)
             return 2
+    if run_core:
+        report['core_excluded'] = [dict(name=name, reason=reason) for name, reason in sorted(EXCLUDED_TESTS.items())]
     code = 0
     try:
         if run_core:
@@ -242,6 +316,7 @@ def main(argv=None):
                       tests_run=sum(row.get('tests_run', 0) for row in report['core'] + report['tools']),
                       counts=dict(core_programs=len(report['core']),
                                   core_passed=sum(row['status'] == 'passed' for row in report['core']),
+                                  core_excluded=len(report.get('core_excluded', [])),
                                   tool_modules=len(report['tools']),
                                   tool_modules_passed=sum(row['status'] == 'passed' for row in report['tools']),
                                   tool_modules_failed=sum(row['status'] != 'passed' for row in report['tools']),

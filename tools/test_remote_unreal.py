@@ -5,6 +5,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import types
 import unittest
 from unittest.mock import patch
 
@@ -119,6 +120,126 @@ class RemoteConfiguration(unittest.TestCase):
             self.assertEqual(remote.main(['_poll', 'job', '0']), 7)
         worker.assert_called_once_with('_poll', ['job', '0'])
         configure.assert_not_called()
+
+
+class RunNames(unittest.TestCase):
+    def test_every_action_that_takes_a_run_name_refuses_shell_marks_before_connecting(self):
+        for argv in (['stop', 'x&calc'], ['wait', 'x|calc'], ['log', 'x>out'], ['stop', 'x^y'], ['wait', '-x'],
+                     ['run', '--background', 'x<y', '--', 'py', 'tools/dev_build.py']):
+            with self.subTest(argv=argv), patch.object(remote, 'configure_remote'), \
+                    patch.object(remote.subprocess, 'run') as run, patch.object(remote.subprocess, 'Popen') as popen, \
+                    patch.object(remote, 'sync') as sync, redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:
+                    remote.main(argv[:1] + ['--'] + argv[1:] if argv[0] != 'run' else argv)
+                self.assertEqual(str(error.exception), 'a run name is letters, digits, dot, dash and underscore')
+                run.assert_not_called()
+                popen.assert_not_called()
+                sync.assert_not_called()
+
+    def test_a_valid_name_reaches_the_desktop_unchanged(self):
+        with patch.object(remote, 'configure_remote'), patch.object(remote, 'ask', return_value={'told': 'stopped'}) as ask, \
+                redirect_stdout(io.StringIO()):
+            self.assertEqual(remote.main(['stop', 'build-2.tests_1']), 0)
+        ask.assert_called_once_with('_stop', {}, 'build-2.tests_1')
+
+    def test_the_desktop_side_refuses_a_name_an_older_laptop_did_not_check(self):
+        with patch.object(remote.sys, 'stdin', types.SimpleNamespace(buffer=io.BytesIO(b'{}'))), \
+                patch.object(remote.subprocess, 'run') as run:
+            with self.assertRaises(SystemExit):
+                remote.on_desktop('_stop', ['x&calc'])
+        run.assert_not_called()
+
+
+class RunIdentity(unittest.TestCase):
+    """A run is alive, and stop ends it, only while its PID belongs to the process that started at the recorded time."""
+
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+        patcher = patch.object(remote, 'REPO', self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.closed = []
+        # The process table: PID 4242 now belongs to a process that started at 2000.
+        opened = lambda pid, created=None: ('handle', pid) if pid == 4242 and created in (None, 2000) else None
+        for name, value in (('opened', opened), ('close', self.closed.append)):
+            patcher = patch.object(remote, name, side_effect=value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def run_state(self, **state):
+        folder = self.root / remote.RUNS / 'build'
+        remote.write(folder / 'job.json', dict(command=['py'], env={}, task=None))
+        remote.write(folder / 'state.json', dict(runner=4242, pid=4343, started=1.0, **state))
+        return folder
+
+    def stop(self):
+        output = io.BytesIO()
+        with patch.object(remote.sys, 'stdin', types.SimpleNamespace(buffer=io.BytesIO(b'{}'))), \
+                patch.object(remote.sys, 'stdout', types.SimpleNamespace(buffer=output)), \
+                patch.object(remote.subprocess, 'run') as run:
+            self.assertEqual(remote.on_desktop('_stop', ['build']), 0)
+        return json.loads(output.getvalue().decode('utf-8'))['told'], run
+
+    def test_a_reused_pid_is_neither_alive_nor_killed(self):
+        folder = self.run_state(runner_created=1000)
+        self.assertEqual(remote.state_of('build'), dict(name='build', done=None, alive=False))
+        told, run = self.stop()
+        self.assertEqual(told, 'build is not running')
+        run.assert_not_called()
+        self.assertFalse((folder / 'done.json').exists())
+
+    def test_the_run_that_started_at_the_recorded_time_is_alive_and_stopped(self):
+        folder = self.run_state(runner_created=2000)
+        self.assertTrue(remote.state_of('build')['alive'])
+        told, run = self.stop()
+        self.assertEqual(told, 'stopped build')
+        self.assertEqual(run.call_args_list[0].args[0], ['taskkill', '/PID', '4242', '/T', '/F'])
+        self.assertEqual(self.closed[-1], ('handle', 4242))
+        self.assertEqual(remote.read(folder / 'done.json')['error'], 'stopped')
+
+    def test_a_state_written_by_the_older_script_is_judged_by_its_pid_as_before(self):
+        self.run_state()
+        self.assertTrue(remote.state_of('build')['alive'])
+        told, run = self.stop()
+        self.assertEqual(told, 'stopped build')
+        remote.opened.assert_called_with(4242, None)
+
+    def test_the_holder_records_its_creation_time_with_its_pid(self):
+        folder = self.root / remote.RUNS / 'build'
+        remote.write(folder / 'job.json', dict(command=['tool'], env={}, task=None))
+        process = types.SimpleNamespace(pid=4343, wait=lambda: 0)
+        with patch.object(remote, 'performance_cores', return_value=0), \
+                patch.object(remote, 'own_creation_time', return_value=2000), \
+                patch.object(remote.subprocess, 'Popen', return_value=process), \
+                patch.object(remote.subprocess, 'CREATE_NO_WINDOW', 0, create=True):
+            self.assertEqual(remote.run_job('build'), 0)
+        state = remote.read(folder / 'state.json')
+        self.assertEqual((state['runner'], state['runner_created'], state['pid']), (remote.os.getpid(), 2000, 4343))
+        self.assertEqual(remote.read(folder / 'done.json')['exit'], 0)
+
+
+class WindowsProcessTimes(unittest.TestCase):
+    def test_creation_time_tells_this_process_from_a_later_one_with_its_pid(self):
+        if remote.os.name != 'nt':      # the desktop side runs on Windows only
+            return
+        created = remote.own_creation_time()
+        self.assertIsInstance(created, int)
+        self.assertTrue(remote.alive(remote.os.getpid()))
+        self.assertTrue(remote.alive(remote.os.getpid(), created))
+        self.assertFalse(remote.alive(remote.os.getpid(), created + 1))
+
+
+class LaptopWalk(unittest.TestCase):
+    def test_folders_are_walked_where_stat_has_no_windows_attributes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'results/inner').mkdir(parents=True)
+            (root / 'results/inner/one.txt').write_text('authored', encoding='utf-8')
+            with patch.object(remote.os, 'lstat', return_value=types.SimpleNamespace(st_mode=0o40755)):
+                found = remote.walk(root, ['results'])
+        self.assertEqual([name for name, _, _ in found], ['results/inner/one.txt'])
 
 
 if __name__ == '__main__':

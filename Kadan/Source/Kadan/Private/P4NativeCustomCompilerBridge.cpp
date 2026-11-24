@@ -265,7 +265,10 @@ FString P4CreatorMaterialGraphIssue(UMaterial* Material)
 FString P4CreatorMaterialEditorGraphIssue(UMaterial* Material)
 {
     // MaterialEditor reads a transient preview graph. This helper only reports
-    // graph/settings issues; it does not compile or export.
+    // graph/settings issues; it does not compile or export. Through UE's shaders the export takes every graph and
+    // setting UE compiles, so the older emitter's graph checks do not apply.
+    if (P4UseSwitchShaderRoute())
+        return FString();
     try
     {
         (void)CaptureGraph(Material, false);

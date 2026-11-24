@@ -56,9 +56,10 @@ The development environment uses Python 3.11.9, LLVM 22.1.1, and the Python pack
 python tools/check.py
 ```
 
-This compiles and runs the host tests in `tests/` and runs the tool tests in `tools/`, including
-the stubs generator checks. The hosted gate uses authored fixtures and requires no game dump
-or editor installation. To run the stricter CI gate and write its report:
+This compiles and runs the host tests in `tests/` (`tools/check.py` names the few it cannot run,
+and why) and runs the tool tests in `tools/`, including the stubs generator checks. The hosted
+gate uses authored fixtures and requires no game dump or editor installation. To run the
+stricter CI gate and write its report:
 
 ```
 python tools/check.py --ci --report build/ci/checks.json
@@ -71,15 +72,18 @@ The plugin is built and tested on the desktop with Unreal's build tool:
 ```
 py -3.11 tools/remote_unreal.py run --background build -- py tools/dev_build.py --tests
 py -3.11 tools/remote_unreal.py wait build
-py -3.11 tools/remote_unreal.py run --background tests --session -- py tools/dev_tests.py --built private/mapkit-native-workflow/dev-host
+py -3.11 tools/remote_unreal.py run --background tests --session -- py tools/dev_tests.py --built private/mapkit-native-workflow/dev-host --input-root <inputs>
 py -3.11 tools/remote_unreal.py wait tests
 ```
 
 `dev_build.py` copies the plugin into the host project (`private/mapkit-native-workflow/dev-host` by
 default), stages `core/` and `compiler/` into it, and builds only what changed. `--tests` adds the
-`P4MapKitTests` module. `dev_tests.py` installs the built plugin into a project that has P4Stubs
-(`private/mapkit-native-workflow/native-coverage-clean-host` by default) and runs the fast automation
-tests there; the editor needs a desktop session, hence `--session`. A release is built with
+`P4MapKitTests` module. `dev_tests.py` installs the plugin built in the `--built` host into a project that
+has P4Stubs (`private/mapkit-native-workflow/native-coverage-clean-host` by default) and runs the fast
+automation tests there; the editor needs a desktop session, hence `--session`. `--input-root` names the
+folder on the desktop whose `private/mapkit-native-workflow` holds the tests' private inputs (the
+repository root by default). A test whose inputs are absent reports that it did not run; a test named
+with `--only` that did not run fails the run unless `--allow-not-run` is given. A release is built with
 `py -3.11 tools/release.py build` ([Releases](docs/RELEASING.md)).
 
 Native editor and game checks use separately configured local inputs: the game's Paks,

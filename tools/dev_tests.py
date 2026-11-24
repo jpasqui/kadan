@@ -1,7 +1,13 @@
 """Run the authoring plugin's automation tests on a development build.
 
-    py -3.11 tools/dev_build.py --host private/mapkit-native-workflow/dev-host-tests --tests
-    py -3.11 tools/dev_tests.py [--tier fast|heavy|all] [--only <test name> ...]
+    py -3.11 tools/dev_build.py --tests
+    py -3.11 tools/dev_tests.py --built private/mapkit-native-workflow/dev-host [--input-root <folder>]
+        [--tier fast|heavy|fresh|all] [--only <test name> ... [--allow-not-run]]
+
+--built is the host project dev_build.py built (its --host, private/mapkit-native-workflow/dev-host by
+default); without --built it is private/mapkit-native-workflow/dev-host-tests. --input-root is the folder
+whose private/mapkit-native-workflow holds the tests' private inputs (extracted game files, fixtures,
+decompiler records); it is the repository root by default.
 
 The tests need a project that has the stub classes. The built plugin is copied from the build host
 into that project (three files), the editor runs the tests there once, and what passed and failed is
@@ -12,6 +18,10 @@ a whole map nor run the whole export, a few minutes together. --tier heavy runs 
 a copy of a kept imported project (kadan_fixture.py copy), --tier fresh the ones that test a map's
 import itself and need a project without it. Each run records how long every test took, so a test that
 becomes slow moves to the heavy tier by itself.
+
+A test whose inputs are absent reports that it did not run, and Unreal records it as passed; it is counted
+as not run. A test named with --only that did not run makes the exit code 1 unless --allow-not-run is
+given; in a tier run the count is printed and the exit code does not change.
 
 Unreal's automation controller gives up on the whole queue when one test runs longer than its
 lost-instance deadline. Each editor start gets a deadline long enough for the slowest test it runs, by
@@ -34,10 +44,18 @@ WORK = REPO / 'private/mapkit-native-workflow'
 CONTAINERS = Path(os.environ.get('APPDATA', '')) / 'eden/dump/0100B7C00933A000/romfs/Carrot4/Content/Paks'
 
 
+CENSUS = 'private/mapkit-native-workflow/texture-properties/next-import-audit/original-mesh-comparison.json'
+
+
 def fixtures(input_root=None):
-    """The game files two mesh tests read, by the paths the earlier census recorded."""
+    """The game files two mesh tests read, by the paths the earlier census recorded. Without the census the
+    variables stay unset and the tests that read them report that they did not run."""
     root = Path(input_root).resolve() if input_root is not None else REPO
-    census = json.loads((root / 'private/mapkit-native-workflow/texture-properties/next-import-audit/original-mesh-comparison.json').read_text(encoding='utf-8'))
+    path = root / CENSUS
+    if not path.is_file():
+        print('No mesh census at {}; P4_NATIVE_CYLINDER_SOURCE and P4_NATIVE_SHIZAI_SOURCE are left unset.'.format(path))
+        return {}
+    census = json.loads(path.read_text(encoding='utf-8'))
     rows = {row['name']: row for row in census['records']}
     return {name: str((root / rows[row]['source_path']).resolve())
             for name, row in (('P4_NATIVE_CYLINDER_SOURCE', 'SM_stg_Cylinder01'), ('P4_NATIVE_SHIZAI_SOURCE', 'SM_stg_ShizaiBF01'))}
@@ -70,6 +88,16 @@ def unfinished(text):
         elif 'Test Completed. Result={' in line:
             running = None
     return running
+
+
+def not_run_verdict(skipped, only, allow_not_run=False):
+    """The lines to print about tests that did not run, and whether that fails the run: a test named with --only
+    that did not run fails it unless --allow-not-run; in a tier run it is only counted."""
+    lines = ['{} tests did not run'.format(len(skipped))] if skipped else []
+    fails = bool(only and skipped and not allow_not_run)
+    if fails:
+        lines.append('Named tests that did not run (--allow-not-run accepts this): ' + ', '.join(skipped))
+    return lines, fails
 
 
 def selected_paths(text):
@@ -155,6 +183,8 @@ def main():
                         help='owned repository root containing private immutable acceptance inputs')
     parser.add_argument('--project', type=Path, default=WORK / 'native-coverage-clean-host/NativeCoverageClean.uproject')
     parser.add_argument('--only', nargs='*', default=[], help='full test names; the --tier tests when left out')
+    parser.add_argument('--allow-not-run', action='store_true',
+                        help='with --only: exit 0 even when a named test reports that it did not run')
     parser.add_argument('--tier', choices=('fast', 'heavy', 'fresh', 'all'), default='fast',
                         help='without --only: the fast tests (default), the heavy ones, the fresh ones, or every test')
     parser.add_argument('--timeout', type=float, default=7200.0)
@@ -328,7 +358,11 @@ def main():
     print('log:', ', '.join(str(path) for path in logs) or log)
     if shipping_runtime is not None:
         print('Shipping production DLLs and the separate native test DLL remained unchanged.')
-    return 0 if code == 0 and ran and not failed and not stopped and selected == passed and deadline_verified else 1
+    not_run_lines, not_run_fails = not_run_verdict(skipped, args.only, args.allow_not_run)
+    for line in not_run_lines:
+        print(line)
+    return 0 if (code == 0 and ran and not failed and not stopped and selected == passed and deadline_verified
+                 and not not_run_fails) else 1
 
 
 if __name__ == '__main__':

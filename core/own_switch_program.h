@@ -7,12 +7,17 @@
 #include "own_game_layouts.h"
 #include "own_payload.h"
 #include <cctype>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace P4MapKit { namespace CustomMaterial { namespace OwnSwitch {
 
 struct Varying { std::string name; int location = 0; };
+
+// A uniform buffer member a program reads, by its block's and its own SPIR-V name ("View", "View_PreExposure").
+using LayoutMiss = std::pair<std::string, std::string>;
 
 struct Program {
     std::string assembly;
@@ -20,6 +25,9 @@ struct Program {
     spirv_front::Interface iface;
     std::vector<Varying> inputs, outputs;   // user varyings, in the game's names (in_texcoord10_centroid)
     unsigned inout_mask = 0;                // vertex attributes read; render targets written (0x8000: depth)
+    // Members the program reads of blocks the game lays out (GameLaysOut) that the game's layout does not list. Each
+    // is read at stock UE 4.26's offset, which may not be where the game's buffer has it. Once each, sorted.
+    std::vector<LayoutMiss> layout_misses;
 };
 
 constexpr unsigned BuiltInFragDepth = 22;
@@ -57,27 +65,51 @@ inline bool NumberedAs(const std::string& semantic, const std::string& stem, uns
     return index < 32;
 }
 
-// The game's struct layouts by member name: blocks it lays out differently from stock UE 4.26 (View).
-inline spirv_front::Options GameOptions() {
+// Whether the game's layout table lists any member of a block. A block it lists none of (a material's own buffer, a
+// parameter collection) keeps stock UE 4.26's layout.
+inline bool GameLaysOut(const std::string& block) {
+    static const std::set<std::string> blocks = [] {
+        std::set<std::string> out;
+        for (const auto& entry : GameLayoutOffsets()) out.insert(entry.first.first);
+        return out;
+    }();
+    return blocks.count(block) != 0;
+}
+
+// A member as a material's code names it: "View.PreExposure" for ("View", "View_PreExposure").
+inline std::string LayoutMissName(const LayoutMiss& miss) {
+    const std::string prefix = miss.first + "_";
+    const bool prefixed = miss.second.size() > prefix.size() && miss.second.compare(0, prefix.size(), prefix) == 0;
+    return miss.first + "." + (prefixed ? miss.second.substr(prefix.size()) : miss.second);
+}
+
+// The game's struct layouts by member name: blocks it lays out differently from stock UE 4.26 (View). With misses,
+// each member of a block the game lays out that its table does not list is added to them; its offset stays stock's.
+inline spirv_front::Options GameOptions(std::set<LayoutMiss>* misses = nullptr) {
     spirv_front::Options o;
     o.drop_clip_distance = true;            // the game's renderer uses no clip distances
     o.vertex_attribute_semantics = true;    // ATTRIBUTEn is vertex attribute n in the game's vertex declarations
     o.split_loose_integers = true;          // loose uints in a 'u' array of their own, as the game's compiler packs them
     o.resources_by_first_use = true;        // texture and sampler slots in the order the code reads them, as HLSLcc numbers them
     o.fmod_truncates = true;                // HLSL's fmod truncates; DXC writes it as OpFMod
-    o.remap = [](const std::string& block, const std::string& member, std::uint32_t) -> std::optional<std::uint32_t> {
+    o.remap = [misses](const std::string& block, const std::string& member, std::uint32_t) -> std::optional<std::uint32_t> {
         const auto& layouts = GameLayoutOffsets();
         const auto it = layouts.find({block, member});
-        if (it == layouts.end()) return std::nullopt;
+        if (it == layouts.end()) {
+            if (misses && GameLaysOut(block)) misses->insert({block, member});
+            return std::nullopt;
+        }
         return it->second;
     };
     return o;
 }
 
 inline Program Translate(const std::vector<std::uint32_t>& words) {
-    const auto options = GameOptions();
+    std::set<LayoutMiss> misses;
+    const auto options = GameOptions(&misses);
     auto r = spirv_front::Translate(words, options);
     Program p;
+    p.layout_misses.assign(misses.begin(), misses.end());
     p.assembly = std::move(r.assembly);
     p.iface = std::move(r.iface);
     p.stage = p.iface.stage == spirv_front::Stage::Vertex ? OwnPayload::Stage::Vertex

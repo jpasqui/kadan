@@ -44,7 +44,19 @@ struct FKadanSwitchProgram
     TArray<FKadanSwitchVarying> Inputs, Outputs; // user varyings (the game's in_/out_ names)
     uint32 InOutMask = 0; // vertex attributes read, or render targets written (0x8000 depth)
     int32 DefaultSampler = -1; // the sampler slot reads without a sampler take
+    // Members the program reads of uniform buffers the game lays out that the game's layout does not list
+    // ("View.PreExposure"): each is read where stock UE 4.26 keeps it (own_switch_program.h).
+    TArray<FString> UnlistedReads;
 };
+
+// The format keeps a program's UnlistedReads with the compiled map, which UE's Derived Data Cache keeps with it: one
+// entry of the map's platform debug data (FShaderMapResourceCode::PlatformDebugData, editor only) per program that has
+// any, in UTF-8 lines: this tag, the SHA-1 of the program's payload in hexadecimal (its code before the optional data
+// UE adds at the end), then one read per line.
+inline const TCHAR* KadanUnlistedReadsTag()
+{
+    return TEXT("kadan-unlisted-game-layout-reads");
+}
 
 // A resource a payload binds through a uniform buffer: resource `Resource` of the struct in slot `Buffer`, in `Slot`.
 // Name: the resource member's shader name (OpaqueBasePass_DBufferATexture), for the game's own resource index.
@@ -94,6 +106,11 @@ class IKadanSwitchCompileContext : public IModularFeature
 public:
     static FName FeatureName() { return TEXT("KadanSwitchCompileContext"); }
     virtual void SetMaterialSSR(bool bMaterialSSR) = 0;
+    // The built-in source patches (KadanSwitchSourcePatches.inl) in their order, each by its name with the number of
+    // compile jobs it changed since the last reset. Every job of the format compiles in this process (UE's shader
+    // compile workers cannot load it), so these count them all. A patch file (KADAN_SWITCH_PATCHES) is not counted.
+    virtual TArray<TPair<FString, int32>> SourcePatchUses() const = 0;
+    virtual void ResetSourcePatchUses() = 0;
 };
 
 class IKadanSwitchShaderCompiler : public IModularFeature

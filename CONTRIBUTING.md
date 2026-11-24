@@ -43,6 +43,10 @@ The gate compiles the portable C++ tests and runs the tool tests, including the 
 generator checks. The tests use authored fixtures. A missing required dependency or an
 unexpected skipped test fails CI. Use `--core` or `--tools` for a narrower run while you work.
 
+Name every new `tests/*_test.cpp` in `tools/check.py`: in `CORE_TESTS` when it runs without
+arguments on authored inputs, in `STAGED_TESTS` when it links the staged compiler, or in
+`EXCLUDED_TESTS` with the reason the gate cannot run it. A test in none of these fails the gate.
+
 Build the docs and check their links with:
 
 ```sh
