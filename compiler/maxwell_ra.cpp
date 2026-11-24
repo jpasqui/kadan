@@ -434,24 +434,28 @@ std::vector<Control> schedule(const Program& p, const Allocation& a) {
             cycle = prev_issue + out[prev].stall;
         }
         const int64_t issue = cycle;
-        auto take = [&]() -> int {
+        // A free barrier, or with all six in flight the lowest one other than `keep` (the barrier this instruction
+        // already took for its write), waited for first. Releasing `keep` would forget the write it guards.
+        auto take = [&](int keep) -> int {
             for (int b = 0; b < 6; ++b)
                 if (!in_use[size_t(b)]) { in_use[size_t(b)] = true; return b; }
-            // All six in flight: wait for barrier 0 first.
-            c.wait |= 1;
-            release(0);
-            in_use[0] = true;
-            return 0;
+            const int b = keep == 0 ? 1 : 0;
+            c.wait |= uint8_t(1 << b);
+            release(b);
+            in_use[size_t(b)] = true;
+            return b;
         };
+        int written = -1;
         if (variable_latency(in.op) && !dsts.empty()) {
-            const int b = take();
+            const int b = take(-1);
+            written = b;
             c.wbar = uint8_t(b);
             for (int32_t r : dsts) wbar[size_t(r)] = int8_t(b), ready[size_t(r)] = issue + 1;
         } else {
             for (int32_t r : dsts) ready[size_t(r)] = issue + 6;
         }
         if (late_reads(in.op) && !srcs.empty()) {
-            const int b = take();
+            const int b = take(written);
             c.rbar = uint8_t(b);
             for (int32_t r : srcs) rbar[size_t(r)] = int8_t(b);
         }
