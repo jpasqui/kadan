@@ -1,9 +1,10 @@
 """Which of the plugin's automation tests are fast and which are heavy.
 
 A heavy test imports a whole map, exports a mod through the whole export, compiles a whole set of
-materials for the game, or took over a minute the last time it was timed. Everything else is fast:
-together the fast tests take a few minutes, so they run after every change. The heavy ones run
-once per batch of changes, in a fixture copy
+materials for the game, walks through the panel as a creator does (tools/kadan_walkthrough.py runs those
+with their inputs), or took over a minute the last time it was timed. Everything else is fast: together
+the fast tests take a few minutes, so they run after every change. The heavy ones run once per batch
+of changes, in a fixture copy
 (kadan_fixture.py) where the map is already imported. A fresh test checks the import of a map itself
 and refuses a project that has it already: those run before a release, in an empty project.
 
@@ -56,7 +57,7 @@ def declared_tests(fresh=None):
                 end = min([e for e in ends if e > start] or [len(text)])
                 body = text[start:end]
                 tests[name] = tests.get(name, False) or any(word in body for word in WHOLE_RUNS) \
-                    or 'EveryMap' in name or name.endswith('Bench')
+                    or 'EveryMap' in name or name.endswith('Bench') or 'Walkthrough' in name
                 if fresh is not None and any(words in body for words in FRESH_ONLY):
                     fresh.add(name)
     return tests

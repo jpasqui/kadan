@@ -142,6 +142,8 @@ class FFlow final : public IAutomationLatentCommand
     TWeakPtr<SWidget> Prepared;
     double Started = 0;
     bool Failed = false;
+    // The flow ends here without failing, and its later steps are left for another editor session.
+    bool Stopped = false;
 
     // Receipt state that stages add to.
     TArray<TSharedPtr<FJsonValue>> CapturedScreens;
@@ -156,6 +158,9 @@ class FFlow final : public IAutomationLatentCommand
     void Add(const FString &Name, TFunction<bool()> Action, double Limit = 45);
 
     void Fail(const FString &Why);
+
+    // Why the flow failed. Empty while it has not.
+    const FString &FailureReason() const;
 
     bool Expect(bool Value, const FString &Why);
 
@@ -198,6 +203,9 @@ class FFlow final : public IAutomationLatentCommand
     bool Menu(const FString &Entry, const FString &Heading);
 
     bool SetField(const FString &Name, const FString &Value);
+
+    // Type Value into a field in place of its text, as SetField does. The field can be in another window.
+    bool TypeInto(const TSharedPtr<SEditableTextBox> &Input, const FString &Name, const FString &Value);
 
     bool ButtonEnabled(const FString &Caption);
 

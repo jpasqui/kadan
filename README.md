@@ -10,6 +10,7 @@ The guides are on [kadan.jpasqui.dev](https://kadan.jpasqui.dev). Releases are o
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup and pull requests.
 - [CI](docs/CI.md): hosted checks and documentation builds.
 - [Releases](docs/RELEASING.md): building a release on the desktop and uploading it by hand.
+- [Walkthrough](docs/WALKTHROUGH.md): a new creator's first hour, run on the desktop and recorded step by step.
 - [Discord announcements](docs/DISCORD.md): published release notes and webhook setup.
 
 Kadan's original source uses the [MIT license](LICENSE). Dependencies and development tools

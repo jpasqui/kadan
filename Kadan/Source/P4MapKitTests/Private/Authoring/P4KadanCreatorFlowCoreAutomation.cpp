@@ -57,7 +57,8 @@ TUniquePtr<FFlowStage> MakeFlowStage(FFlow& Flow, const FString& Stage)
         {TEXT("CreatorReport"), &MakeCreatorReportStage}, {TEXT("ExportBusy"), &MakeExportBusyStage},
         {TEXT("Browser"), &MakeBrowserStage}, {TEXT("Reimport"), &MakeReimportStage},
         {TEXT("SetupReady"), &MakeSetupReadyStage}, {TEXT("Setup"), &MakeSetupStage},
-        {TEXT("Create"), &MakeCreateStage}};
+        {TEXT("Create"), &MakeCreateStage}, {TEXT("WalkthroughFirstHour"), &MakeWalkthroughStage},
+        {TEXT("WalkthroughEarlierProject"), &MakeWalkthroughStage}};
     for (const FMaker& Maker : Makers)
     {
         if (Stage == Maker.Stage)
@@ -106,7 +107,7 @@ FFlow::~FFlow()
 bool FFlow::Update()
 {
     ++Frame;
-    if (Failed || Index == Steps.Num())
+    if (Failed || Stopped || Index == Steps.Num())
     {
         Finish();
         return true;
@@ -199,6 +200,11 @@ void FFlow::Fail(const FString& Why)
         Failure = Why;
         Test.AddError(TEXT("CreatorFlow ") + Stage + TEXT(": ") + Why);
     }
+}
+
+const FString& FFlow::FailureReason() const
+{
+    return Failure;
 }
 
 TSharedPtr<SDockTab> FFlow::Tab() const

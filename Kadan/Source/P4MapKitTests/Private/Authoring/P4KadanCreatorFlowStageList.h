@@ -52,5 +52,7 @@ TUniquePtr<FFlowStage> MakeUpgradeStage(FFlow &Flow);
 TUniquePtr<FFlowStage> MakeCopyStage(FFlow &Flow);
 // CopyExtras
 TUniquePtr<FFlowStage> MakeCopyExtrasStage(FFlow &Flow);
+// WalkthroughFirstHour and WalkthroughEarlierProject
+TUniquePtr<FFlowStage> MakeWalkthroughStage(FFlow &Flow);
 } // namespace P4KadanCreatorFlow
 #endif
