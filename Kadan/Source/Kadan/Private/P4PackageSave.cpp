@@ -73,11 +73,9 @@ FString FileOf(UObject* Asset)
 // moment apart.
 bool Write(UObject* Asset, const FString& File, FString& Why)
 {
-    // A file that may not be written is not one a second try helps with. A locked game asset's file is
-    // read-only so that nothing else writes it. This is the importer writing it again (a stand-in it
-    // fills), which makes it writable for the save and read-only again after it.
-    if (IFileManager::Get().FileExists(*File) && IFileManager::Get().IsReadOnly(*File) &&
-        !P4Kadan::IsLockedPackage(Asset->GetOutermost()))
+    // A file that may not be written is not one a second try helps with. Kadan marks no file read-only, so a
+    // read-only file here was marked by its owner, and Kadan leaves the mark as it is.
+    if (IFileManager::Get().FileExists(*File) && IFileManager::Get().IsReadOnly(*File))
     {
         Why = TEXT("save-file-is-read-only: ") + File;
         return false;
@@ -194,7 +192,7 @@ bool P4SaveAssetPackage(UObject* Asset, const TFunction<bool()>& StillRight, FSt
                 TArray<uint8> Current;
                 const bool AlreadySame = FFileHelper::LoadFileToArray(Current, *One, FILEREAD_Silent) &&
                     Current == *Bytes;
-                // A refused pre-write save may leave a readonly file untouched.
+                // A save refused before it writes leaves the file untouched.
                 // Do not rewrite that exact existing bundle during rollback.
                 if (!AlreadySame)
                     Back = FFileHelper::SaveArrayToFile(*Bytes, *One) && Back;

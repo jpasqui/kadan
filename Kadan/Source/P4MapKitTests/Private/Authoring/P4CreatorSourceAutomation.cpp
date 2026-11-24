@@ -82,11 +82,8 @@ bool FP4CreatorSourceTest::RunTest(const FString&)
             }
         UPackageTools::UnloadPackages(Packages);
         for (const FString& File : Files)
-        {
-            FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*File, false);
             if (IFileManager::Get().FileExists(*File) && !IFileManager::Get().Delete(*File, false, true))
                 AddWarning(TEXT("Could not remove this run's creator-source fixture: ") + File);
-        }
     };
     // A real creator input, decoded by the stock texture factory. No NewObject pixels or
     // inherited ImportData can establish a positive result.

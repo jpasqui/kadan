@@ -5,6 +5,9 @@
 #include "P4NativeHash.h"
 #include "P4MapKitCore/export_contract.h"
 #include "Engine/Texture2D.h"
+#include "Engine/Texture2DArray.h"
+#include "Engine/TextureCube.h"
+#include "Engine/VolumeTexture.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -99,15 +102,22 @@ bool Read(const FString& File, std::string& Properties, TSharedPtr<FJsonValue>& 
         return false;
     }
     const auto& Export = Package.Exports[0];
+    // The texture kinds a creator exports: 2D, cube, 2D array and volume (one payload of slices for the last three).
     std::string Class;
-    if (!Package.Reference(Export.Class, Class) || Class != "/Script/Engine.Texture2D")
+    UClass* Schema = nullptr;
+    if (Package.Reference(Export.Class, Class))
+        for (UClass* Kind : {UTexture2D::StaticClass(), UTextureCube::StaticClass(), UTexture2DArray::StaticClass(),
+                 UVolumeTexture::StaticClass()})
+            if (Class == TCHAR_TO_UTF8(*Kind->GetPathName()))
+                Schema = Kind;
+    if (!Schema)
     {
         Error = TEXT("Texture proof received another asset kind");
         return false;
     }
     const auto Tags = P4MapKit::ReadPropertyEnvelopes(B, Package.Names, Export.Offset, Export.Offset + Export.Size);
     FP4TexturePropertyDocument Document;
-    if (!P4InspectTextureProperties(Package, Export, Tags, B, UTexture2D::StaticClass(), Document, Error) ||
+    if (!P4InspectTextureProperties(Package, Export, Tags, B, Schema, Document, Error) ||
         !Document.TaggedPropertiesQualified)
         return false;
     P4MapKit::FDecodedValue Decoded;

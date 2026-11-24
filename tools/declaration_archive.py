@@ -22,6 +22,10 @@ DESCRIPTOR = 'P4Stubs/P4Stubs.uplugin'
 MANIFEST = 'P4Stubs/Binaries/Win64/UE4Editor.modules'
 DLLS = {name: 'P4Stubs/Binaries/Win64/UE4Editor-' + name + '.dll' for name in MODULES}
 MEMBERS = frozenset((DESCRIPTOR, MANIFEST, *DLLS.values()))
+# What a published release carries besides the editor plugin and these declarations.
+RELEASE_MEMBERS = frozenset(('README.txt', 'Kadan/BUILD.json', 'Kadan/Tools/retoc.exe', 'Kadan/Tools/repak.exe',
+                             'Kadan/Tools/licenses/retoc/LICENSE', 'Kadan/Tools/licenses/repak/LICENSE-MIT',
+                             'Kadan/Tools/licenses/repak/LICENSE-APACHE'))
 MAX_BYTES = 256 * 1024 * 1024
 ORIGINAL_DEFAULT_PATH = b'C:/home/Project/carrrot4u/Saved/Carrot4/Saved'
 
@@ -161,6 +165,8 @@ def inspect_declaration_archive(archive, expected_build_id=None):
         editor_members = {'Kadan/Kadan.uplugin', 'Kadan/Config/DefaultKadan.ini', 'Kadan/Binaries/Win64/UE4Editor.modules',
                          *('Kadan/Binaries/Win64/UE4Editor-' + name + '.dll' for name in EDITOR_MODULES)}
         expected = MEMBERS | editor_members if any(name.startswith('Kadan/') for name in names) else MEMBERS
+        if 'README.txt' in names:
+            expected = MEMBERS | editor_members | RELEASE_MEMBERS
         if len(names) != len(expected) or set(names) != expected or len({name.casefold() for name in names}) != len(expected):
             raise ValueError('declaration archive must have exactly its descriptor, module manifest and six DLLs')
         if sum(item.file_size for item in infos) > MAX_BYTES:

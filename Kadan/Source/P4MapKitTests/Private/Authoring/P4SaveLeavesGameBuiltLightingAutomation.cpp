@@ -45,7 +45,7 @@ bool FP4SaveLeavesGameBuiltLightingTest::RunTest(const FString&)
         Map = TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/Cave000_F00_P");
     if (!FPackageName::DoesPackageExist(Map))
     {
-        AddInfo(Map + TEXT(" is not imported in this project, so there is nothing to save."));
+        AddWarning(TEXT("P4MapKit test not run. ") + Map + TEXT(" is not imported in this project, so there is nothing to save."));
         return true;
     }
     UWorld* World = UEditorLoadingAndSavingUtils::LoadMap(Map);
@@ -72,10 +72,10 @@ bool FP4SaveLeavesGameBuiltLightingTest::RunTest(const FString&)
 
     // The saves below write the level's file and, the second time, the game's built lighting file. Both go back as
     // they were when the test ends, so the project still holds the map as imported for the tests after this one.
+    // A read-only mark an earlier version of Kadan left on the registry's file is not put back.
     struct FKeptFile
     {
         FString File, Copy;
-        bool ReadOnly = false;
     };
     TArray<FKeptFile> KeptFiles;
     FString LevelFile;
@@ -87,9 +87,8 @@ bool FP4SaveLeavesGameBuiltLightingTest::RunTest(const FString&)
         FKeptFile One;
         One.File = File;
         One.Copy = FPaths::CreateTempFilename(*FPaths::ProjectIntermediateDir(), TEXT("KadanSaveTest"), TEXT(".kept"));
-        One.ReadOnly = IFileManager::Get().IsReadOnly(*File);
         if (TestTrue(TEXT("The test keeps a copy of ") + File,
-                IFileManager::Get().Copy(*One.Copy, *File, true, true, true) == COPY_OK))
+                IFileManager::Get().Copy(*One.Copy, *File, true, true, false) == COPY_OK))
             KeptFiles.Add(One);
     }
     ON_SCOPE_EXIT
@@ -97,10 +96,10 @@ bool FP4SaveLeavesGameBuiltLightingTest::RunTest(const FString&)
         IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
         for (const FKeptFile& One : KeptFiles)
         {
-            Files.SetReadOnly(*One.File, false);
-            IFileManager::Get().Copy(*One.File, *One.Copy, true, true, true);
-            Files.SetReadOnly(*One.File, One.ReadOnly);
-            Files.SetReadOnly(*One.Copy, false);
+            // The platform's copy can carry the copy's attributes over.
+            IFileManager::Get().Copy(*One.File, *One.Copy, true, true, false);
+            if (Files.IsReadOnly(*One.File))
+                Files.SetReadOnly(*One.File, false);
             IFileManager::Get().Delete(*One.Copy, false, true, true);
         }
     };

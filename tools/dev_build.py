@@ -11,7 +11,7 @@ plugin with --install (the declared module DLLs and their descriptors are copied
 --tests builds the separate P4MapKitTests development module. Production modules omit test units.
 
 The release archive is not made by this. It is built once, strictly, and the acceptance run is made
-on that archive (docs/NATIVE_REWRITE.md).
+on that archive (docs/RELEASING.md).
 """
 import argparse
 import filecmp

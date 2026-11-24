@@ -53,7 +53,11 @@
     if (tagline) tagline.dataset.eipKey = 'tagline';
   };
   const ask = async (sent) =>
-    (await fetch('/__edit', { method: 'POST', body: JSON.stringify({ page: location.pathname, ...sent }) })).json();
+    (await fetch('/__edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: location.pathname, ...sent }),
+    })).json();
 
   let panel = null;
   function close() {

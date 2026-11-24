@@ -34,7 +34,7 @@ class FixtureTests(unittest.TestCase):
         (project / 'Saved/log.txt').write_text('left out', encoding='utf-8')
         self.asset = project / 'Content/Maps/Cave.umap'
         self.asset.write_bytes(b'map bytes')
-        os.chmod(self.asset, stat.S_IREAD)             # Kadan marks the game's packages read-only
+        os.chmod(self.asset, stat.S_IREAD)             # earlier versions of Kadan marked game packages read-only
         (project / 'Content/Mine.uasset').write_bytes(b'creator bytes')
         kadan_fixture.keep(Args(name='cave', project=str(project), note='test'))
 
@@ -73,9 +73,10 @@ class FixtureTests(unittest.TestCase):
         kadan_fixture.make_copy('cave', self.root / 'work/b')
 
     def test_a_save_survives_another_lane_remaking_its_copy(self):
-        # Kadan marks game packages read-only. An editor clears the mark on its copy to save the package,
-        # and meanwhile another lane makes its own copy again, which puts the fixture's marks back. A copy
-        # that shared the physical file (a hard link) got the mark back too, and the save's delete failed.
+        # A fixture kept from a project an earlier version of Kadan imported has its game packages marked
+        # read-only. Kadan clears the mark on its copy when it locks the package, and meanwhile another lane
+        # makes its own copy again, which puts the fixture's marks back. A copy that shared the physical file
+        # (a hard link) got the mark back too, and the save's delete failed.
         project = kadan_fixture.make_copy('cave', self.root / 'work/b')
         saved = project.parent / 'Content/Maps/Cave.umap'
         os.chmod(saved, stat.S_IWRITE)

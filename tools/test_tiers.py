@@ -1,9 +1,10 @@
 """Which of the plugin's automation tests are fast and which are heavy.
 
-A heavy test imports a whole map, exports a mod through the whole export, walks through the panel as a
-creator does (tools/kadan_walkthrough.py runs those with their inputs), or took over a minute the last
-time it was timed. Everything else is fast: together the fast tests take a few minutes, so they
-run after every change. The heavy ones run once per batch of changes, in a fixture copy
+A heavy test imports a whole map, exports a mod through the whole export, compiles a whole set of
+materials for the game, walks through the panel as a creator does (tools/kadan_walkthrough.py runs those
+with their inputs), or took over a minute the last time it was timed. Everything else is fast: together
+the fast tests take a few minutes, so they run after every change. The heavy ones run once per batch
+of changes, in a fixture copy
 (kadan_fixture.py) where the map is already imported. A fresh test checks the import of a map itself
 and refuses a project that has it already: those run before a release, in an empty project.
 
@@ -29,8 +30,9 @@ TIMINGS = HERE / 'test_timings.json'
 LOCAL_TIMINGS = REPO / 'private/mapkit-native-workflow/test-timings.json'
 HEAVY_SECONDS = 60
 DECLARED = re.compile(r'IMPLEMENT_\w*AUTOMATION_TEST\w*\(\s*(\w+)\s*,\s*"([^"]+)"', re.S)
-# What a test body calls when it imports a whole map or runs the whole export.
-WHOLE_RUNS = ('P4KadanImportMap', 'P4ExportMod', 'P4AddedLightingBakeTest::Run')
+# What a test body calls when it imports a whole map, runs the whole export or compiles a whole set of materials for
+# the game (each of its shaders in the editor's process, one at a time: minutes).
+WHOLE_RUNS = ('P4KadanImportMap', 'P4ExportMod', 'P4AddedLightingBakeTest::Run', 'CompileMaterialSetForTheGame')
 # What a test says when it needs a project without the map it imports.
 FRESH_ONLY = ('has no Cave000 before the test', 'has no earlier Cave000 import',
               'starts without this imported map')

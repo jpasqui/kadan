@@ -14,6 +14,7 @@ STUBS = Path(__file__).resolve().parent
 # The generator's inputs, pinned by SHA-256 in inputs.json. The files are research captures, too large for
 # the repository, so they live in the manifest's folder (private/stub-inputs) on each computer that builds.
 MANIFEST = STUBS / 'inputs.json'
+CATEGORY = 'Pikmin 4'
 SOURCES = ('reflection', 'engine_index', 'defaults', 'engine_declared', 'zero_constructor')
 
 
@@ -107,6 +108,25 @@ def collisions(plugin, modules, roots):
                 raise ValueError('stub module identity collision: ' + ', '.join(sorted(found)))
 
 
+def kadan_descriptor(generated, carrot_build):
+    """P4Stubs.uplugin as Kadan ships it, from the generator's descriptor and Carrot4's Build.cs."""
+    descriptor = json.loads(generated)
+    descriptor['FriendlyName'] = 'Kadan game types'
+    descriptor['Description'] = 'Native type declarations used by Kadan to import your own game packages.'
+    # Listed beside Kadan in the editor's plugin list: Kadan/Kadan.uplugin has the same category.
+    descriptor['Category'] = CATEGORY
+    # Kadan does not load without these declarations, so they are on in every project, as Kadan is.
+    descriptor['EnabledByDefault'] = True
+    # These engine plugin modules are direct dependencies of the fixed Carrot4
+    # declarations. Declare their owning plugins as well as the Build.cs modules
+    # so UAT and clean projects enable the same supported engine definitions.
+    required_plugins = [name for name in ('Paper2D', 'ProceduralMeshComponent')
+                        if '"' + name + '"' in carrot_build]
+    if required_plugins:
+        descriptor['Plugins'] = [dict(Name=name, Enabled=True) for name in required_plugins]
+    return json.dumps(descriptor, sort_keys=True, indent=1) + '\n'
+
+
 def generate(plugin, plugin_roots=(), root=ROOT, require_exact_identities=False, native_engine_evidence=None):
     values, hashes = inputs(root)
     sys.path.insert(0, str(STUBS))
@@ -125,18 +145,8 @@ def generate(plugin, plugin_roots=(), root=ROOT, require_exact_identities=False,
     identity_refusals = generator.identity_refusals()
     if require_exact_identities and identity_refusals:
         raise ValueError('; '.join(identity_refusals))
+    files['P4Stubs.uplugin'] = kadan_descriptor(files['P4Stubs.uplugin'], files.get('Source/Carrot4/Carrot4.Build.cs', ''))
     descriptor = json.loads(files['P4Stubs.uplugin'])
-    descriptor['FriendlyName'] = 'Kadan game types'
-    descriptor['Description'] = 'Native type declarations used by Kadan to import your own game packages.'
-    # These engine plugin modules are direct dependencies of the fixed Carrot4
-    # declarations. Declare their owning plugins as well as the Build.cs modules
-    # so UAT and clean projects enable the same supported engine definitions.
-    carrot_build = files.get('Source/Carrot4/Carrot4.Build.cs', '')
-    required_plugins = [name for name in ('Paper2D', 'ProceduralMeshComponent')
-                        if '"' + name + '"' in carrot_build]
-    if required_plugins:
-        descriptor['Plugins'] = [dict(Name=name, Enabled=True) for name in required_plugins]
-    files['P4Stubs.uplugin'] = json.dumps(descriptor, sort_keys=True, indent=1) + '\n'
     modules = {m['Name'] for m in descriptor['Modules']}
     collisions(Path(plugin), modules, [Path(p) for p in plugin_roots])
     receipt = dict(format='p4-unified-stubs', version=1, inputs=hashes,
