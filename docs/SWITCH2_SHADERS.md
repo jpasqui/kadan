@@ -177,7 +177,7 @@ Why:
   (stall, yield, write and read barrier, wait mask, reuse), so `maxwell_ra.cpp`'s scheduling model moves to 128-bit
   words. NAK's SM80 latency tables (MIT) supply the numbers.
 - Encoding is the part to port. NAK's `sm70_encode.rs` is MIT and covers every opcode above. Port the ones
-  instruction selection emits into C++ (`compiler/ampere_encode.cpp`), with a host test that checks each against
+  instruction selection emits into C++ (`compiler/ampere_encode.h`), with a host test that checks each against
   `nvdisasm -b SM86` text, the same as `tests/own_sage_nvdisasm.py`.
 - New lowering is limited to: `IADD3`/`LOP3`/`IMAD` in place of `XMAD`/`LOP`/`ISCADD`, `BSSY`/`BSYNC`
   convergence in place of `SSY`/`SYNC`, the uniform datapath for bindless handles (`ULDC`, `ULOP3`), and `TEX.SCR`

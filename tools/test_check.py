@@ -5,6 +5,7 @@ import json
 import sys
 import subprocess
 import tempfile
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -131,3 +132,75 @@ class CheckRunner(unittest.TestCase):
     def test_nested_stub_and_shader_verifiers_are_in_the_canonical_gate(self):
         self.assertIn('stubs.test_regenerate', checks.tool_modules())
         self.assertIn('own_shaders.test_verify_sources', checks.tool_modules())
+
+
+class CoreTestLists(unittest.TestCase):
+    def test_every_test_in_the_repository_is_run_or_excluded_with_a_reason(self):
+        self.assertEqual(checks.listed_test_problems(), [])
+        self.assertTrue(all(isinstance(reason, str) and reason.strip() for reason in checks.EXCLUDED_TESTS.values()))
+
+    def test_a_stray_a_duplicate_and_a_missing_test_are_named(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'tests').mkdir()
+            for name in ('listed_test.cpp', 'excluded_test.cpp', 'stray_test.cpp', 'helper_tool.cpp', 'shared_test.h'):
+                (root / 'tests' / name).write_text('int main() { return 0; }\n', encoding='utf-8')
+            with patch.object(checks, 'CORE_TESTS', ('listed_test.cpp', 'gone_test.cpp')), \
+                    patch.object(checks, 'MORE_CORE_TESTS', ()), patch.object(checks, 'STAGED_TESTS', ('listed_test.cpp',)), \
+                    patch.object(checks, 'EXCLUDED_TESTS', {'excluded_test.cpp': 'needs a private file'}):
+                problems = checks.listed_test_problems(root)
+        self.assertEqual(len(problems), 3)
+        self.assertTrue(problems[0].startswith('stray_test.cpp is in none of'))
+        self.assertTrue(problems[1].startswith('listed_test.cpp is named more than once'))
+        self.assertTrue(problems[2].startswith('gone_test.cpp is named in tools/check.py but is not in tests/'))
+
+    def fake_gate(self, staged_compile=None):
+        """Runs the core gate on an authored tests/ folder with the compiler and the programs replaced, and returns
+        the exit code, the report, the commands and the printed text."""
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name).resolve()
+        (root / 'tests').mkdir()
+        for name in ('ran_test.cpp', 'staged_test.cpp', 'excluded_test.cpp', 'stray_test.cpp'):
+            (root / 'tests' / name).write_text('int main() { return 0; }\n', encoding='utf-8')
+        commands = []
+
+        def process(command, **kwargs):
+            commands.append(command)
+            if staged_compile is not None and str(root / 'tests' / 'staged_test.cpp') in command:
+                return subprocess.CompletedProcess(command, staged_compile[0], stdout='', stderr=staged_compile[1])
+            return subprocess.CompletedProcess(command, 0, stdout='', stderr='')
+
+        output = root / 'checks.json'
+        printed = io.StringIO()
+        staging = types.SimpleNamespace(stage_core=lambda folder: [])
+        with patch.object(checks, 'ROOT', root), patch.object(checks, 'CORE_TESTS', ('ran_test.cpp',)), \
+                patch.object(checks, 'MORE_CORE_TESTS', ()), patch.object(checks, 'STAGED_TESTS', ('staged_test.cpp',)), \
+                patch.object(checks, 'EXCLUDED_TESTS', {'excluded_test.cpp': 'needs a private file'}), \
+                patch.object(checks.shutil, 'which', return_value='clang++'), \
+                patch.object(checks.subprocess, 'run', side_effect=process), \
+                patch.object(checks, 'preflight', return_value=dict(problems=[])), \
+                patch.dict(sys.modules, {'native_custom_backend_sources': staging}), contextlib.redirect_stdout(printed):
+            code = checks.main(['--ci', '--core', '--report', str(output)])
+        return code, json.loads(output.read_text(encoding='utf-8')), commands, printed.getvalue()
+
+    def test_a_stray_test_fails_the_gate_an_excluded_one_does_not_run_and_the_report_counts_every_program(self):
+        code, report, commands, printed = self.fake_gate()
+        self.assertEqual(code, 1)
+        self.assertIn('FAIL stray_test.cpp is in none of', printed)
+        self.assertFalse(any('excluded_test.cpp' in word for command in commands for word in command))
+        self.assertFalse(any('stray_test.cpp' in word for command in commands for word in command))
+        rows = {row['name']: row['status'] for row in report['core']}
+        self.assertEqual(rows, {'stray_test.cpp': 'failed', 'ran_test.cpp': 'passed', 'staged_test.cpp': 'passed'})
+        self.assertEqual(report['core_excluded'], [dict(name='excluded_test.cpp', reason='needs a private file')])
+        self.assertEqual((report['counts']['core_programs'], report['counts']['core_passed'],
+                          report['counts']['core_excluded']), (3, 2, 1))
+        self.assertEqual(report['status'], 'failed')
+
+    def test_a_failed_staged_compile_shows_the_compiler_errors(self):
+        code, report, _, printed = self.fake_gate(staged_compile=(1, 'staged_test.cpp:3: error: authored failure'))
+        self.assertEqual(code, 1)
+        self.assertIn('error: authored failure', printed)
+        staged = next(row for row in report['core'] if row['name'] == 'staged_test.cpp')
+        self.assertEqual(staged['status'], 'failed')
+        self.assertIn('error: authored failure', staged['compiler_output'])
