@@ -5,8 +5,9 @@ namespace
 thread_local FP4ExportProgressScope* Current = nullptr;
 }
 
-FP4ExportProgressScope::FP4ExportProgressScope(FReport InReport, TFunction<void()> InPulse)
-    : Report(MoveTemp(InReport)), Pulse(MoveTemp(InPulse)), Previous(Current)
+FP4ExportProgressScope::FP4ExportProgressScope(
+    FReport InReport, TFunction<void()> InPulse, TFunction<bool()> InCancelRequested)
+    : Report(MoveTemp(InReport)), Pulse(MoveTemp(InPulse)), CancelQuery(MoveTemp(InCancelRequested)), Previous(Current)
 {
     Current = this;
 }
@@ -20,8 +21,29 @@ bool P4ReportExportStage(EP4ExportStage Stage, const FString& Subject, FString& 
 {
     if (!Current || Current->ReportStage(Stage, Subject, Stage != EP4ExportStage::Publishing))
         return true;
-    Error =
-        TEXT("The export was canceled before the next stage. The previous published export is unchanged.");
+    Error = P4ExportCanceledMessage();
+    return false;
+}
+
+const TCHAR* P4ExportCanceledMessage()
+{
+    return TEXT("The export was canceled. The previous published export is unchanged.");
+}
+
+bool P4ExportCancelRequested()
+{
+    return Current && Current->CancelRequested();
+}
+
+bool P4ContinueExport(FString& Error)
+{
+    if (!Current)
+        return true;
+    Current->Tick();
+    if (!Current->CancelRequested())
+        return true;
+    Current->MarkCancelled();
+    Error = P4ExportCanceledMessage();
     return false;
 }
 

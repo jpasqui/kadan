@@ -29,3 +29,7 @@ struct KADAN_API FP4SuspendNativePreviews
 };
 // The same as a pair of calls, for an engine event's begin and end.
 KADAN_API void P4SetNativePreviewsSuspended(bool Suspended);
+// Whether the previews are out at the moment, and whether Object's Property is one of the remembered values. While
+// both hold, the object has the map's own value and gets the preview back by an exchange when the previews return.
+KADAN_API bool P4NativePreviewsSuspended();
+KADAN_API bool P4IsNativePreviewValue(const UObject* Object, const FProperty* Property);

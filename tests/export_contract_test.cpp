@@ -9,7 +9,14 @@ int main(int Count, char** Args) {
     std::string Error; Names Naming;
     CHECK(DerivedNames(Mod, Naming, Error));
     CHECK(Naming.Root == "/Game/Mods/example_cave");
-    CHECK(Naming.Container == "kadan_example_cave");
+    CHECK(Naming.Container == "example_cave");
+    CHECK(LegacyContainer(Naming) == "kadan_example_cave");
+    // The shader library name is only letters, digits and underscores, which Tsuchi requires, and differs per ID.
+    const std::string Library = ShaderLibraryName(Mod);
+    CHECK(Library.size() == 22 && Library.compare(0, 6, "kadan_") == 0);
+    CHECK(Library.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_") == std::string::npos);
+    CHECK(ShaderLibraryName({"my-cave.two", "Other", "1.0.0"}).find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_") == std::string::npos);
+    CHECK(ShaderLibraryName({"examplec.ave", "Other", "1.0.0"}) != Library);
     Names Other; CHECK(DerivedNames({"examplec.ave", "Other", "0.0.0"}, Other, Error));
     CHECK(Naming.Root != Other.Root);
     CHECK(Naming.Root.compare(0, 11, "/Game/Mods/") == 0);
@@ -126,7 +133,7 @@ int main(int Count, char** Args) {
     CHECK(AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/mod.json", Error));
     CHECK(AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/sounds.bnk", Error));
     CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/another.mod/sounds.bnk", Error));
-    const std::string Archive = "ShaderArchive-kadan_" + Naming.Container.substr(Naming.Container.size()-16) + "-GLSL_SWITCH.ushaderbytecode";
+    const std::string Archive = "ShaderArchive-" + ShaderLibraryName(Mod) + "-GLSL_SWITCH.ushaderbytecode";
     CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/" + Archive, Error));   // the library travels inside the .pak
     CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/shaders.bin", Error));
     CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/another.mod/" + Archive, Error));
@@ -138,6 +145,11 @@ int main(int Count, char** Args) {
         CHECK(!AllowedFile(Mod, "romfs/Carrot4/Content/Paks/" + Naming.Container + "_P" + Extension, Error));
         CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/another.mod/" + Naming.Container + "_P" + Extension, Error));
         CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/unowned_P" + std::string(Extension), Error));
+        // A 0.3.1 export's container may be replaced, but a new export never makes one.
+        CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/kadan_example_cave_P" + std::string(Extension), Error));
+        CHECK(AllowedPriorFile(Mod, "romfs/tsuchi/mods/example.cave/kadan_example_cave_P" + std::string(Extension), Error));
+        CHECK(AllowedPriorFile(Mod, "romfs/tsuchi/mods/example.cave/" + Naming.Container + "_P" + Extension, Error));
+        CHECK(!AllowedPriorFile(Mod, "romfs/tsuchi/mods/example.cave/kadan_other_P" + std::string(Extension), Error));
     }
     CHECK(!AllowedFile(Mod, "romfs/tsuchi/mods/example.cave/maps/../../game.uasset", Error));
     CHECK(!AllowedFile(Mod, "romfs/p4m/mods/example.cave/levels.ini", Error));

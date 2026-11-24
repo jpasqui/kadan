@@ -396,8 +396,18 @@ void FKadanModsPage::ReviewExport(bool PublishReadyStatus)
     FilterShipping();
 }
 
+void FKadanModsPage::ShowExportStopped()
+{
+    const FString Report = MoveTemp(ExportStoppedReport);
+    ExportStoppedReport.Empty();
+    const FText Title = FText::FromString(TEXT("Export stopped"));
+    if (!Report.IsEmpty() && !FApp::IsUnattended())
+        FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Report), &Title);
+}
+
 void FKadanModsPage::ExportMod()
 {
+    ExportStoppedReport.Empty();
     if (!ActiveMod)
     {
         Host.Message = TEXT("Choose a mod first.");
@@ -476,15 +486,24 @@ void FKadanModsPage::ExportMod()
         MapIssue = !World ||
             CreatorReview.Rows.ContainsByPredicate([](const FP4ExportSelectionRow& Row)
                 { return Row.Issue == EP4ExportIssueKind::PersistentMapRequired; });
-        Host.Message = TEXT("The export stopped. The Output Log says why.");
+        // The reason, in the notice and in a window, so a stopped export never looks like a finished one.
+        const FString Reason = ExportDetails.IsEmpty() ? TEXT("Kadan did not say why. The Output Log may.") : ExportDetails;
+        FString FirstLine = Reason;
+        Reason.Split(TEXT("\n"), &FirstLine, nullptr);
+        Host.Message = TEXT("The export stopped: ") + FirstLine.Left(400);
         ExportIssueNext = MapIssue ? TEXT("Open an imported persistent game map before exporting this level. "
                                           "Use Import to find a map if it is missing.")
                                    : TEXT("Check the exact diagnostic in Details before exporting again.");
-        if (P4ExportWasCancelled())
+        if (P4ExportCancelRequested())
         {
+            Host.NoticeError = false;
             Host.Message = TEXT("The export was canceled. The earlier export is unchanged.");
             ExportIssueNext = TEXT("Review the export to try again when you are ready.");
         }
+        else
+            ExportStoppedReport = TEXT("The export of ") + ActiveMod->Name +
+                TEXT(" stopped, and nothing was published.\n\n") + Reason.Left(4000) +
+                TEXT("\n\nThe Output Log has the same message.");
     }
     if (Finished && Result.Published && Result.GameRowEdits.Num())
     {

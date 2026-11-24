@@ -40,6 +40,10 @@ name each row that changed. A save that already has the map's record keeps the g
 they were, because the game builds the map from the save then. To see your changes, play from a save
 that hasn't visited the map yet.
 
+If a game object's Blueprint couldn't be rebuilt, its level imports without that object, and the object
+stays in the game. It's still there after you export, but you can't see or edit it in the editor. The
+import result names these objects first, with the reason.
+
 Check [Properties](/guides/export/#properties) for the values that you can change, and
 [Lighting and navigation](/guides/export/#lighting-and-navigation) for what to check in the game.
 Map changes apply before actors start play. By default, changes to ground, levels, and navigation

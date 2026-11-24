@@ -6,6 +6,7 @@
   "Category": "Pikmin 4",
   "Description": "Native gameplay placement, original tables, scene/count assets and material export settings in Unreal Editor.",
   "CanContainContent": false,
+  "EnabledByDefault": true,
   "Modules": [
     {
       "Name": "Kadan",

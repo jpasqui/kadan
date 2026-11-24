@@ -6,6 +6,8 @@
 #include "P4PackageSave.h"
 #include "P4StaticMeshBuild.h"
 #include "P4TextureBuild.h"
+#include "P4OriginalImportSave.h"
+#include "Containers/Ticker.h"
 #include "AssetRegistryModule.h"
 #include "ComponentRecreateRenderStateContext.h"
 #include "Components/LightComponent.h"
@@ -22,6 +24,7 @@
 #include "Misc/PackageName.h"
 #include "Misc/ScopeExit.h"
 #include "Misc/Paths.h"
+#include "HAL/PlatformFilemanager.h"
 #include "Serialization/CustomVersion.h"
 #include "Serialization/MemoryReader.h"
 #include "UObject/Package.h"
@@ -458,4 +461,100 @@ int32 P4ApplyOriginalBuiltLightingPreviews(UWorld* World)
         Level->InitializeRenderingResources();
     }
     return Plans.Num();
+}
+
+namespace
+{
+FDelegateHandle DirtyHandle;
+
+// A registry Kadan made from the game's built lighting, as opposed to one a creator's own level owns.
+bool IsGameRegistry(UMapBuildDataRegistry* Registry)
+{
+    if (!IsValid(Registry))
+        return false;
+    const FP4OriginalStatus Status = P4QueryOriginalAsset(Registry);
+    return Status.Error.IsEmpty() && Status.Record.ReferenceOnly && Status.Record.ComparisonSchema == Schema;
+}
+
+// The levels that gave up the game's registry for the editor's follow-up save, with the registry each gave up.
+struct FLentRegistry
+{
+    TWeakObjectPtr<ULevel> Level;
+    TWeakObjectPtr<UMapBuildDataRegistry> Registry;
+};
+TArray<FLentRegistry> LentRegistries;
+} // namespace
+
+bool P4KeepGameBuiltLightingOutOfSave(uint32 SaveFlags, UWorld* LevelWorld, bool Saved)
+{
+    // Only the editor's own save of a level to its file is followed by the save of its built lighting
+    // (FEditorFileUtils SaveWorld), and that save passes no flags: an autosave and a save for play pass
+    // SAVE_FromAutosave, and Kadan's cooks and checks pass their own flags. Those saves are followed by nothing that
+    // writes the registry, and a cook right after them must still see the level's built lighting.
+    if (SaveFlags != SAVE_None || !Saved || !IsInGameThread() || !LevelWorld || !LevelWorld->PersistentLevel)
+        return false;
+    ULevel* Level = LevelWorld->PersistentLevel;
+    UMapBuildDataRegistry* Registry = Level->MapBuildData;
+    if (!Registry || Registry->GetOutermost() == LevelWorld->GetOutermost() || Registry->GetOutermost()->IsDirty() ||
+        !IsGameRegistry(Registry))
+        return false;
+    // The level is already written with its reference to the registry; only the editor's follow-up save reads this.
+    // The level has it back on the next editor tick, or before any other world is saved, whichever comes first
+    // (P4ReturnGameBuiltLighting).
+    Level->MapBuildData = nullptr;
+    LentRegistries.Add({Level, Registry});
+    FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+        [](float)
+        {
+            P4ReturnGameBuiltLighting();
+            return false;
+        }));
+    return true;
+}
+
+void P4ReturnGameBuiltLighting()
+{
+    FProperty* const RegistryProperty = FindFProperty<FProperty>(ULevel::StaticClass(), TEXT("MapBuildData"));
+    for (int32 Index = LentRegistries.Num(); Index-- > 0;)
+    {
+        ULevel* Back = LentRegistries[Index].Level.Get();
+        UMapBuildDataRegistry* Registry = LentRegistries[Index].Registry.Get();
+        const bool Missing = Back && Registry && !Back->MapBuildData;
+        // A level that shows the game's built lighting as one of Kadan's previews (P4ApplyOriginalBuiltLightingPreviews)
+        // holds its own value, none, while the previews are out for a save or a comparison, and gets the preview back
+        // by an exchange when they return. A registry given to it now would be exchanged away for good, so that level
+        // waits for the next call, which the editor's tick makes with the previews in place.
+        if (Missing && P4NativePreviewsSuspended() && P4IsNativePreviewValue(Back, RegistryProperty))
+            continue;
+        if (Missing)
+            Back->MapBuildData = Registry;
+        LentRegistries.RemoveAtSwap(Index);
+    }
+}
+
+void P4StartGameBuiltLightingGuard()
+{
+    if (DirtyHandle.IsValid())
+        return;
+    DirtyHandle = UPackage::PackageMarkedDirtyEvent.AddLambda(
+        [](UPackage* Package, bool WasDirty)
+        {
+            if (WasDirty || !Package || !IsInGameThread() || P4ImportPublication::IsImporting())
+                return;
+            UMapBuildDataRegistry* Registry =
+                FindObject<UMapBuildDataRegistry>(Package, *FPackageName::GetShortName(Package));
+            FString File;
+            if (!IsGameRegistry(Registry) || !FPackageName::DoesPackageExist(Package->GetName(), nullptr, &File))
+                return;
+            IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
+            File = FPaths::ConvertRelativePathToFull(File);
+            if (Files.IsReadOnly(*File))
+                Files.SetReadOnly(*File, false);
+        });
+}
+
+void P4StopGameBuiltLightingGuard()
+{
+    UPackage::PackageMarkedDirtyEvent.Remove(DirtyHandle);
+    DirtyHandle.Reset();
 }

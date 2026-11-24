@@ -23,7 +23,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE_TESTS = (
-    'authoring_definitions_test.cpp', 'creator_lighting_recipe_test.cpp', 'creator_mesh_geometry_test.cpp',
+    'authoring_definitions_test.cpp', 'blueprint_import_identities_test.cpp', 'creator_lighting_recipe_test.cpp',
+    'creator_mesh_geometry_test.cpp',
     'cooked_name_sort_test.cpp', 'export_container_test.cpp', 'export_contract_test.cpp', 'export_package_test.cpp',
     'export_registry_test.cpp', 'game_builds_test.cpp', 'lighting_sun_test.cpp', 'lighting_registry_test.cpp',
     'material_source_complements_test.cpp', 'material_source_runtime_textures_test.cpp',
