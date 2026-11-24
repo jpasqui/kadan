@@ -18,6 +18,7 @@
 #include "Materials/MaterialInstanceConstant.h"
 #include "Misc/Compression.h"
 #include "Misc/ScopeExit.h"
+#include "Misc/SecureHash.h"
 #include "Modules/ModuleManager.h"
 #include "RenderingThread.h"
 #include "ShaderCompiler.h"
@@ -391,6 +392,18 @@ FP4SwitchMaterialContext::~FP4SwitchMaterialContext()
         Context->SetMaterialSSR(false);
 }
 
+TArray<TPair<FString, int32>> P4SwitchSourcePatchUses()
+{
+    const IKadanSwitchCompileContext* Context = SwitchCompileContext();
+    return Context ? Context->SourcePatchUses() : TArray<TPair<FString, int32>>();
+}
+
+void P4ResetSwitchSourcePatchUses()
+{
+    if (IKadanSwitchCompileContext* Context = SwitchCompileContext())
+        Context->ResetSourcePatchUses();
+}
+
 FMaterialResource* P4CacheMaterialForPlatform(
     UMaterial* Material, EShaderPlatform Platform, UMaterialInstance* Instance)
 {
@@ -692,6 +705,50 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         return Fail(Error);
     if (Sorted.Num() != int32(Texts.size()))
         return Fail(TEXT("The map's names changed between its two writes."));
+    // What the programs the map's shaders use (after the game's absent classes left it) read that the game's layout
+    // does not list: the format keeps it in the map's platform debug data (KadanUnlistedReadsTag), which UE's Derived
+    // Data Cache keeps with the map, so a cached map has it too.
+#if WITH_EDITORONLY_DATA
+    {
+        TSet<int32> Used;
+        TMap<FShaderId, TShaderRef<FShader>> Shaders;
+        Map->GetShaderList(Shaders);
+        for (const auto& Pair : Shaders)
+            if (Pair.Value.IsValid())
+                Used.Add(Pair.Value->GetResourceIndex());
+        TArray<FShaderPipelineRef> Pipelines;
+        Map->GetShaderPipelineList(Pipelines);
+        for (const FShaderPipelineRef& Pipeline : Pipelines)
+            if (Pipeline.IsValid())
+                for (const TShaderRef<FShader>& Shader : Pipeline.GetShaders())
+                    if (Shader.IsValid())
+                        Used.Add(Shader->GetResourceIndex());
+        // Each by the SHA-1 of its code before the optional data UE adds at its end, as the format hashed it.
+        TSet<FString> UsedCode;
+        for (const int32 Index : Used)
+            if (Index >= 0 && Index < int32(Out.Programs.size()) && !Out.Programs[size_t(Index)].empty())
+            {
+                const P4Bytes& Program = Out.Programs[size_t(Index)];
+                const FShaderCodeReader Reader(TArrayView<const uint8>(Program.data(), int32(Program.size())));
+                uint8 Hash[20];
+                FSHA1::HashBuffer(Program.data(), uint64(Reader.GetShaderCodeSize()), Hash);
+                UsedCode.Add(BytesToHex(Hash, 20));
+            }
+        TSet<FString> Reads;
+        for (const TArray<uint8>& Entry : Code->PlatformDebugData)
+        {
+            const FUTF8ToTCHAR Wide(reinterpret_cast<const ANSICHAR*>(Entry.GetData()), Entry.Num());
+            TArray<FString> Lines;
+            FString(Wide.Length(), Wide.Get()).ParseIntoArrayLines(Lines);
+            if (Lines.Num() < 2 || Lines[0] != KadanUnlistedReadsTag() || !UsedCode.Contains(Lines[1]))
+                continue;
+            for (int32 Line = 2; Line < Lines.Num(); ++Line)
+                Reads.Add(Lines[Line]);
+        }
+        Out.UnlistedGameLayoutReads = Reads.Array();
+        Out.UnlistedGameLayoutReads.Sort();
+    }
+#endif
 
     P4Bytes Block;
     OwnMap::Put32(Block, 1);

@@ -17,6 +17,7 @@
 #include "P4ExportDriverTestShared.h"
 #include "P4CreatorMaterialFactories.h"
 #include "P4MaterialFactoryContext.h"
+#include "P4MaterialGameSettings.h"
 #include "P4SwitchShaderMapFreeze.h"
 #include "Engine/Texture2DArray.h"
 #include "Engine/TextureCube.h"
@@ -1126,6 +1127,130 @@ FString Joined(const TArray<FString>& Lines)
         Out += (Out.IsEmpty() ? TEXT("") : TEXT(" | ")) + Line;
     return Out.Left(1500);
 }
+
+// A survey case and the material it builds compiled for the game, as export compiles it (an opaque material also for
+// instanced meshes).
+FP4CreatorMaterialCompileResult CompileCase(FAutomationTestBase& Test, const FCoverageCase& Case, const FString& Root,
+    UP4CreatorMaterialFactory* Factory, const FString& Leaf)
+{
+    FP4CreatorMaterialCompileResult Result;
+    auto& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+    UMaterial* Graph = Cast<UMaterial>(Tools.CreateAsset(Leaf, Root, UMaterial::StaticClass(), Factory));
+    if (!Test.TestNotNull(Case.Feature + TEXT(": the material is made"), Graph))
+        return Result;
+    Graph->Expressions.Empty();
+    Graph->BaseColor.Expression = nullptr;
+    Graph->EmissiveColor.Expression = nullptr;
+    if (!Test.TestTrue(Case.Feature + TEXT(": the case is built"), Case.Setup(Graph, FCoverageContext())))
+        return Result;
+    Graph->PostEditChange();
+    FP4CreatorMaterialCompileRequest Compile;
+    Compile.CreatorMaterial = Graph;
+    Compile.RuntimeObjectPath = Graph->GetPathName();
+    Compile.Instanced = Graph->GetBlendMode() == BLEND_Opaque;
+    return P4CompileCreatorMaterial(Compile);
+}
+
+// The material set SourcePatchesApply compiles for the game: one material per pass and domain the game draws a creator
+// material in (opaque, masked, each translucent blend mode and lighting mode, two sided, each shading model, each decal
+// blend mode the game draws, light function, volume, post process, UI, refraction, pixel depth offset and the Pixel
+// Depth node, world position offset, dithered LOD, the sky atmosphere light direction node), the game's own draw
+// orders that change the compiled source (GroundSoft, and the translucent screen space reflection that adds the
+// game's translucency pass classes) and every mesh usage export gives a material (instanced, skeletal and morph target,
+// spline, mesh and sprite particles, beams). None reads a texture. Each is a new material, so nothing comes from UE's
+// Derived Data Cache. NotCompiled gets each case the game compile refused, with why.
+int32 CompileMaterialSetForTheGame(FAutomationTestBase& Test, const FString& Root, TArray<FString>& NotCompiled)
+{
+    const TCHAR* const SettingIds[] = {TEXT("OpaqueLit"), TEXT("OpaqueUnlit"), TEXT("MaskedLit"),
+        TEXT("MaskedTwoSided"), TEXT("DitherOpacityMask"), TEXT("TranslucentLit"), TEXT("TranslucentUnlit"),
+        TEXT("AdditiveUnlit"), TEXT("ModulateUnlit"), TEXT("AlphaCompositeLit"), TEXT("TlmVolumetricNonDirectional"),
+        TEXT("TlmVolumetricDirectional"), TEXT("TlmVolumetricPerVertexNonDirectional"),
+        TEXT("TlmVolumetricPerVertexDirectional"), TEXT("TlmSurface"), TEXT("TlmSurfacePerPixelLighting"),
+        TEXT("TwoSidedLit"), TEXT("TwoSidedUnlit"), TEXT("FogPerPixelLit"), TEXT("ScreenSpaceReflections"),
+        TEXT("Refraction"), TEXT("RefractionUnlit"), TEXT("Unlit"), TEXT("DefaultLit"), TEXT("Subsurface"),
+        TEXT("PreintegratedSkin"), TEXT("ClearCoat"), TEXT("SubsurfaceProfile"), TEXT("TwoSidedFoliage"),
+        TEXT("Hair"), TEXT("Cloth"), TEXT("Eye"), TEXT("SingleLayerWater"), TEXT("ThinTranslucent"),
+        TEXT("FromMaterialExpression"), TEXT("DeferredDecal"), TEXT("LightFunction"), TEXT("Volume"),
+        TEXT("PostProcess"), TEXT("UI"), TEXT("DecalTranslucent"), TEXT("DecalStain"), TEXT("DecalNormal"),
+        TEXT("DecalEmissive"), TEXT("DecalDBufferColorNormalRoughness"), TEXT("DecalDBufferColor"),
+        TEXT("DecalDBufferColorNormal"), TEXT("DecalDBufferColorRoughness"), TEXT("DecalDBufferNormal"),
+        TEXT("DecalDBufferNormalRoughness"), TEXT("DecalDBufferRoughness"), TEXT("DecalDBufferEmissive"),
+        TEXT("DecalDBufferAlphaComposite"), TEXT("DecalDBufferEmissiveAlphaComposite"), TEXT("DecalAlphaComposite"),
+        TEXT("DecalAmbientOcclusion"), TEXT("PixelDepthOffset"), TEXT("PixelDepthOffsetMasked"),
+        TEXT("WorldPositionOffset"), TEXT("DitheredLOD"), TEXT("StencilTest")};
+    // Expression nodes (NodeCases), unconnected: the engine source they bring in.
+    const TCHAR* const NodeIds[] = {TEXT("PixelDepth"), TEXT("SkyAtmosphereLightDirection")};
+    const TArray<FCoverageCase> Settings = SettingCases();
+    const TArray<FCoverageCase> Nodes = NodeCases();
+    TArray<FCoverageCase> Set;
+    for (const TCHAR* Id : SettingIds)
+    {
+        const FCoverageCase* Case = Settings.FindByPredicate([Id](const FCoverageCase& Each) { return Each.Id == Id; });
+        if (Test.TestNotNull(FString(TEXT("The survey has the case ")) + Id, Case))
+            Set.Add(*Case);
+    }
+    for (const TCHAR* Id : NodeIds)
+    {
+        const FCoverageCase* Case = Nodes.FindByPredicate([Id](const FCoverageCase& Each) { return Each.Id == Id; });
+        if (Test.TestNotNull(FString(TEXT("The survey has the node ")) + Id, Case))
+            Set.Add(*Case);
+    }
+    auto Game = [](UMaterial* G) -> UP4MaterialGameSettings&
+    { return *UP4MaterialGameSettings::FindOrAdd(G); };
+    Set.Add({TEXT("GroundSoft"), TEXT("game"), TEXT("Draw order GroundSoft (opaque, lit)"),
+        [Game](UMaterial* G, const FCoverageContext&)
+        {
+            LitSurface(G, 0.5f, 0.6f, 0.4f);
+            Game(G).C4MaterialDrawOrder = C4MDO_GroundSoft;
+            Game(G).Publish();
+            return true;
+        }});
+    Set.Add({TEXT("GameSSR"), TEXT("game"), TEXT("Draw order XluUseSceneColor with screen space reflections"),
+        [Game](UMaterial* G, const FCoverageContext&)
+        {
+            Translucent(G, true);
+            G->bScreenSpaceReflections = true;
+            Game(G).C4MaterialDrawOrder = C4MDO_XluUseSceneColor;
+            Game(G).Publish();
+            return true;
+        }});
+    Set.Add({TEXT("MeshUsages"), TEXT("game"), TEXT("Opaque, lit, on every mesh kind export gives a material"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            LitSurface(G, 0.6f, 0.5f, 0.4f);
+            G->bUsedWithSkeletalMesh = true;
+            G->bUsedWithMorphTargets = true;
+            G->bUsedWithSplineMeshes = true;
+            G->bUsedWithMeshParticles = true;
+            G->bUsedWithParticleSprites = true;
+            G->bUsedWithBeamTrails = true;
+            return true;
+        }});
+    Set.Add({TEXT("ParticleUsages"), TEXT("game"), TEXT("Translucent, lit, on sprite and mesh particles and beams"),
+        [](UMaterial* G, const FCoverageContext&)
+        {
+            Translucent(G, true);
+            G->bUsedWithParticleSprites = true;
+            G->bUsedWithMeshParticles = true;
+            G->bUsedWithBeamTrails = true;
+            return true;
+        }});
+    TStrongObjectPtr<UP4CreatorMaterialFactory> Factory(NewObject<UP4CreatorMaterialFactory>());
+    int32 Compiled = 0;
+    for (const FCoverageCase& Case : Set)
+    {
+        const double Start = FPlatformTime::Seconds();
+        const FP4CreatorMaterialCompileResult Result =
+            CompileCase(Test, Case, Root, Factory.Get(), TEXT("M_Patches_") + Case.Id);
+        Test.AddInfo(FString::Printf(TEXT("%s: %s in %.0f s"), *Case.Id,
+            Result.Succeeded ? TEXT("compiled") : TEXT("not compiled"), FPlatformTime::Seconds() - Start));
+        if (Result.Succeeded)
+            ++Compiled;
+        else
+            NotCompiled.Add(Case.Id + TEXT(": ") + Result.Error.Left(300));
+    }
+    return Compiled;
+}
 } //namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4MaterialCoverageTest, "P4MapKit.Materials.Coverage",
@@ -1434,6 +1559,9 @@ bool FP4MaterialCoverageFixesTest::RunTest(const FString&)
         Compile.RuntimeObjectPath = Graph->GetPathName();
         const FP4CreatorMaterialCompileResult Result = P4CompileCreatorMaterial(Compile);
         TestTrue(Case->Feature + TEXT(": compiles for the game (") + Result.Error + TEXT(")"), Result.Succeeded);
+        if (Result.UnlistedGameLayoutReads.Num())
+            AddInfo(Case->Feature + TEXT(": reads what the game's layout does not list: ") +
+                FString::Join(Result.UnlistedGameLayoutReads, TEXT(", ")));
         if (Fix.bReadsSceneColor)
         {
             // As the game compile marks its copy (P4CompileCreatorMaterialSwitch).
@@ -1459,6 +1587,92 @@ bool FP4MaterialCoverageFixesTest::RunTest(const FString&)
                 P4ReleaseMaterialResource(Resource);
             }
         }
+    }
+    // An ordinary lit opaque material reads no engine value the game's layout leaves out: the compile result's list
+    // (which the export's notes tell the creator) is empty for it.
+    {
+        const FCoverageCase Plain = {TEXT("PlainLit"), TEXT("inputs"), TEXT("Opaque, Default Lit, one colour"),
+            [](UMaterial* G, const FCoverageContext&)
+            {
+                LitSurface(G, 0.6f, 0.6f, 0.6f);
+                return true;
+            }};
+        const FP4CreatorMaterialCompileResult Result =
+            CompileCase(*this, Plain, Root, Factory.Get(), TEXT("M_Fix_PlainLit"));
+        if (TestTrue(Plain.Feature + TEXT(": compiles for the game (") + Result.Error + TEXT(")"), Result.Succeeded))
+            TestEqual(Plain.Feature + TEXT(": reads nothing the game's layout does not list (") +
+                    FString::Join(Result.UnlistedGameLayoutReads, TEXT(", ")) + TEXT(")"),
+                Result.UnlistedGameLayoutReads.Num(), 0);
+    }
+    return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4MaterialSourcePatchesApplyTest, "P4MapKit.Materials.SourcePatchesApply",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FP4MaterialSourcePatchesApplyTest::RunTest(const FString&)
+{
+    if (!P4UseSwitchShaderRoute())
+    {
+        AddWarning(TEXT("P4MapKit test not run. Creator materials are exported through UE's shaders only."));
+        return true;
+    }
+    if (!TestTrue(TEXT("KADAN_SWITCH_PATCHES is unset (a patch file replaces the built-in patches, which are counted)"),
+            FPlatformMisc::GetEnvironmentVariable(TEXT("KADAN_SWITCH_PATCHES")).IsEmpty()))
+        return false;
+    // The built-in patches no creator material reaches: they change engine source Kadan compiles only for the game's
+    // own material families. Each by its name, with why. A listed patch that applies to a job fails the test, as one
+    // missing does.
+    struct FUnreachable
+    {
+        const TCHAR* Name;
+        const TCHAR* Why;
+    };
+    const TArray<FUnreachable> Unreachable = {};
+    FString Root;
+    if (!ModFolder(*this, TEXT("kadan.material.patches"), TEXT("Material source patches"), Root))
+        return false;
+    P4ResetSwitchSourcePatchUses();
+    TArray<FString> NotCompiled;
+    const double Start = FPlatformTime::Seconds();
+    const int32 Compiled = CompileMaterialSetForTheGame(*this, Root, NotCompiled);
+    const TArray<TPair<FString, int32>> Uses = P4SwitchSourcePatchUses();
+    AddInfo(FString::Printf(TEXT("%d materials compiled for the game in %.0f s"), Compiled,
+        FPlatformTime::Seconds() - Start));
+    for (const FString& Case : NotCompiled)
+        AddWarning(TEXT("Not compiled for the game, so its passes are not counted: ") + Case);
+    if (!TestTrue(TEXT("Kadan's format reports its built-in patches"), Uses.Num() > 0) ||
+        !TestTrue(TEXT("Materials of the set compiled for the game"), Compiled > 0))
+        return false;
+    TMap<FString, int32> Jobs;
+    for (const TPair<FString, int32>& Use : Uses)
+        Jobs.FindOrAdd(Use.Key) += Use.Value;
+    TArray<FString> Unused, Listed;
+    for (const TPair<FString, int32>& Use : Uses)
+    {
+        const bool bListed =
+            Unreachable.ContainsByPredicate([&Use](const FUnreachable& Each) { return Use.Key == Each.Name; });
+        if (!bListed && !Jobs[Use.Key])
+            Unused.AddUnique(Use.Key);
+        if (bListed && Jobs[Use.Key])
+            Listed.AddUnique(Use.Key);
+    }
+    for (const FUnreachable& Each : Unreachable)
+        TestTrue(FString(TEXT("The unreachable patch is one of the format's: ")) + Each.Name, Jobs.Contains(Each.Name));
+    for (const FString& Name : Listed)
+        AddError(FString::Printf(
+            TEXT("The patch '%s' is listed as unreachable from creator materials but applied to %d compile jobs: ")
+                TEXT("take it off the list."),
+            *Name, Jobs[Name]));
+    if (Unused.Num())
+    {
+        // In the form of the list above, to paste into it with a reason, or to reach with a new material of the set.
+        FString Lines;
+        for (const FString& Name : Unused)
+            Lines += FString::Printf(TEXT("\n        {TEXT(\"%s\"), TEXT(\"\")},"),
+                *Name.ReplaceCharWithEscapedChar());
+        AddError(FString::Printf(TEXT("%d of %d built-in source patches applied to no compile job of the material set ")
+                                 TEXT("(a patch that stopped applying, or one to list as unreachable):%s"),
+            Unused.Num(), Jobs.Num(), *Lines));
     }
     return !HasAnyErrors();
 }

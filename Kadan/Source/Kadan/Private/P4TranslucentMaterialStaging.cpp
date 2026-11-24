@@ -349,6 +349,30 @@ bool NeedsInstanceMap(const UMaterialInstanceConstant* Instance)
 {
     return P4MaterialInstanceNeedsOwnShaderMap(Instance);
 }
+
+// The export's note on a material whose programs read engine values the game's layout does not list (Reads, as
+// FP4CreatorMaterialCompileResult::UnlistedGameLayoutReads names them): the first few by name, then how many more.
+FString UnlistedReadsNote(const FString& Material, const TArray<FString>& Reads)
+{
+    constexpr int32 Named = 4;
+    const int32 Shown = FMath::Min(Reads.Num(), Named), Rest = Reads.Num() - Shown;
+    FString List;
+    for (int32 At = 0; At < Shown; ++At)
+    {
+        if (At)
+            List += At == Shown - 1 && !Rest ? TEXT(" and ") : TEXT(", ");
+        List += Reads[At];
+    }
+    if (Rest)
+        List += FString::Printf(TEXT(" and %d more engine values"), Rest);
+    return Reads.Num() == 1
+        ? FString::Printf(TEXT("%s reads %s, which the game's renderer does not have; it is read where stock Unreal ")
+                          TEXT("keeps it and may be wrong in the game."),
+              *Material, *List)
+        : FString::Printf(TEXT("%s reads %s, which the game's renderer does not have; they are read where stock ")
+                          TEXT("Unreal keeps them and may be wrong in the game."),
+              *Material, *List);
+}
 } //namespace
 
 FString FP4TranslucentMaterialStaging::RuntimePackage(const FString& Root, const FString& GraphPackage)
@@ -390,6 +414,7 @@ bool FP4TranslucentMaterialStaging::Prepare(const FString& Root, const TArray<UO
         return false;
     }
     ModRoot = Root;
+    CompileNotes.Reset();
     // Validate names and compile all graphs before allocating a runtime package.
     struct FPlan
     {
@@ -486,6 +511,8 @@ bool FP4TranslucentMaterialStaging::Prepare(const FString& Root, const TArray<UO
                 Plan.Compiled.Error;
             return false;
         }
+        if (Plan.Compiled.UnlistedGameLayoutReads.Num())
+            CompileNotes.Add(UnlistedReadsNote(Graph->GetName(), Plan.Compiled.UnlistedGameLayoutReads));
         if (ShaderFormat == TEXT("SF_GLSL_SAGE"))
         {
             // The Switch 2 builds: the same map, its programs compiled again for the console's GPU.
