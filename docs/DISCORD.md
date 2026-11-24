@@ -24,7 +24,7 @@ There is no bot to install or service to host.
 
 ## Publish notes
 
-Review the draft created by the release workflow, write the patch notes in the release's
+Review the draft you uploaded ([Releases](RELEASING.md)), write the patch notes in the release's
 description, and choose **Publish release** on GitHub. The announcement uses that description
 as its notes, so the release page and Discord share one source.
 

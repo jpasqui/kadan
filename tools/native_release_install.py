@@ -34,6 +34,10 @@ TOOLS = {
     'Tools/retoc.exe', 'Tools/repak.exe', 'Tools/licenses/retoc/LICENSE',
     'Tools/licenses/repak/LICENSE-MIT', 'Tools/licenses/repak/LICENSE-APACHE',
 }
+# A published release also carries the commit it was built from (Kadan/BUILD.json), README.txt at its root
+# and the P4Stubs plugin beside Kadan. None of them is installed or bound here.
+BUILD_RECORD = 'BUILD.json'
+README = 'README.txt'
 
 
 def require_module_rows(rows):
@@ -63,11 +67,12 @@ def _archive_members(archive):
     with zipfile.ZipFile(archive) as source:
         runtime = {PLUGIN + '/' + name for name in MEMBERS}
         expected = runtime | {PLUGIN + '/' + name for name in TOOLS}
+        published = expected | {PLUGIN + '/' + BUILD_RECORD, README} | declaration_archive.MEMBERS
         names = source.namelist()
-        if len(names) != len(set(names)) or set(names) not in (runtime, expected):
+        if len(names) != len(set(names)) or set(names) not in (runtime, expected, published):
             raise ValueError('Release archive must contain exactly the canonical runtime files')
         for member in source.infolist():
-            limit = 1024 * 1024 if member.filename.endswith(('.uplugin', '.modules', '.ini')) else 256 * 1024 * 1024
+            limit = 1024 * 1024 if member.filename.endswith(('.uplugin', '.modules', '.ini', '.json', '.txt')) else 256 * 1024 * 1024
             if not 0 < member.file_size <= limit:
                 raise ValueError('Invalid release member size')
         descriptor = json.loads(source.read(PLUGIN + '/Kadan.uplugin'))

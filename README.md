@@ -9,12 +9,27 @@ The guides are on [kadan.jpasqui.dev](https://kadan.jpasqui.dev). Releases are o
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup and pull requests.
 - [CI](docs/CI.md): hosted checks and documentation builds.
-- [Releases](docs/RELEASING.md): qualified plugin archives and draft releases.
+- [Releases](docs/RELEASING.md): building a release on the desktop and uploading it by hand.
 - [Discord announcements](docs/DISCORD.md): published release notes and webhook setup.
 
 Kadan's original source uses the [MIT license](LICENSE). Dependencies and development tools
-keep their own licenses. Building and qualifying the native plugin requires a licensed Unreal
-Engine installation and the inputs described in the release guide.
+keep their own licenses. Building the native plugin requires a licensed Unreal Engine
+installation and the inputs described in the release guide.
+
+## What's in a release
+
+A release on GitHub is one ZIP with two plugins and a `README.txt`:
+
+- `Kadan/`: the editor plugin built from this repository, with `retoc.exe` and `repak.exe` in
+  `Kadan/Tools`. `Kadan/BUILD.json` names the commit and tag it was built from.
+- `P4Stubs/`: compiled declarations of the game's own classes, structs and enums, so that Unreal
+  Editor can open the game's assets. `tools/stubs/` generates them from the game's type information;
+  they carry the names, fields and default values of those types, and none of the game's assets or
+  code. Kadan does not load without P4Stubs, and both are enabled by default.
+
+The MIT license covers the project's own code. It does not cover the game, whose types P4Stubs
+declares, Unreal Engine, or the bundled retoc and repak, which keep their own licenses
+(`Kadan/Tools/licenses`).
 
 ## Layout
 
@@ -68,13 +83,13 @@ has P4Stubs (`private/mapkit-native-workflow/native-coverage-clean-host` by defa
 automation tests there; the editor needs a desktop session, hence `--session`. `--input-root` names the
 folder on the desktop whose `private/mapkit-native-workflow` holds the tests' private inputs (the
 repository root by default). A test whose inputs are absent reports that it did not run; a test named
-with `--only` that did not run fails the run unless `--allow-not-run` is given. The release archive is
-built with `tools/build_native_release.py`.
+with `--only` that did not run fails the run unless `--allow-not-run` is given. A release is built with
+`py -3.11 tools/release.py build` ([Releases](docs/RELEASING.md)).
 
 Native editor and game checks use separately configured local inputs: the game's Paks,
 retoc and repak, the test project, and the game files the mesh tests read. Those inputs stay
 outside Git. A host check, an editor automation result, and an observation in the game are
-recorded separately. The native release gate checks the exact archive and source identity.
+recorded separately. A release archive records the commit and tag it was built from.
 
 ## Docs site
 
