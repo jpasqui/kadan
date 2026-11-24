@@ -172,6 +172,8 @@ private:
     void SetUpMaterialRecovery();
     bool CheckRequestedSources();
     void StartProgress();
+    bool ReadGameFiles();
+    void CountProgress();
     void ImportAssets();
 
     // One package that is not a Blueprint (P4KadanImportAsset.cpp, P4KadanImportMaterial.cpp).

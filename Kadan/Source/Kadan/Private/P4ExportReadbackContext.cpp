@@ -61,6 +61,12 @@ bool Hash(FInput& Input, FString& Error, bool Compare)
     }
     return true;
 }
+// The drive a full path is on ("D:"), or empty for a network or unknown path, as the export's work folder tells it.
+FString Drive(const FString& Path)
+{
+    return Path.Len() >= 3 && FChar::IsAlpha(Path[0]) && Path[1] == TCHAR(':') && Path[2] == TCHAR('/')
+        ? Path.Left(2) : FString();
+}
 } //namespace
 
 bool P4ExtractExportReadback(const FP4ExportContainerTools& Tools, const FString& Utoc, const FString& GamePaks,
@@ -101,9 +107,44 @@ bool P4ExtractExportReadback(const FP4ExportContainerTools& Tools, const FString
     }
     if (!NoLinks(Root, Error) || !NoLinks(Output, Error) || !NoLinks(Containers, Error))
         return false;
-    const FString Context = Root / (TEXT("readback-input-") + FGuid::NewGuid().ToString(EGuidFormats::Digits));
+    // The game's global.utoc and global.ucas are linked into the context, never copied, and a link cannot cross
+    // drives. When the work folder is on another drive than the game's files, the context is made on the game's
+    // drive instead, in the folder Kadan's export work uses at a drive's root, and the mod's own containers are
+    // copied there.
+    FString ContextRoot = Root, MadeRoot;
+    const FString GameDrive = Drive(Containers), WorkDrive = Drive(Root);
+    if (!GameDrive.IsEmpty() && !WorkDrive.IsEmpty() && !GameDrive.Equals(WorkDrive, ESearchCase::IgnoreCase))
+    {
+        ContextRoot = GameDrive + TEXT("/.kadan-export-work");
+        const FString Unplaceable = TEXT("The game's files are on drive ") + GameDrive +
+            TEXT(" and this export's work folder is on drive ") + WorkDrive +
+            TEXT(". To check the textures it packed, Kadan links the game's global.utoc and global.ucas beside them, "
+                 "and never copies them, so it needs a folder of its own on ") +
+            GameDrive + TEXT(", and it could not use ") + ContextRoot +
+            TEXT(". Put the game dump on the same drive as the mod's export folder, or give your account permission "
+                 "to make that folder.");
+        if (FPaths::IsSamePath(ContextRoot, Containers) || FPaths::IsUnderDirectory(ContextRoot, Containers) ||
+            FPaths::IsUnderDirectory(Containers, ContextRoot) || FPaths::IsUnderDirectory(Output, ContextRoot) ||
+            FPaths::IsUnderDirectory(FPaths::GetPath(Packed), ContextRoot) || !NoLinks(ContextRoot, Error))
+        {
+            Error = Unplaceable;
+            return false;
+        }
+        if (!IFileManager::Get().DirectoryExists(*ContextRoot))
+        {
+            if (!IFileManager::Get().MakeDirectory(*ContextRoot, false))
+            {
+                Error = Unplaceable;
+                return false;
+            }
+            MadeRoot = ContextRoot;
+        }
+    }
+    const FString Context = ContextRoot / (TEXT("readback-input-") + FGuid::NewGuid().ToString(EGuidFormats::Digits));
     if (IFileManager::Get().DirectoryExists(*Context) || !IFileManager::Get().MakeDirectory(*Context, true))
     {
+        if (!MadeRoot.IsEmpty())
+            RemoveDirectoryW(*MadeRoot);
         Error = TEXT("Cannot create unique packed readback context");
         return false;
     }
@@ -126,7 +167,7 @@ bool P4ExtractExportReadback(const FP4ExportContainerTools& Tools, const FString
     }
     struct FCleanup
     {
-        FString Directory;
+        FString Directory, MadeRoot;
         TArray<FInput>& Files;
         ~FCleanup()
         {
@@ -138,8 +179,11 @@ bool P4ExtractExportReadback(const FP4ExportContainerTools& Tools, const FString
             for (const FInput& File : Files)
                 DeleteFileW(*File.Link);
             RemoveDirectoryW(*Directory);
+            // The folder on the game's drive goes too when this call made it and nothing else is in it.
+            if (!MadeRoot.IsEmpty())
+                RemoveDirectoryW(*MadeRoot);
         }
-    } Cleanup{Context, Inputs};
+    } Cleanup{Context, MadeRoot, Inputs};
     for (FInput& Input : Inputs)
     {
         if (!NoLinks(Input.Source, Error))
@@ -161,12 +205,23 @@ bool P4ExtractExportReadback(const FP4ExportContainerTools& Tools, const FString
         Error = TEXT("Original global script metadata is not a game build Kadan knows");
         return false;
     }
-    for (const FInput& Input : Inputs)
-        if (!CreateHardLinkW(*Input.Link, *Input.Source, nullptr))
-        {
-            Error = TEXT("Cannot hard-link readback inputs on this volume; game data is never copied");
-            return false;
-        }
+    for (int32 Index = 0; Index < Inputs.Num(); ++Index)
+    {
+        const FInput& Input = Inputs[Index];
+        if (CreateHardLinkW(*Input.Link, *Input.Source, nullptr))
+            continue;
+        // The first three are the mod's own containers, which may be copied; the game's two files never are.
+        if (Index < 3 && IFileManager::Get().Copy(*Input.Link, *Input.Source) == COPY_OK)
+            continue;
+        Error = Index < 3
+            ? TEXT("Kadan could not place the mod's packed container ") + Input.Source + TEXT(" in ") + Context +
+                TEXT(" to check its textures.")
+            : TEXT("Kadan could not link the game's ") + FPaths::GetCleanFilename(Input.Source) + TEXT(" from ") +
+                Containers + TEXT(" into ") + Context +
+                TEXT(" to check the textures it packed. A link needs both on one drive, and the game's files are "
+                     "never copied. Put the game dump on the same drive as the mod's export folder.");
+        return false;
+    }
     TArray<FString> Args;
     Args.Add(TEXT("to-legacy"));
     Args.Add(Context);

@@ -27,11 +27,18 @@ struct P4BLUEPRINTIMPORT_API FP4BlueprintImportRunResult
 	// With KeepAbsentAsTheGames: the game assets the Blueprints name that the project does not hold. They
 	// stay the game's (no stand-in is made); each maps to the first value or pin that names it.
 	TMap<FString, FString> KeptAsTheGames;
+	// On a reimport: the existing Blueprints the creator has edited since they were imported. Each is left
+	// as it is, not rebuilt, and the Blueprints of the run that need it are made against its class.
+	TArray<FString> KeptCreatorEdits;
 };
 
 // Only importer-owned incomplete source rows are marked. Ordinary creator
 // Blueprints are unaffected; this query neither loads assets nor creates metadata.
 P4BLUEPRINTIMPORT_API bool P4BlueprintReconstructionIncomplete(const UObject* Asset);
+// Whether a Blueprint this importer made has been edited by the creator since: Kadan records the first
+// edit of an imported game Blueprint in its package (P4RecordGameBlueprintEdit), and export ships such a
+// Blueprint whole. This query neither loads assets nor creates metadata.
+P4BLUEPRINTIMPORT_API bool P4BlueprintEditedSinceImport(const UObject* Asset);
 
 UCLASS()
 class P4BLUEPRINTIMPORT_API UP4BlueprintImport : public UBlueprintFunctionLibrary

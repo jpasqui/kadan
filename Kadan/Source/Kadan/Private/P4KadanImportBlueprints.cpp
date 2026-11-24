@@ -16,8 +16,16 @@ FP4KadanImportResult P4KadanBlueprintBatchResult(const FP4BlueprintImportRunResu
     const bool Fatal = Result.bCancelled || Result.bInfrastructureFailure;
     if (!Result.bOk && (Fatal || !VerifiedGameReferencePackages.Num()))
         Out.Problems.Add(Error);
+    // A Blueprint the creator edited after its import keeps the creator's content, as any other edited
+    // asset does on a reimport.
+    for (const FString& Package : Result.KeptCreatorEdits)
+        Out.Warnings.AddUnique(Package +
+            TEXT(" keeps its existing content: you edited this Blueprint after it was imported, so the reimport left "
+                 "it as it is and did not rebuild it from the game. Export ships it with your edits."));
     for (const auto& Asset : Selected)
-        if (Result.CompletedPackages.Contains(FName(*Asset->Package)) && ExistingReal(Asset->Package))
+        if (Result.KeptCreatorEdits.Contains(Asset->Package))
+            continue;
+        else if (Result.CompletedPackages.Contains(FName(*Asset->Package)) && ExistingReal(Asset->Package))
             Out.Imported.Add(Asset->Package, Asset->Kind);
         else if (!Fatal && VerifiedGameReferencePackages.Contains(FName(*Asset->Package)))
         {
@@ -592,6 +600,14 @@ bool FP4KadanImportRun::RunBlueprintBatch(const TArray<TSharedPtr<FP4KadanSource
     }
     for (const auto& Made : Selected)
     {
+        if (BlueprintResult.KeptCreatorEdits.Contains(Made->Package))
+        {
+            auto Kept = NativeImportReport(true, FString(), Made->Package, FString(), false, false, false,
+                TEXT("existing creator content preserved"));
+            Kept->SetStringField(TEXT("kind"), Made->Kind);
+            Replies->SetObjectField(Made->Package, Kept);
+            continue;
+        }
         const bool There = Admission.Imported.Contains(Made->Package);
         const FString* OwnError = BlueprintResult.PackageErrors.Find(Made->Package);
         auto One = NativeImportReport(There,
