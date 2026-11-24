@@ -158,6 +158,23 @@ class TierTests(unittest.TestCase):
             self.assertEqual([name for name in heavy + fresh if test_tiers.picks(item, name)], [], item)
         self.assertTrue(all(any(test_tiers.picks(item, name) for item in choice) for name in fast))
 
+    def test_every_tier_can_be_picked_by_the_times_in_the_repository(self):
+        # Unreal picks every test whose name contains a filter. A test whose name is inside the name of a test of
+        # another tier cannot be picked without that test, and dev_tests.py then refuses the whole tier.
+        with tempfile.TemporaryDirectory() as folder, \
+                mock.patch.object(test_tiers, 'LOCAL_TIMINGS', Path(folder) / 'no-times-of-this-machine.json'):
+            fast, heavy, fresh = test_tiers.tiers(with_fresh=True)
+        tier_of = {name: tier for tier, names in (('fast', fast), ('heavy', heavy), ('fresh', fresh)) for name in names}
+        split = ['{} ({}) is inside {} ({})'.format(inner, tier_of[inner], outer, tier_of[outer])
+                 for inner in tier_of for outer in tier_of
+                 if inner != outer and tier_of[inner] != tier_of[outer] and test_tiers.picks(inner, outer)]
+        self.assertEqual(split, [], 'Give one test of each pair a name the other name is not inside.')
+        everything = fast + heavy + fresh
+        for names in (fast, heavy, fresh):
+            choice = test_tiers.selector(names, everything)
+            picked = [name for name in everything if any(test_tiers.picks(item, name) for item in choice)]
+            self.assertEqual(sorted(picked), sorted(names))
+
     def test_the_plugin_tests_split_and_fit_the_command_line(self):
         fast, heavy = test_tiers.tiers()
         self.assertGreater(len(fast), 300)

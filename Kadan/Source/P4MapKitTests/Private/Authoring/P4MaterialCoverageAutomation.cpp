@@ -12,8 +12,9 @@
 // in-game gallery (tools/material_gallery.lua). The report and the gallery's layout go to
 // Saved/P4MapKit/MaterialCoverage.
 //
-// P4MapKit.Materials.CoverageFixes compiles the survey's own cases for the features the game compile was fixed for,
-// with no export and no pictures, and fails when one of them stops compiling for the game.
+// P4MapKit.Materials.FixedCases compiles the survey's own cases for the features the game compile was fixed for,
+// with no export and no pictures, and fails when one of them stops compiling for the game. The survey's name is not
+// inside this test's name: Unreal picks every test whose name contains a filter, so the two could not be run apart.
 #include "P4ExportDriverTestShared.h"
 #include "P4CreatorMaterialFactories.h"
 #include "P4MaterialFactoryContext.h"
@@ -1497,7 +1498,7 @@ bool FP4MaterialCoverageTest::RunTest(const FString&)
     return !HasAnyErrors();
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4MaterialCoverageFixesTest, "P4MapKit.Materials.CoverageFixes",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4MaterialCoverageFixesTest, "P4MapKit.Materials.FixedCases",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FP4MaterialCoverageFixesTest::RunTest(const FString&)
 {
