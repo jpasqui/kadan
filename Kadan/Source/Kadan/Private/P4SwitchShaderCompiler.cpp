@@ -63,6 +63,8 @@ public:
                 Out.Outputs.Add({Text(V.name), V.location});
             Out.InOutMask = P.inout_mask;
             Out.DefaultSampler = P.iface.default_sampler;
+            for (const auto& Miss : P.layout_misses)
+                Out.UnlistedReads.Add(Text(Own::OwnSwitch::LayoutMissName(Miss)));
             return true;
         }
         catch (const std::exception& E)

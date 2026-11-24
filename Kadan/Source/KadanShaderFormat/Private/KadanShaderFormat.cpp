@@ -15,6 +15,8 @@
 #include "Misc/Crc.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/ScopeLock.h"
+#include "Misc/SecureHash.h"
 #include "Modules/ModuleManager.h"
 #include "ShaderCompilerCommon.h"
 #include "ShaderCore.h"
@@ -36,7 +38,9 @@ namespace
 const FName NAME_GLSL_SWITCH(TEXT("GLSL_SWITCH"));
 
 // Bumped when this file's output changes; the compiler's own version is added to it.
-constexpr uint32 FormatVersion = 26; // Exact float32 C4 literals and resolved instance settings.
+constexpr uint32 FormatVersion = 30; // Round of a vector constant rounded as UE's CPU rounds it too; an instruction's
+                                     // read barrier no longer releases the write barrier it just took; a map keeps
+                                     // the engine values its programs read that the game's layout does not list.
 
 // The uniform buffer slot the game's renderer keeps for its own handles (textures, samplers): never a program's.
 constexpr int32 DriverBufferSlot = 14;
@@ -59,12 +63,14 @@ const IKadanSwitchShaderCompiler* FindCompiler()
 
 // The game's changes to UE 4.26's shader source (KadanSwitchSourcePatches.inl), applied to each job's preprocessed
 // source. KADAN_SWITCH_PATCHES=<file> replaces them with a file's, for trying patches without a build.
-//   @@ <name> [requires <text>]     a patch; with requires, only for a source that holds <text>, which must hold the find text
+//   @@ <name> [requires <text>] [unless <text>]
+//                                    a patch; with requires, only for a source that holds <text>, which must hold the find
+//                                    text; with unless, never for a source that holds that <text>
 //   --- find                         the exact lines to find (every occurrence is replaced)
 //   +++ replace                      the lines that replace them, up to the next @@
 struct FSourcePatch
 {
-    FString Name, Requires, Find, Replace;
+    FString Name, Requires, Unless, Find, Replace;
 };
 
 const TCHAR* const BuiltInPatchParts[] = {
@@ -108,7 +114,13 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
             Finish();
             FSourcePatch Patch;
             FString Head = Line.Mid(3);
-            int32 At = Head.Find(TEXT(" requires "));
+            int32 At = Head.Find(TEXT(" unless "));
+            if (At != INDEX_NONE)
+            {
+                Patch.Unless = Head.Mid(At + 8);
+                Head = Head.Left(At);
+            }
+            At = Head.Find(TEXT(" requires "));
             if (At != INDEX_NONE)
             {
                 Patch.Requires = Head.Mid(At + 10);
@@ -130,9 +142,71 @@ TArray<FSourcePatch> ParsePatches(const FString& Text)
     return Out;
 }
 
+const TArray<FSourcePatch>& BuiltInPatchList()
+{
+    static const TArray<FSourcePatch> List = ParsePatches(BuiltInPatches());
+    return List;
+}
+
+// How many compile jobs in this process each built-in patch changed, by its place in BuiltInPatchList
+// (IKadanSwitchCompileContext::SourcePatchUses). Jobs compile on UE's shader compile thread.
+struct FPatchUses
+{
+    FCriticalSection Lock;
+    TArray<int32> Jobs;
+};
+FPatchUses& PatchUses()
+{
+    static FPatchUses Uses;
+    return Uses;
+}
+
+// A Round node of a constant: UE writes a constant uniform expression's code into the shader, "round(0.50000000)".
+// UE rounds the same value given by a parameter on the CPU, half up (FMaterialUniformExpressionRound,
+// FMath::RoundToFloat), and the editor's compiler folds the literal to that value too; DXC rounds a half to even. A
+// round() whose argument holds only numbers and vector constructors is rounded half up: a vector constant's
+// MaterialFloat3(...) reaches here preprocessed, as float3 or half3. Engine code's round() always has a variable in
+// it and keeps the GPU's rounding, as the game's own programs have it.
+void RoundConstantsAsUE(FString& Source)
+{
+    static const FString Call = TEXT("round(");
+    bool bAny = false;
+    for (int32 From = 0;;)
+    {
+        const int32 At = Source.Find(Call, ESearchCase::CaseSensitive, ESearchDir::FromStart, From);
+        if (At == INDEX_NONE)
+            break;
+        From = At + Call.Len();
+        if (At > 0 && (FChar::IsAlnum(Source[At - 1]) || Source[At - 1] == TEXT('_')))
+            continue;
+        int32 Depth = 1, End = From;
+        for (; End < Source.Len() && Depth; ++End)
+            Depth += Source[End] == TEXT('(') ? 1 : Source[End] == TEXT(')') ? -1 : 0;
+        if (Depth)
+            break;
+        FString Argument = Source.Mid(From, End - 1 - From);
+        for (const TCHAR* Type : {TEXT("MaterialFloat"), TEXT("min16float"), TEXT("float"), TEXT("half")})
+            Argument.ReplaceInline(Type, TEXT(""), ESearchCase::CaseSensitive);
+        bool bConstant = !Argument.TrimStartAndEnd().IsEmpty();
+        for (const TCHAR Char : Argument)
+            bConstant &= !FChar::IsAlpha(Char) && Char != TEXT('_');
+        if (!bConstant)
+            continue;
+        Source = Source.Left(At) + TEXT("C4RoundAsUE(") + Source.Mid(From);
+        From = At + 12;
+        bAny = true;
+    }
+    if (bAny)
+        Source = TEXT("float C4RoundAsUE(float X) { return floor(X + 0.5); }\n"
+                      "float2 C4RoundAsUE(float2 X) { return floor(X + 0.5); }\n"
+                      "float3 C4RoundAsUE(float3 X) { return floor(X + 0.5); }\n"
+                      "float4 C4RoundAsUE(float4 X) { return floor(X + 0.5); }\n") +
+            Source;
+}
+
 bool ApplySourcePatches(FString& Source, FString& Error)
 {
-    static const TArray<FSourcePatch> BuiltIn = ParsePatches(BuiltInPatches());
+    const TArray<FSourcePatch>& BuiltIn = BuiltInPatchList();
     TArray<FSourcePatch> FromFile;
     const FString File = FPlatformMisc::GetEnvironmentVariable(TEXT("KADAN_SWITCH_PATCHES"));
     if (!File.IsEmpty())
@@ -152,14 +226,22 @@ bool ApplySourcePatches(FString& Source, FString& Error)
         TEXT("InitRectTexture( TranslucentBasePass_"), ESearchCase::CaseSensitive);
     Source = FString(bTranslucent ? TEXT("#define KADAN_TRANSLUCENT 1\n") : TEXT("#define KADAN_TRANSLUCENT 0\n")) +
         Source;
-    for (const FSourcePatch& Patch : File.IsEmpty() ? BuiltIn : FromFile)
+    const TArray<FSourcePatch>& Patches = File.IsEmpty() ? BuiltIn : FromFile;
+    TArray<int32> Applied;
+    for (int32 Index = 0; Index < Patches.Num(); ++Index)
     {
+        const FSourcePatch& Patch = Patches[Index];
         if (Patch.Find.IsEmpty())
             continue;
         if (!Patch.Requires.IsEmpty() && !Source.Contains(Patch.Requires, ESearchCase::CaseSensitive))
             continue;
+        if (!Patch.Unless.IsEmpty() && Source.Contains(Patch.Unless, ESearchCase::CaseSensitive))
+            continue;
         if (Source.Contains(Patch.Find, ESearchCase::CaseSensitive))
+        {
             Source.ReplaceInline(*Patch.Find, *Patch.Replace, ESearchCase::CaseSensitive);
+            Applied.Add(Index);
+        }
         else if (!Patch.Requires.IsEmpty())
         {
             Error = FString::Printf(
@@ -167,6 +249,15 @@ bool ApplySourcePatches(FString& Source, FString& Error)
             return false;
         }
     }
+    if (File.IsEmpty())
+    {
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        Uses.Jobs.SetNumZeroed(BuiltIn.Num());
+        for (const int32 Index : Applied)
+            ++Uses.Jobs[Index];
+    }
+    RoundConstantsAsUE(Source);
     return true;
 }
 
@@ -709,6 +800,18 @@ private:
             return;
         }
         Output.ShaderCode.GetWriteAccess().Append(Payload);
+        // What the program reads that the game's layout does not list, kept with the map (KadanUnlistedReadsTag). UE
+        // hashes a program's code without it, so its code and its place in the map are the same with or without.
+        if (Program.UnlistedReads.Num())
+        {
+            uint8 Hash[20];
+            FSHA1::HashBuffer(Payload.GetData(), Payload.Num(), Hash);
+            FString Text = FString(KadanUnlistedReadsTag()) + TEXT("\n") + BytesToHex(Hash, 20);
+            for (const FString& Read : Program.UnlistedReads)
+                Text += TEXT("\n") + Read;
+            const FTCHARToUTF8 Utf8(*Text);
+            Output.PlatformDebugData.Append(reinterpret_cast<const uint8*>(Utf8.Get()), Utf8.Length());
+        }
         Output.NumTextureSamplers = Bindings.SamplerSlots;
         Output.bSucceeded = true;
         Parser.ValidateShaderParameterTypes(Input, Output);
@@ -720,6 +823,24 @@ class FKadanSwitchCompileContext : public IKadanSwitchCompileContext
 {
 public:
     virtual void SetMaterialSSR(bool bMaterialSSR) override { KadanSetMaterialSSR(bMaterialSSR); }
+
+    virtual TArray<TPair<FString, int32>> SourcePatchUses() const override
+    {
+        const TArray<FSourcePatch>& Patches = BuiltInPatchList();
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        TArray<TPair<FString, int32>> Out;
+        for (int32 Index = 0; Index < Patches.Num(); ++Index)
+            Out.Emplace(Patches[Index].Name, Uses.Jobs.IsValidIndex(Index) ? Uses.Jobs[Index] : 0);
+        return Out;
+    }
+
+    virtual void ResetSourcePatchUses() override
+    {
+        FPatchUses& Uses = PatchUses();
+        FScopeLock Scope(&Uses.Lock);
+        Uses.Jobs.Reset();
+    }
 };
 
 class FKadanShaderFormatModule : public IShaderFormatModule

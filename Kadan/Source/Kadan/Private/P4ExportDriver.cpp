@@ -9,6 +9,7 @@
 #include "P4NativeConstructionPreview.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Engine/VolumeTexture.h"
 
 using namespace P4Export;
 
@@ -349,6 +350,7 @@ bool FP4ExportRun::StageMaterials()
         Assets.Add(LoadObject<UObject>(nullptr, *P4ObjectPathOf(Package)));
     if (!Materials->Prepare(Names.PackageRoot, Assets, Error))
         return Fail(Error);
+    Result.Told.Append(Materials->Told());
     for (UObject* Asset : Assets)
         if (Asset)
             Result.RuntimePaths.Add(Asset->GetPathName(), Materials->RuntimePath(Asset->GetPathName()));
@@ -776,8 +778,22 @@ bool FP4ExportRun::CookOwnPackages()
                 Sounds.Add(CastChecked<USoundWave>(Asset));
                 continue;
             case EP4ExportAssetRoute::CreatorTexture:
-                Cooked = CookTexture(CastChecked<UTexture2D>(Asset), Stage, Error);
-                Textures.Add(CastChecked<UTexture2D>(Asset));
+                Cooked = CookTexture(CastChecked<UTexture>(Asset), Stage, Error);
+                Textures.Add(CastChecked<UTexture>(Asset));
+                // CookTexture cooks a volume texture uncompressed, which can make it large: the creator sees its size.
+                if (Cooked && Asset->IsA<UVolumeTexture>())
+                {
+                    const FString Base = CookedBase(Stage, Package);
+                    int64 Bytes = 0;
+                    for (const TCHAR* Extension : {TEXT(".uasset"), TEXT(".uexp"), TEXT(".ubulk")})
+                        Bytes += FMath::Max<int64>(IFileManager::Get().FileSize(*(Base + Extension)), 0);
+                    Result.Told.Add(FString::Printf(TEXT("%s is a volume texture, cooked uncompressed (%.1f MB): the ")
+                                                    TEXT("game has no compressed volume textures."),
+                        *FPackageName::GetShortName(Package), double(Bytes) / (1024.0 * 1024.0)));
+                }
+                break;
+            case EP4ExportAssetRoute::CreatorData:
+                Cooked = CookObject(Asset, Stage, Error);
                 break;
             case EP4ExportAssetRoute::CreatorStaticMesh:
             case EP4ExportAssetRoute::CreatorBlueprint:
