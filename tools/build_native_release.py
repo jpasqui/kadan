@@ -3,7 +3,8 @@
     py tools/build_native_release.py [--out private/release-<version>]
 
 Started from the laptop by tools/release.py build, which sends the tag's files and the source record
-(private/release-source.json) first. The build refuses when the mirror's files differ from the record,
+(private/release-source.json) first. The build refuses when the mirror's files differ from the record
+(one missing, one with other bytes, or one the record does not list in a folder the build reads),
 when retoc.exe or repak.exe differ from the hashes pinned in tools/release_tools.json, or when the built
 P4Stubs plugin is missing. It writes Kadan-UE4-<version>.zip (-prerelease appended for a pre-release)
 and SHA256SUMS into the output folder. No game data or private fixtures are staged.
@@ -38,6 +39,8 @@ README = HERE / 'release_readme.txt'
 RECORD = REPO / 'private/release-source.json'
 RECORD_FORMAT = 'kadan-release-source'
 SOURCE_FOLDERS = ('Kadan', 'core', 'compiler', 'own_shaders', 'navigation', 'tools')
+# The one kind of file those folders may hold in the mirror that the tag does not have.
+MADE_BY_PYTHON = '__pycache__'
 # Where tools/stubs/regenerate.py --build leaves the built P4Stubs plugin (its default --host).
 STUBS = REPO / 'private/stubs/Plugins/P4Stubs'
 STUB_MODULES = ('P4StubsCore', 'Carrot4', 'AkAudio', 'EasyParticle', 'UIParticle', 'SwitchRuntimeSettings')
@@ -129,8 +132,19 @@ def read_source_record(path):
     return record
 
 
+def mirror_files(repo):
+    """The files the mirror has in the folders the build reads, named as the record names them. Python's
+    bytecode folders are left out: Python makes them when the build's scripts run, and reads one of
+    their files only for the script beside it."""
+    repo = Path(repo)
+    return sorted(path.relative_to(repo).as_posix() for folder in SOURCE_FOLDERS
+                  for path in (repo / folder).rglob('*') if path.is_file() and MADE_BY_PYTHON not in path.parts)
+
+
 def check_source(record, repo):
-    """Refuse a mirror whose files differ from the tag's: a listed file missing or with other bytes."""
+    """Refuse a mirror whose files differ from the tag's: a listed file missing or with other bytes, or a
+    file in the folders the build reads that the tag does not have. The build stages and compiles whole
+    folders, so a file left in the mirror would be built into an archive that names the tag."""
     repo = Path(repo)
     missing, changed = [], []
     for name, digest in sorted(record['files'].items()):
@@ -139,12 +153,18 @@ def check_source(record, repo):
             missing.append(name)
         elif sha256(path) != digest:
             changed.append(name)
-    if missing or changed:
-        listed = ['missing ' + name for name in missing] + ['changed ' + name for name in changed]
-        raise ValueError('The mirror is not the content of tag {} (commit {}): {} of its files differ, {}{}. Run '
-                         'tools/release.py build again from a clean checkout of the tag; it sends the files.'.format(
-                             record['tag'], record['commit'][:12], len(listed), ', '.join(listed[:5]),
-                             ', ...' if len(listed) > 5 else ''))
+    extra = [name for name in mirror_files(repo) if name not in record['files']]
+    if missing or changed or extra:
+        listed = ['missing ' + name for name in missing] + ['changed ' + name for name in changed] + \
+                 ['extra ' + name for name in extra]
+        remedy = 'Run tools/release.py build again from a clean checkout of the tag; it sends the files.'
+        if extra:
+            remedy = ('Delete the extra files from the mirror (the tag does not have them, and the sync that sends '
+                      'the tag\'s files did not remove them), then run tools/release.py build again from a clean '
+                      'checkout of the tag.')
+        raise ValueError('The mirror is not the content of tag {} (commit {}): {} of its files differ, {}{}. {}'.format(
+            record['tag'], record['commit'][:12], len(listed), ', '.join(listed[:5]),
+            ', ...' if len(listed) > 5 else '', remedy))
     if plugin_version(repo) != record['kadan_version']:
         raise ValueError('Kadan/Kadan.uplugin in the mirror is not version ' + record['kadan_version'] +
                          ': run tools/release.py build again')

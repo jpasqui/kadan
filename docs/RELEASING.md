@@ -41,8 +41,10 @@ file in `Kadan/`, `core/`, `compiler/`, `own_shaders/`, `navigation/` and `tools
 tracked file and that record to the mirror and runs `tools/build_native_release.py` there in the
 background. The desktop build refuses when:
 
-- a file the record lists is missing from the mirror or has other bytes, so the build reads the
-  tag's files and nothing else;
+- a file the record lists is missing from the mirror or has other bytes, or one of those folders
+  holds a file in the mirror that the record does not list, so the build reads the tag's files and
+  nothing else. Only Python's `__pycache__` folders are let be. The message names the files; a file
+  the tag does not have is deleted from the mirror by hand;
 - `retoc.exe` or `repak.exe` differs from its pin;
 - the P4Stubs plugin is not built, is not enabled by default, has other modules, or was built for
   another Unreal build than Kadan;

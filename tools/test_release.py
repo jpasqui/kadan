@@ -159,6 +159,15 @@ class ReleaseWithFakeDesktop(Checkout):
         self.assertRegex(desktop.refusal, 'not the content of tag v1.2.3 .*changed core/a.h')
         self.assertEqual([call[0] for call in desktop.calls], ['sync', 'push', 'run'])
 
+    def test_file_left_in_the_mirror_stops_the_build(self):
+        (self.mirror / 'Kadan/Source').mkdir(parents=True)
+        (self.mirror / 'Kadan/Source/Left.cpp').write_text('// not in the tag\n', encoding='utf-8')
+        desktop = FakeDesktop(self.root, self.mirror)
+        with self.assertRaisesRegex(release.Refused, 'run ended with exit code 2'):
+            release.release(self.root, False, desktop)
+        self.assertRegex(desktop.refusal, 'not the content of tag v1.2.3 .*extra Kadan/Source/Left.cpp')
+        self.assertEqual([call[0] for call in desktop.calls], ['sync', 'push', 'run'])
+
     def test_archive_from_another_commit_is_refused(self):
         desktop = FakeDesktop(self.root, self.mirror, built_commit='0' * 40)
         with self.assertRaisesRegex(release.Refused, 'was built from v1.2.3 0{40}'):
@@ -206,6 +215,47 @@ class DesktopChecks(unittest.TestCase):
     def test_missing_file_in_the_mirror_is_refused(self):
         record = build.read_source_record(self.record())
         with self.assertRaisesRegex(ValueError, 'missing Kadan/Kadan.uplugin'):
+            build.check_source(record, self.folder)
+
+    def mirror(self):
+        """A mirror that holds exactly its record's one file."""
+        plugin = self.folder / 'Kadan/Kadan.uplugin'
+        plugin.parent.mkdir()
+        plugin.write_text(json.dumps(dict(VersionName='1.2.3')), encoding='utf-8')
+        return build.read_source_record(self.record(files={'Kadan/Kadan.uplugin': build.sha256(plugin)}))
+
+    def leave(self, name):
+        path = self.folder / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('left\n', encoding='utf-8')
+        return path
+
+    def test_file_the_tag_does_not_have_is_refused(self):
+        record = self.mirror()
+        self.assertIs(build.check_source(record, self.folder), record)
+        for name in ('Kadan/Source/Kadan/Private/Left.cpp', 'core/left.h', 'tools/left.py', 'tools/left.pyc',
+                     'Kadan/Intermediate/Build/left.obj'):
+            with self.subTest(name=name):
+                path = self.leave(name)
+                with self.assertRaisesRegex(ValueError, '1 of its files differ, extra ' + name + r'\. Delete the extra files'):
+                    build.check_source(record, self.folder)
+                path.unlink()
+
+    def test_bytecode_folders_and_folders_the_build_does_not_read_are_let_be(self):
+        record = self.mirror()
+        for name in ('tools/__pycache__/release.cpython-312.pyc', 'tools/stubs/__pycache__/regenerate.cpython-312.pyc',
+                     'tests/left_test.cpp', 'private/release-1.2.3/package-build.log', 'left.txt'):
+            self.leave(name)
+        self.assertIs(build.check_source(record, self.folder), record)
+        self.assertEqual(build.mirror_files(self.folder), ['Kadan/Kadan.uplugin'])
+
+    def test_every_difference_is_counted_and_the_first_five_named(self):
+        record = self.mirror()
+        for number in range(6):
+            self.leave('core/left{}.h'.format(number))
+        (self.folder / 'Kadan/Kadan.uplugin').write_text(json.dumps(dict(VersionName='9.9.9')), encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, r'7 of its files differ, changed Kadan/Kadan.uplugin, extra core/left0.h, '
+                                                r'.*extra core/left3.h, \.\.\.\. Delete the extra files'):
             build.check_source(record, self.folder)
 
     def tools(self):
