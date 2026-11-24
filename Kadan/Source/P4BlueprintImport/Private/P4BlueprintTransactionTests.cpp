@@ -264,7 +264,7 @@ bool FP4BlueprintTransactionDefaults::RunTest(const FString& Parameters)
  TestTrue(TEXT("native policy classifies the imported Blueprint as a protected original"),SourcePolicy.Original&&!SourcePolicy.AllowEdit);
  TestTrue(TEXT("actual native save guard locks the imported Blueprint package"),P4Kadan::IsLockedPackage(Blueprint->GetOutermost()));
  TestTrue(TEXT("ordinary save starts outside native import publication"),!P4ImportPublication::IsImporting()&&!P4ImportPublication::IsSaving(Blueprint->GetOutermost()));
- TestTrue(TEXT("published imported-source file has its actual readonly save protection"),IFileManager::Get().IsReadOnly(*File));
+ TestFalse(TEXT("published imported-source file stays writable on disk; Kadan's save guard protects it"),IFileManager::Get().IsReadOnly(*File));
  TMap<FString,TArray<uint8>> PublishedFiles;
  for(const TCHAR* Suffix : {TEXT(".uasset"),TEXT(".uexp"),TEXT(".ubulk"),TEXT(".uptnl")})
  {
@@ -297,7 +297,7 @@ bool FP4BlueprintTransactionDefaults::RunTest(const FString& Parameters)
   Blueprint->BlueprintDescription=TEXT("Synthetic source description");
   if(!TestTrue(TEXT("synthetic source annotation publication succeeds"),UPackage::SavePackage(Blueprint->GetOutermost(),Blueprint,RF_Public|RF_Standalone,*File,GError,nullptr,false,true,SAVE_NoError)))return false;
  }
- TestTrue(TEXT("source annotation publication restores readonly file protection"),IFileManager::Get().IsReadOnly(*File));
+ TestFalse(TEXT("source annotation publication leaves the file writable on disk"),IFileManager::Get().IsReadOnly(*File));
  TestTrue(TEXT("source annotation publication restores native scope state"),!P4ImportPublication::IsImporting()&&!P4ImportPublication::IsSaving(Blueprint->GetOutermost()));
  const FP4OriginalStatus AfterAnnotationStatus=P4QueryOriginalAsset(Blueprint);
  const P4Kadan::FAssetPolicy AfterAnnotationPolicy=P4Kadan::GetAssetPolicy(Blueprint);

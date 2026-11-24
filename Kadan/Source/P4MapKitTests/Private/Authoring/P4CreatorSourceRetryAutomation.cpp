@@ -51,7 +51,6 @@ bool FP4CreatorSourceRetry::RunTest(const FString&)
                 {FString(TEXT("uasset")), FString(TEXT("uexp")), FString(TEXT("ubulk")), FString(TEXT("uptnl"))})
             {
                 const FString OwnedFile = FPaths::ChangeExtension(Base, Suffix);
-                FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*OwnedFile, false);
                 if (IFileManager::Get().FileExists(*OwnedFile))
                     IFileManager::Get().Delete(*OwnedFile, false, true);
             }

@@ -244,9 +244,8 @@ bool FP4RetainedLegacyParticleReferenceProof::RunTest(const FString&)
         FString Digest;
         if (!P4HashFile(File, 256 * 1024 * 1024, Bytes, Digest))
             return FString(TEXT("unreadable"));
-        return Digest +
-            FString::Printf(TEXT("/%lld/%lld/%d"), Bytes, IFileManager::Get().GetTimeStamp(*File).GetTicks(),
-                IFileManager::Get().IsReadOnly(*File) ? 1 : 0);
+        // The read-only mark is left out: Kadan takes off the mark an earlier version left on a game asset's file.
+        return Digest + FString::Printf(TEXT("/%lld/%lld"), Bytes, IFileManager::Get().GetTimeStamp(*File).GetTicks());
     };
     for (const FString& Package : Names)
     {
@@ -302,7 +301,7 @@ bool FP4RetainedLegacyParticleReferenceProof::RunTest(const FString&)
             Unchanged &= P4ExactNativeString(Pair.Value, Fingerprint(Pair.Key));
         TestTrue(
             TEXT(
-                "All configured saved/source/target bundles, runtime6/SDK8 hashes, size, mtime and read-only attributes are unchanged"),
+                "All configured saved/source/target bundles, runtime6/SDK8 hashes, size and mtime are unchanged"),
             Unchanged);
         Receipt->SetBoolField(TEXT("input_custody_unchanged"), Unchanged);
         Receipt->SetBoolField(TEXT("replacement_admitted"), false);
