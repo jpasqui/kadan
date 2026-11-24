@@ -41,7 +41,11 @@ option or from the environment variable the tests read.
 mirror, and `--built` the build host whose plugin is tested.
 
 The exit code is 0 when every chosen part ran and passed, 1 when a step failed or the editor stopped, and 2
-when a part did not run because an input was missing.
+when a part did not run because an input was missing. It is also 1 when the run on the desktop stopped before
+every chosen part had a result (the page shows such a part as failed, with what stopped the run), when that run
+ended with a failing exit code although its results say every part passed, and when the results that came back
+are not this run's. In the last case the runner writes no page and says so: what an earlier run of the same
+name left is never reported as this run's.
 
 ## What a step is
 

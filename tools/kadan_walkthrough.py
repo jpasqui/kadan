@@ -30,7 +30,9 @@ option or, without it, from the environment variable of the same name the tests 
 --earlier-map      P4_KADAN_WALK_EARLIER_MAP      the earlier project's map, when it is not --map
 
 A part whose input is missing is not run: the page and the output say "P4MapKit test not run." for it, and the
-exit code is 2. A step that fails makes it 1. It is 0 only when every chosen part ran and passed.
+exit code is 2. A step that fails makes it 1. So does a run on the desktop that stopped before every chosen part
+had a result, or whose own results did not come back: what an earlier run left is not taken for this run's. It
+is 0 only when every chosen part ran and passed and the run on the desktop ended with exit code 0.
 
 These are editor tests. Nothing here runs the exported mod in the game.
 """
@@ -43,6 +45,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import stat
 import subprocess
@@ -97,11 +100,23 @@ def missing_inputs(values, part):
 
 
 def exit_code(summary):
-    """1 when a part failed or stopped, 2 when the only trouble is a part that did not run, 0 when all passed."""
+    """1 when a part failed or stopped, or a part the run was asked for has no result; 2 when the only trouble is
+    a part that did not run; 0 when all passed."""
     states = [part['state'] for part in summary['parts']]
-    if not states or any(state not in ('passed', 'not run') for state in states):
+    absent = set(summary.get('asked', ())) - {part.get('name') for part in summary['parts']}
+    if not states or absent or any(state not in ('passed', 'not run') for state in states):
         return 1
     return 2 if 'not run' in states else 0
+
+
+def unfinished_parts(asked, rows, problem=''):
+    """A failed row for each part the run was asked for and left without a result, so that a run that stopped
+    part-way is not read as a run of only the parts it finished. `problem` is what stopped it."""
+    left = [name for name in asked if name not in {row['name'] for row in rows}]
+    return [dict(name=name, title=PARTS[name]['title'], test=PARTS[name]['test'], state='failed', steps=[], sessions=[],
+                 reason='The run on the desktop stopped in this part: ' + problem if problem and name == left[0] else
+                        'The run on the desktop stopped before this part had a result.')
+            for name in left]
 
 
 # ---- the desktop's side ----------------------------------------------------------------------------------------
@@ -349,8 +364,10 @@ def desktop(args, values):
     built, stubs = on_desktop(args.built), on_desktop(args.stubs)
     editor = ue_bake.find_editor()
     recorder, record = start_recording(results / 'walkthrough.mp4')
-    summary = dict(name=args.name, started=datetime.now(timezone.utc).isoformat(timespec='seconds'), inputs=values,
+    summary = dict(name=args.name, run=args.run, asked=list(args.parts),
+                   started=datetime.now(timezone.utc).isoformat(timespec='seconds'), inputs=values,
                    built=str(built), parts=[], recording=record)
+    problem = ''
     try:
         for name in args.parts:
             reason = missing_inputs(values, name)
@@ -374,7 +391,11 @@ def desktop(args, values):
                 print('{}: {} {}'.format(name, NOT_RUN, row['reason']))
             print('{}: {}'.format(name, row['state']))
             summary['parts'].append(row)
+    except BaseException as error:
+        problem = '{}: {}'.format(type(error).__name__, error)
+        raise
     finally:
+        summary['parts'] += unfinished_parts(args.parts, summary['parts'], problem)
         summary['recording'] = stop_recording(recorder, record, results / 'walkthrough.mp4')
         summary['finished'] = datetime.now(timezone.utc).isoformat(timespec='seconds')
         (results / 'walkthrough.json').write_text(json.dumps(summary, indent=1), encoding='utf-8')
@@ -500,21 +521,38 @@ def source_state(run=subprocess.run):
     return 'commit ' + commit + (' with uncommitted changes' if git('status', '--porcelain') else '')
 
 
-def desktop_words(args, values):
-    """The command the desktop runs: this script's --desktop side with the same inputs."""
+def desktop_words(args, values, run=''):
+    """The command the desktop runs: this script's --desktop side with the same inputs. `run` is the word
+    the desktop writes into its results, by which the laptop knows them as this run's."""
     words = ['py', 'tools/kadan_walkthrough.py', '--desktop', '--name', args.name, '--built', args.built,
              '--stubs', args.stubs, '--timeout', str(args.timeout), '--parts', *args.parts]
+    if run:
+        words += ['--run', run]
     for key, value in values.items():
         if value:
             words += ['--' + key.replace('_', '-'), value]
     return words
 
 
+def fetched_summary(folder, run):
+    """(the fetched walkthrough.json, '') when the desktop's run `run` wrote it, else (None, what is there instead).
+    The desktop's results folder and the laptop's copy both keep what an earlier run of the same name left, until
+    this run replaces it."""
+    try:
+        summary = json.loads((Path(folder) / 'walkthrough.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None, 'the run left no walkthrough.json that can be read'
+    if not isinstance(summary, dict) or summary.get('run') != run:
+        return None, 'the walkthrough.json that was fetched is an earlier run\'s'
+    return summary, ''
+
+
 def laptop(args, values, call=remote):
     """Starts the run on the desktop, waits for it, fetches what it left and writes the page. Returns the exit code."""
     relative = '{}/{}/results'.format(WORK, args.name)
     source = source_state()
-    if call(['run', '--background', args.name, '--session', '--'] + desktop_words(args, values), args.mirror):
+    run = secrets.token_hex(8)
+    if call(['run', '--background', args.name, '--session', '--'] + desktop_words(args, values, run), args.mirror):
         print('The run could not be started on the desktop.')
         return 1
     waited = call(['wait', args.name], args.mirror)
@@ -522,13 +560,18 @@ def laptop(args, values, call=remote):
         print('The desktop\'s results could not be fetched (the run ended with exit code {}).'.format(waited))
         return 1
     folder = REPO / 'private/desktop-results' / relative
-    summary = dict(json.loads((folder / 'walkthrough.json').read_text(encoding='utf-8')), source=source)
+    summary, trouble = fetched_summary(folder, run)
+    if summary is None:
+        print('This run has no results: {}. The run on the desktop ended with exit code {}; tools/remote_unreal.py '
+              'log {} shows its output. No page was written.'.format(trouble, waited, args.name))
+        return 1
+    summary = dict(summary, source=source)
     (folder / 'walkthrough.json').write_text(json.dumps(summary, indent=1), encoding='utf-8')
     target = folder / 'walkthrough.html'
     target.write_text(page(summary, folder), encoding='utf-8')
     for part in summary['parts']:
         print('{}: {}{}'.format(part['name'], part['state'], ' - {} {}'.format(NOT_RUN, part['reason'])
-                                if part['state'] == 'not run' else ''))
+                                if part['state'] == 'not run' else ' - ' + part['reason'] if part.get('reason') else ''))
         for step in part.get('steps', []):
             if step['result'] not in ('passed', 'not reached'):
                 print('  {:02d} {}: {} - {}'.format(step['number'], step['id'], step['result'], step.get('error', '')))
@@ -536,7 +579,12 @@ def laptop(args, values, call=remote):
                 print('  {:02d} {}: passed without a picture - {}'.format(step['number'], step['id'], ' '.join(
                     note for note in step.get('notes', []) if note.startswith('No picture'))))
     print('page:', target)
-    return exit_code(summary)
+    code = exit_code(summary)
+    if waited and not code:
+        print('The run on the desktop ended with exit code {}, though its results say every chosen part passed: '
+              'tools/remote_unreal.py log {} shows its output.'.format(waited, args.name))
+        return 1
+    return code
 
 
 def main(argv=None, environment=None):
@@ -550,6 +598,7 @@ def main(argv=None, environment=None):
     parser.add_argument('--stubs', default=STUBS, help='a built P4Stubs plugin folder on the desktop')
     parser.add_argument('--timeout', type=float, default=10800.0, help='seconds one editor start may take')
     parser.add_argument('--desktop', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--run', default='', help=argparse.SUPPRESS)
     parser.add_argument('--page', type=Path, help='only write walkthrough.html again from a fetched results folder')
     args = parser.parse_args(argv)
     values = inputs(args, os.environ if environment is None else environment)

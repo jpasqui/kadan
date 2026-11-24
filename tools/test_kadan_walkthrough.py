@@ -9,7 +9,9 @@ import stat
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kadan_walkthrough as walk
@@ -75,33 +77,161 @@ class InputsTest(unittest.TestCase):
         self.assertEqual(words[words.index('--map') + 1], '/Game/Maps/Small_P')
         self.assertNotIn('--repak', words)
         self.assertNotIn('--earlier-project', words)
+        self.assertNotIn('--run', words)
+        words = walk.desktop_words(arguments, dict(game='G'), 'this run')
+        self.assertEqual(words[words.index('--run') + 1], 'this run')
+
+
+class LaptopTest(unittest.TestCase):
+    """The laptop's side, with a stand-in for tools/remote_unreal.py."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.results = Path(self.temporary.name) / 'private/desktop-results' / walk.WORK / 'walk/results'
+        (self.results / 'first-hour').mkdir(parents=True)
+        (self.results / 'first-hour/01-open.png').write_bytes(PNG)
+        self.calls = []
+
+    def summary(self, **more):
+        return dict(dict(name='walk', asked=['first-hour'], inputs=dict(game='G'),
+                         recording=dict(recorded=False, reason='no ffmpeg'), parts=[
+            dict(name='first-hour', title='First', test='T', state='passed', sessions=[dict(exit=0)],
+                 steps=[step(1, 'open'), step(2, 'save', picture='', notes=['No picture: its window was minimized.'])])]),
+                    **more)
+
+    def laptop(self, left=None, waited=0, parts=('first-hour',)):
+        """laptop() against a desktop whose run ends with exit code `waited` and whose fetch brings left(run) as
+        walkthrough.json, `run` being the word the run was started with. Without `left` the fetch brings none."""
+        def call(words, mirror=None):
+            self.calls.append((words, mirror))
+            if words[0] == 'run':
+                self.run = words[words.index('--run') + 1]
+            if words[0] == 'fetch' and left is not None:
+                (self.results / 'walkthrough.json').write_text(json.dumps(left(self.run)), encoding='utf-8')
+            return waited if words[0] == 'wait' else 0
+        arguments = walk.argparse.Namespace(name='walk', built=walk.BUILT, stubs=walk.STUBS, timeout=600.0,
+                                            parts=list(parts), mirror=2)
+        repo, walk.REPO = walk.REPO, Path(self.temporary.name)
+        said = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(said):
+                code = walk.laptop(arguments, dict(game='G', retoc='', repak='', earlier_project='', map=''), call=call)
+        finally:
+            walk.REPO = repo
+        self.said = said.getvalue()
+        return code
 
     def test_the_run_goes_through_the_desktop_runner_in_the_logged_in_session(self):
-        calls = []
-        with tempfile.TemporaryDirectory() as folder:
-            results = Path(folder) / 'private/desktop-results' / walk.WORK / 'walk/results'
-            (results / 'first-hour').mkdir(parents=True)
-            (results / 'first-hour/01-open.png').write_bytes(PNG)
-            summary = dict(name='walk', inputs=dict(game='G'), recording=dict(recorded=False, reason='no ffmpeg'), parts=[
-                dict(name='first-hour', title='First', test='T', state='passed', sessions=[dict(exit=0)],
-                     steps=[step(1, 'open'), step(2, 'save', picture='', notes=['No picture: its window was minimized.'])])])
-            (results / 'walkthrough.json').write_text(json.dumps(summary), encoding='utf-8')
-            arguments = walk.argparse.Namespace(name='walk', built=walk.BUILT, stubs=walk.STUBS, timeout=600.0,
-                                                parts=['first-hour'], mirror=2)
-            repo, walk.REPO = walk.REPO, Path(folder)
-            said = io.StringIO()
-            try:
-                with contextlib.redirect_stdout(said):
-                    code = walk.laptop(arguments, dict(game='G', retoc='', repak='', earlier_project='', map=''),
-                                       call=lambda words, mirror=None: calls.append((words, mirror)) or 0)
-            finally:
-                walk.REPO = repo
-            self.assertEqual(code, 0)
-            self.assertIn('02 save: passed without a picture - No picture: its window was minimized.', said.getvalue())
-            self.assertEqual([call[0][0] for call in calls], ['run', 'wait', 'fetch'])
-            self.assertEqual(calls[0][0][1:5], ['--background', 'walk', '--session', '--'])
-            self.assertTrue(all(mirror == 2 for _, mirror in calls))
-            self.assertIn('data:image/png;base64,', (results / 'walkthrough.html').read_text(encoding='utf-8'))
+        self.assertEqual(self.laptop(lambda run: self.summary(run=run)), 0)
+        self.assertIn('02 save: passed without a picture - No picture: its window was minimized.', self.said)
+        self.assertEqual([call[0][0] for call in self.calls], ['run', 'wait', 'fetch'])
+        self.assertEqual(self.calls[0][0][1:5], ['--background', 'walk', '--session', '--'])
+        self.assertTrue(all(mirror == 2 for _, mirror in self.calls))
+        self.assertIn('data:image/png;base64,', (self.results / 'walkthrough.html').read_text(encoding='utf-8'))
+
+    def test_each_run_is_started_with_a_word_of_its_own(self):
+        self.laptop(lambda run: self.summary(run=run))
+        first = self.run
+        self.laptop(lambda run: self.summary(run=run))
+        self.assertRegex(first, '^[0-9a-f]{16}$')
+        self.assertNotEqual(self.run, first)
+
+    def test_passing_results_an_earlier_run_left_are_not_taken_for_this_run_s(self):
+        # The desktop's run ended before it cleared the results folder, or its fetch brought no walkthrough.json and
+        # the laptop still had an earlier fetch's.
+        (self.results / 'walkthrough.json').write_text(json.dumps(self.summary(run='an earlier run')), encoding='utf-8')
+        for waited in (1, 0):
+            with self.subTest(waited=waited):
+                self.assertEqual(self.laptop(waited=waited), 1)
+                self.assertIn('an earlier run\'s', self.said)
+                self.assertIn('ended with exit code {};'.format(waited), self.said)
+                self.assertIn('No page was written', self.said)
+                self.assertFalse((self.results / 'walkthrough.html').exists())
+        # Results with no word at all are from a runner older than this check.
+        self.assertEqual(self.laptop(lambda run: self.summary()), 1)
+        self.assertFalse((self.results / 'walkthrough.html').exists())
+
+    def test_a_run_that_left_no_readable_results_fails(self):
+        self.assertEqual(self.laptop(waited=1), 1)
+        self.assertIn('left no walkthrough.json', self.said)
+        (self.results / 'walkthrough.json').write_text('{"run": ', encoding='utf-8')
+        self.assertEqual(self.laptop(), 1)
+        self.assertIn('left no walkthrough.json', self.said)
+
+    def test_a_run_that_stopped_part_way_fails_and_its_page_shows_the_part_without_a_result(self):
+        def left(run):
+            summary = self.summary(run=run, asked=['first-hour', 'earlier-project'])
+            summary['parts'] += walk.unfinished_parts(summary['asked'], summary['parts'], 'ValueError: Expected one .uproject')
+            return summary
+        self.assertEqual(self.laptop(left, waited=1, parts=('first-hour', 'earlier-project')), 1)
+        self.assertIn('first-hour: passed\n', self.said)
+        self.assertIn('earlier-project: failed - The run on the desktop stopped in this part: ValueError: Expected one', self.said)
+        text = (self.results / 'walkthrough.html').read_text(encoding='utf-8')
+        self.assertIn('Kadan walkthrough <span class="badge failed">failed</span>', text)
+        self.assertIn('stopped in this part: ValueError: Expected one .uproject', text)
+
+    def test_results_that_lack_a_part_the_run_was_asked_for_fail(self):
+        self.assertEqual(self.laptop(lambda run: self.summary(run=run, asked=['first-hour', 'earlier-project'])), 1)
+        self.assertIn('<span class="badge failed">failed</span>', (self.results / 'walkthrough.html').read_text(encoding='utf-8'))
+
+    def test_passing_results_of_a_run_that_ended_with_a_failure_are_a_failure(self):
+        self.assertEqual(self.laptop(lambda run: self.summary(run=run), waited=1), 1)
+        self.assertIn('ended with exit code 1, though its results say every chosen part passed', self.said)
+        # The run's own exit code stays the answer when the results agree that something went wrong.
+        not_run = self.summary(parts=[dict(name='first-hour', title='First', test='T', state='not run', reason='No game.',
+                                           steps=[], sessions=[])])
+        self.assertEqual(self.laptop(lambda run: dict(not_run, run=run), waited=2), 2)
+
+
+class DesktopTest(unittest.TestCase):
+    """The desktop's side, with stand-ins for the editor, the build host and the lock."""
+
+    def desktop(self, parts, earlier_copy=None):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        root = Path(self.temporary.name)
+        self.results = root / walk.WORK / 'walk/results'
+        modules = dict(ue_bake=types.SimpleNamespace(find_editor=lambda: 'UE4Editor-Cmd.exe',
+                                                     _lock=lambda project=None: types.SimpleNamespace(close=lambda: None)),
+                       dev_build=types.SimpleNamespace(install=lambda built, project: None))
+        arguments = walk.argparse.Namespace(name='walk', run='this run', built=walk.BUILT, stubs=walk.STUBS, timeout=60.0,
+                                            parts=list(parts))
+        values = dict(game='G', retoc='', repak='', earlier_project='C:/kept', map='', earlier_map='')
+        with mock.patch.dict(sys.modules, modules), mock.patch.object(walk, 'REPO', root), \
+                mock.patch.object(walk, 'start_recording', lambda target: (None, dict(recorded=False, reason='none'))), \
+                mock.patch.object(walk, 'fresh_project', lambda folder, stubs: Path(folder) / 'KadanFirstHour.uproject'), \
+                mock.patch.object(walk, 'earlier_copy', earlier_copy), \
+                mock.patch.object(walk, 'run_part', lambda name, *more: dict(name=name, state='passed', steps=[],
+                                                                             sessions=[], reason='')), \
+                mock.patch.object(walk, 'plugin_identity', lambda project: {}), \
+                contextlib.redirect_stdout(io.StringIO()):
+            return walk.desktop(arguments, values)
+
+    def summary(self):
+        return json.loads((self.results / 'walkthrough.json').read_text(encoding='utf-8'))
+
+    def test_the_results_name_their_run_and_the_parts_it_was_asked_for(self):
+        self.assertEqual(self.desktop(['first-hour']), 0)
+        summary = self.summary()
+        self.assertEqual((summary['run'], summary['asked']), ('this run', ['first-hour']))
+        self.assertEqual([(part['name'], part['state']) for part in summary['parts']], [('first-hour', 'passed')])
+
+    def test_a_run_that_stops_part_way_leaves_a_failed_row_for_each_part_without_a_result(self):
+        def stopped(*arguments):
+            raise ValueError('Expected one .uproject in the earlier project folder C:/kept')
+        with self.assertRaisesRegex(ValueError, 'Expected one .uproject'):
+            self.desktop(['first-hour', 'earlier-project'], stopped)
+        summary = self.summary()
+        self.assertEqual([(part['name'], part['state']) for part in summary['parts']],
+                         [('first-hour', 'passed'), ('earlier-project', 'failed')])
+        self.assertIn('stopped in this part: ValueError: Expected one .uproject', summary['parts'][1]['reason'])
+        self.assertEqual(walk.exit_code(summary), 1)
+        with self.assertRaises(ValueError):
+            self.desktop(['earlier-project', 'first-hour'], stopped)
+        reasons = [part['reason'] for part in self.summary()['parts']]
+        self.assertIn('stopped in this part', reasons[0])
+        self.assertIn('stopped before this part had a result', reasons[1])
 
 
 class ProjectsTest(unittest.TestCase):
@@ -462,6 +592,17 @@ class PageTest(unittest.TestCase):
         self.assertEqual(walk.exit_code(dict(parts=[passed, absent])), 2)
         self.assertEqual(walk.exit_code(dict(parts=[failed, absent])), 1)
         self.assertEqual(walk.exit_code(dict(parts=[])), 1)
+
+    def test_a_part_the_run_was_asked_for_and_has_no_result_for_fails_the_run(self):
+        passed = dict(name='first-hour', state='passed')
+        self.assertEqual(walk.exit_code(dict(asked=['first-hour'], parts=[passed])), 0)
+        self.assertEqual(walk.exit_code(dict(asked=['first-hour', 'earlier-project'], parts=[passed])), 1)
+        rows = walk.unfinished_parts(['first-hour', 'earlier-project'], [passed], 'OSError: the disk is full')
+        self.assertEqual([(row['name'], row['state'], row['test']) for row in rows],
+                         [('earlier-project', 'failed', 'P4MapKit.Kadan.WalkthroughEarlierProject')])
+        self.assertIn('stopped in this part: OSError: the disk is full', rows[0]['reason'])
+        self.assertEqual(walk.exit_code(dict(asked=['first-hour', 'earlier-project'], parts=[passed] + rows)), 1)
+        self.assertEqual(walk.unfinished_parts(['first-hour'], [passed], 'OSError: the disk is full'), [])
 
     def test_the_page_can_be_written_again_from_a_fetched_folder(self):
         (self.folder / 'walkthrough.json').write_text(json.dumps(self.summary), encoding='utf-8')
