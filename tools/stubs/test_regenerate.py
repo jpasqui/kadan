@@ -44,6 +44,37 @@ class PinnedInputs(unittest.TestCase):
         self.assertEqual(stub_build.input_bytes('native_engine_evidence', self.folder), self.data)
 
 
+class Descriptor(unittest.TestCase):
+    """The shipped descriptor is the 0.2.0 one with EnabledByDefault added, and nothing else changed."""
+    # SHA-256 of P4Stubs.uplugin as regenerate.py now writes it.
+    ENABLED = 'd4c4dbab6a216bfcb1294763df9e9bce40cf00b6eed606883b4fd728c6a212cc'
+
+    def generated(self):
+        # The descriptor gen_headers.py writes for the six modules, in its order.
+        modules = ['P4StubsCore', 'AkAudio', 'Carrot4', 'EasyParticle', 'SwitchRuntimeSettings', 'UIParticle']
+        return json.dumps(dict(
+            FileVersion=3, Version=1, VersionName='0.1', FriendlyName='Pikmin 4 stub classes', Description='stub',
+            Category='Pikmin 4', CanContainContent=False, Installed=False,
+            Modules=[dict(Name=m, Type='Runtime', LoadingPhase='PreDefault') for m in modules]), indent='\t') + '\n'
+
+    def test_enabled_by_default_and_otherwise_the_shipped_descriptor(self):
+        text = stub_build.kadan_descriptor(self.generated(), 'PublicDependencyModuleNames.AddRange(new string[] { '
+                                                             '"Paper2D", "ProceduralMeshComponent" });')
+        self.assertEqual(hashlib.sha256(text.encode('utf-8')).hexdigest(), self.ENABLED)
+        descriptor = json.loads(text)
+        self.assertIs(descriptor.pop('EnabledByDefault'), True)
+        shipped = json.loads((Path(regenerate.__file__).with_name('shipped-0.2.0.json')).read_text(encoding='utf-8'))
+        before = json.dumps(descriptor, sort_keys=True, indent=1) + '\n'
+        self.assertEqual(hashlib.sha256(before.encode('utf-8')).hexdigest(), shipped['files']['P4Stubs.uplugin'])
+
+    def test_same_category_as_kadan_and_enabled_by_default(self):
+        text = stub_build.kadan_descriptor(self.generated().replace('"Pikmin 4"', '"Other"'), '')
+        descriptor = json.loads(text)
+        kadan = json.loads((stub_build.ROOT / 'Kadan/Kadan.uplugin').read_text(encoding='utf-8-sig'))
+        self.assertEqual(descriptor['Category'], kadan['Category'])
+        self.assertIs(descriptor['EnabledByDefault'], True)
+
+
 class DetailsPanel(unittest.TestCase):
     """The stubs show in the Details panel what the game's editor showed."""
 

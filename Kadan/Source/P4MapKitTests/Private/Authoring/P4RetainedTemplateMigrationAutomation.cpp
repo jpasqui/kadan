@@ -103,8 +103,7 @@ bool FP4RetainedTemplateMigrationTest::RunTest(const FString&)
         One.Package = Package;
         if (!TestTrue(TEXT("The existing saved package has the manifest's pre-migration byte snapshot"),
                 Row->TryGetStringField(TEXT("blueprint_sha256"), One.FileDigest) &&
-                    FPackageName::DoesPackageExist(Package, nullptr, &One.File) &&
-                    IFileManager::Get().IsReadOnly(*One.File)))
+                    FPackageName::DoesPackageExist(Package, nullptr, &One.File)))
             return false;
         int64 FileSize = 0;
         FString FileDigest;

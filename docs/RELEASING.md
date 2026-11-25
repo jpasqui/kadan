@@ -1,67 +1,77 @@
-# Native releases
+# Releases
 
-The hosted CI workflow checks portable code, tools, and documentation. A native plugin release
-also needs a licensed Unreal Engine 4.26.2 build and acceptance evidence for the exact archive.
-The release workflow admits an archive that has completed those checks. It does not build the
-plugin or replace editor and game acceptance with hosted tests.
+A release is built on the desktop, which has Unreal Engine 4.26, and uploaded to GitHub by hand.
+One command on the laptop checks the checkout, sends it to the desktop, builds there and brings the
+archive back. No workflow builds or uploads a release.
 
-## Qualify the candidate
+## On the desktop, once
 
-Build with `tools/build_native_release.py` on the licensed build machine. The build writes
-`acceptance_required: true`; building the archive does not qualify it for release.
+The release build reads these from the desktop's mirror of the repository
+([Remote Unreal](REMOTE_UNREAL.md) sets up the connection):
 
-Complete the checks in `tools/native_quality_policy.json` against that archive and the source
-revision to be tagged. The acceptance chain imports one original map, compares it with the
-game's files, edits it, saves and reopens it, exports it, checks the export for game assets,
-and observes the edits in the game. Every link names the same map. Required checks must pass,
-source hashes must match, the archive hash must match, and no regression may remain open.
+- Unreal Engine 4.26 at `P4_UE_ROOT` (default `C:/UE_4.26`), the engine Kadan is built for.
+- `private/retoc/` with `retoc.exe` and its `LICENSE`, and `private/repak/` with `repak.exe`,
+  `LICENSE-MIT` and `LICENSE-APACHE`. Each executable must have the SHA-256 and size pinned in
+  [`tools/release_tools.json`](../tools/release_tools.json), which also says what each is built from.
+  To ship another build of either, change its entry in a commit before tagging.
+- The built P4Stubs plugin in `private/stubs/Plugins/P4Stubs`. Make it with
+  `py -3.11 tools/stubs/regenerate.py --build`, which reads the pinned inputs in
+  `private/stub-inputs` ([`tools/stubs/inputs.json`](../tools/stubs/inputs.json)). Build it again when
+  the generator changes.
 
-Run `tools/native_quality_gate.py` with the artifact and private evidence when preparing
-the qualification record. Keep that record and the original game inputs private.
+## Build
 
-## Configure the runner
-
-Use a trusted, dedicated self-hosted Windows x64 runner with the custom label `kadan-release`.
-Give its runner process an environment variable named `KADAN_RELEASE_ROOT`, pointing to a
-private qualified-artifact directory outside the runner's source checkout. Do not use an
-active developer checkout as the runner work folder. The runner needs PowerShell 7, Git,
-Python support for `actions/setup-python`, and an installed GitHub CLI (`gh`). The workflow
-supplies its repository token to the publish step. No Unreal installation is invoked.
-
-Create a GitHub environment named `native-release` and apply the repository's available
-approval and branch restrictions. Run the workflow from `main` only. Public pull requests
-never use this runner. No runner is registered or engine/game job started by repository setup.
-
-Under `KADAN_RELEASE_ROOT`, create a folder named for the existing release tag, such as
-`v0.3.0-rc.1`. Put these three files in it:
-
-- `Kadan-UE4.zip`: the exact qualified native archive.
-- `qualification.json`: evidence accepted by the existing native quality gate.
-- `release-notes.md`: UTF-8 patch notes for the release description.
-
-The inputs and their parent directories must be ordinary local files and directories, with
-no symbolic links or junctions. The tag's version must equal `VersionName` in `Kadan.uplugin`.
-Tag the source revision whose files were qualified. A source snapshot or packaging change
-requires matching qualification; earlier private-tree evidence is not accepted automatically.
-
-## Prepare a draft
-
-Run **Draft native release** from the `main` branch in GitHub Actions and enter the tag.
-Hosted checks run for that tag first. The trusted job then checks out the exact commit they
-validated, verifies that the tag still names it, and runs the native qualification gate.
-The archive also passes the existing positive runtime inventory and module-map checks.
-
-The workflow stages a copy of the unchanged qualified archive, a license, a public receipt,
-and checksums under `build/github-release`. It uploads those files directly as draft release
-assets. The raw evidence, game inputs, local paths, and licensed editor files are not uploaded.
-An unsuccessful check stops release creation. A prerelease tag creates a prerelease draft.
-
-The local preparation command is:
+On the laptop, make a clean checkout (or worktree) of the commit to release. Set `VersionName` in
+`Kadan/Kadan.uplugin`, commit, and tag that commit `v<VersionName>`, such as `v0.4.0`. Then run:
 
 ```sh
-python tools/github_release.py --release-root QUALIFIED_ARTIFACT_ROOT --tag v0.3.0-rc.1
+py -3.11 tools/release.py build
 ```
 
-Review the draft and its patch notes, then publish it in GitHub. The
-[Discord announcement workflow](DISCORD.md) posts the published description and a release
-link after its webhook is configured. Publishing a draft is a separate maintainer action.
+Add `--prerelease` for a pre-release, and `--mirror N` to use another desktop mirror.
+
+The command refuses, before anything is sent, when:
+
+- the checkout has uncommitted or untracked files;
+- HEAD does not carry the tag `v<VersionName>`, or carries a version tag that disagrees with
+  `VersionName`.
+
+It writes `private/release-source.json`: the commit, tag and version, and the SHA-256 of every tracked
+file in `Kadan/`, `core/`, `compiler/`, `own_shaders/`, `navigation/` and `tools/`. It sends every
+tracked file and that record to the mirror and runs `tools/build_native_release.py` there in the
+background. The desktop build refuses when:
+
+- a file the record lists is missing from the mirror or has other bytes, or one of those folders
+  holds a file in the mirror that the record does not list, so the build reads the tag's files and
+  nothing else. Only Python's `__pycache__` folders are let be. The message names the files; a file
+  the tag does not have is deleted from the mirror by hand;
+- `retoc.exe` or `repak.exe` differs from its pin;
+- the P4Stubs plugin is not built, is not enabled by default, has other modules, or was built for
+  another Unreal build than Kadan;
+- the finished archive holds game containers or assets, sources (P4Stubs' generated headers
+  included), PDBs, Python, private folders or the compiled automation tests.
+
+The command then fetches the archive and its `SHA256SUMS` into
+`private/desktop-results/private/release-<version>/`, checks one against the other and checks that
+the archive names the tag's commit. It prints the `gh release create --draft` command that uploads
+them. If a step fails, `py -3.11 tools/remote_unreal.py log release-<version>` shows the build's output.
+
+## What the archive holds
+
+`Kadan-UE4-<version>.zip` (`Kadan-UE4-<version>-prerelease.zip` for a pre-release):
+
+- `Kadan/`: the plugin's `Kadan.uplugin`, `Config/` and `Binaries/Win64` (the three modules and
+  `UE4Editor.modules`), and `BUILD.json` with the version, tag and commit it was built from.
+- `Kadan/Tools/`: `retoc.exe` and `repak.exe`, with their licenses in `Kadan/Tools/licenses/`.
+- `P4Stubs/`: `P4Stubs.uplugin` and `Binaries/Win64` (six DLLs and `UE4Editor.modules`), without
+  PDBs or `Source/`. P4Stubs holds compiled declarations of the game's own classes, structs and enums,
+  so that the editor can open the game's assets. It is generated from the game's type information and
+  holds none of the game's assets or code.
+- `README.txt`: the version, commit and tag, what each folder is, the bundled tools and their
+  licenses, and the install guide's address.
+
+## Upload and publish
+
+Run the printed command, which uploads the archive and `SHA256SUMS` as a draft release of the tag.
+Open the draft on GitHub, write the release notes and publish it. Publishing starts the
+[Discord announcement](DISCORD.md), which posts the notes and a link to the release.

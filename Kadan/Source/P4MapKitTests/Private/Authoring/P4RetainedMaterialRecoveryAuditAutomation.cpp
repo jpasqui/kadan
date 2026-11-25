@@ -50,9 +50,8 @@ bool Files(const FString& Package, TMap<FString, FString>& Out)
         TArray<uint8> Bytes;
         if (IFileManager::Get().FileSize(*Path) > 64 * 1024 * 1024 || !FFileHelper::LoadFileToArray(Bytes, *Path))
             return false;
-        Out.Add(Path,
-            Hash(Bytes) + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601() +
-                (IFileManager::Get().IsReadOnly(*Path) ? TEXT("|readonly") : TEXT("|writable")));
+        // The read-only mark is left out: Kadan takes off the mark an earlier version left on a game asset's file.
+        Out.Add(Path, Hash(Bytes) + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601());
     }
     return true;
 }
@@ -65,9 +64,7 @@ bool SourceFiles(const TArray<FP4KadanSourceBinding>& Bindings, TMap<FString, FS
             if (IFileManager::Get().FileSize(*Path) <= 0 || IFileManager::Get().FileSize(*Path) > 64 * 1024 * 1024 ||
                 !FFileHelper::LoadFileToArray(Bytes, *Path))
                 return false;
-            Out.Add(Path,
-                Hash(Bytes) + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601() +
-                    (IFileManager::Get().IsReadOnly(*Path) ? TEXT("|readonly") : TEXT("|writable")));
+            Out.Add(Path, Hash(Bytes) + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601());
         }
     return true;
 }
@@ -77,8 +74,7 @@ bool ArchiveFile(const FString& Path, FString& Out)
     FString Digest;
     if (!P4HashFile(Path, int64(1) << 31, Size, Digest) || Size <= 0)
         return false;
-    Out = Digest + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601() +
-        (IFileManager::Get().IsReadOnly(*Path) ? TEXT("|readonly") : TEXT("|writable"));
+    Out = Digest + TEXT("|") + IFileManager::Get().GetTimeStamp(*Path).ToIso8601();
     return true;
 }
 TMap<FString, TArray<uint8>> Native(UMaterial* Material)

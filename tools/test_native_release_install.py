@@ -10,6 +10,7 @@ import unittest
 import zipfile
 from types import SimpleNamespace
 from unittest import mock
+from tools import build_native_release as builder
 from tools.build_native_release import archive_runtime
 from tools import native_release_install as release
 
@@ -93,30 +94,59 @@ class ReleaseInstall(unittest.TestCase):
                 target.writestr(name, bytes(data))
         return path
 
-    def test_shareable_distribution_never_bundles_or_installs_private_game_declarations(self):
+    def release_inputs(self, folder, build_id='fixture-build'):
+        """A built P4Stubs plugin, retoc and repak with their pins, and a source record, all authored."""
+        base = Path(folder)
+        stubs = base / 'stubs/P4Stubs'
+        binary = stubs / 'Binaries/Win64'
+        binary.mkdir(parents=True)
+        with zipfile.ZipFile(self.declaration_fixture(folder, build_id)) as source:
+            for name in release.declaration_archive.MEMBERS:
+                (stubs.parent / name).write_bytes(source.read(name))
+        descriptor = json.loads((stubs / 'P4Stubs.uplugin').read_text(encoding='utf-8'))
+        (stubs / 'P4Stubs.uplugin').write_text(json.dumps(dict(descriptor, EnabledByDefault=True, Category='Pikmin 4')), encoding='utf-8')
+        (binary / 'UE4Editor-Carrot4.pdb').write_bytes(b'symbols')
+        (stubs / 'Source/Carrot4/Public').mkdir(parents=True)
+        (stubs / 'Source/Carrot4/Public/Carrot4StubClasses.h').write_text('// generated', encoding='utf-8')
+        tools, pins = {}, {}
+        for name, (executable, licenses) in builder.TOOLS.items():
+            tools[name] = base / name
+            tools[name].mkdir()
+            (tools[name] / executable).write_bytes(name.encode('ascii') + b' executable')
+            for one in licenses:
+                (tools[name] / one).write_text('license', encoding='utf-8')
+            pins[name] = dict(file=executable, sha256=builder.sha256(tools[name] / executable),
+                              bytes=(tools[name] / executable).stat().st_size, built_from=name + ' fixture', license='MIT')
+        record = dict(format=builder.RECORD_FORMAT, commit='a' * 40, tag='v1.2.3', kadan_version='1.2.3',
+                      prerelease=False, files={'Kadan/Kadan.uplugin': 'b' * 64})
+        return tools, stubs, pins, record
+
+    def test_published_release_carries_p4stubs_and_installs_only_kadan(self):
         with tempfile.TemporaryDirectory() as folder:
             archive, project = self.fixture(folder)
-            declarations = self.declaration_fixture(folder)
-            candidate = Path(folder) / 'candidate'
-            members = archive_runtime(candidate, archive, declarations)
-            self.assertEqual(len(members), 6)
+            tools, stubs, pins, record = self.release_inputs(folder)
+            with mock.patch.object(builder, 'pinned_tools', return_value=pins):
+                members = archive_runtime(Path(folder) / 'candidate', archive, tools, stubs, record)
             with zipfile.ZipFile(archive) as output:
-                self.assertTrue(all(name.startswith('Kadan/') for name in output.namelist()))
-                self.assertEqual(len(output.namelist()), 6)
+                names = set(output.namelist())
+                built = json.loads(output.read('Kadan/BUILD.json'))
+                readme = output.read('README.txt').decode('utf-8')
+            self.assertEqual(names, set(members))
+            self.assertEqual(names, {'Kadan/' + name for name in release.MEMBERS | release.TOOLS} |
+                             {'Kadan/BUILD.json', 'README.txt'} | release.declaration_archive.MEMBERS)
+            self.assertEqual(built, dict(version='1.2.3', tag='v1.2.3', commit='a' * 40, prerelease=False,
+                                         unreal_build_id='fixture-build'))
+            self.assertIn('a' * 40, readme)
+            self.assertIn('P4Stubs holds compiled declarations', readme)
+            self.assertNotIn('$', readme)
             receipt = release.install(archive, project)
             self.assertEqual(receipt, release.verify(archive, project))
-            self.assertNotIn('declarations', receipt)
-            descriptor = json.loads((project.parent / 'Plugins/Kadan/Kadan.uplugin').read_text(encoding='utf-8'))
-            self.assertNotIn('Plugins', descriptor)
-            self.assertEqual(json.loads(project.read_text(encoding='utf-8')), {})
+            self.assertEqual(set(receipt['plugin_members']), release.MEMBERS)
             self.assertFalse((project.parent / 'Plugins/P4Stubs').exists())
-            # Private acceptance may install its generated SDK separately.
-            info = release.declaration_archive.inspect_declaration_archive(declarations, 'fixture-build')
-            release.declaration_archive.install_declaration_archive(info, project)
-            self.assertEqual(len(release.declaration_archive.verify_installed_declarations(info, project)['declarations']), 8)
-            self.assertEqual(receipt, release.verify(archive, project))
+            info = release.bundled_declarations(archive, 'fixture-build')
+            self.assertEqual({name for name, _, _ in info.members}, release.declaration_archive.MEMBERS)
 
-    def test_game_sdk_added_to_shareable_archive_is_refused(self):
+    def test_p4stubs_without_the_release_files_is_refused(self):
         with tempfile.TemporaryDirectory() as folder:
             archive, project = self.fixture(folder)
             declarations = self.declaration_fixture(folder)
@@ -127,16 +157,16 @@ class ReleaseInstall(unittest.TestCase):
                 release.install(archive, project)
             self.assertFalse((project.parent / 'Plugins/Kadan').exists())
 
-    def test_declarations_wrong_build_and_foreign_plugin_refuse_before_editor_install(self):
+    def test_stubs_of_another_build_and_foreign_plugin_refuse_before_editor_install(self):
         with tempfile.TemporaryDirectory() as folder:
             archive, project = self.fixture(folder)
             original = archive.read_bytes()
-            declarations = self.declaration_fixture(folder, 'other-build')
-            with self.assertRaisesRegex(ValueError, 'different build IDs'):
-                archive_runtime(Path(folder) / 'candidate', archive, declarations)
+            tools, stubs, pins, record = self.release_inputs(folder, 'other-build')
+            with mock.patch.object(builder, 'pinned_tools', return_value=pins):
+                with self.assertRaisesRegex(ValueError, 'built for Unreal build other-build, Kadan for fixture-build'):
+                    archive_runtime(Path(folder) / 'candidate', archive, tools, stubs, record)
             self.assertEqual(archive.read_bytes(), original)
-            declarations = self.declaration_fixture(folder)
-            archive_runtime(Path(folder) / 'candidate', archive, declarations)
+            archive_runtime(Path(folder) / 'candidate', archive)
             foreign = project.parent / 'Plugins/Foreign'
             foreign.mkdir(parents=True)
             keep = foreign / 'Foreign.uplugin'

@@ -59,6 +59,7 @@ core/export_contract.h
 core/export_package.h
 core/export_registry.h
 core/game_builds.h
+core/gate_wall.h
 core/landscape_color_preview.h
 core/level_native.h
 core/light_function_export.h

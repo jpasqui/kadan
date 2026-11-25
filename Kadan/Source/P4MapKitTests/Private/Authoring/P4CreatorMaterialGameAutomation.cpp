@@ -2,6 +2,8 @@
 // A creator material made from scratch, exported by the panel's exporter for a game run.
 // Two textures (one panned), a Fresnel rim, opaque Default Lit, on a 100 cm cube, plus an
 // instance of the material with other values. The output folder is kept for the game run.
+// P4_KADAN_EXPORT_OUTPUT, when set, is the folder the mod is exported to instead (on another drive than the
+// game's files, the export's check of the textures it packed works across the two drives).
 #include "P4ExportDriver.h"
 #include "P4AuthoringRows.h"
 #include "P4CreatorSource.h"
@@ -110,6 +112,9 @@ bool FP4CreatorMaterialGameExportTest::RunTest(const FString&)
         FPaths::ProjectSavedDir() / TEXT("KadanCreatorMaterialGame"));
     Request.ProjectDirectory = Work / TEXT("project");
     Request.OutputDirectory = Work / TEXT("out");
+    const FString Output = FPlatformMisc::GetEnvironmentVariable(TEXT("P4_KADAN_EXPORT_OUTPUT"));
+    if (!Output.IsEmpty())
+        Request.OutputDirectory = FPaths::ConvertRelativePathToFull(Output);
     Request.WorkDirectory = FPaths::ProjectIntermediateDir() / TEXT("P4MapKit/KadanCreatorMaterialGame/work");
     Request.GamePaksDirectory = GamePaks;
     Request.ExtractedGameDirectory = FPlatformMisc::GetEnvironmentVariable(TEXT("P4_TRANSPARENT_GAMEFILES"));

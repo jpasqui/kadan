@@ -276,7 +276,8 @@ def owned_sweep_path(path, repository=REPO):
 
 
 def writable(function, path, _):
-    # Imported game assets are read-only on disk; the isolated project's copy is still removed.
+    # A project imported by an earlier version of Kadan has its game assets marked read-only on disk; the isolated
+    # project's copy is still removed.
     os.chmod(path, stat.S_IWRITE)
     function(path)
 

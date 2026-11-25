@@ -1,12 +1,14 @@
 #include "P4SwitchShaderMapFreeze.h"
 #include "P4MaterialInstancePermutation.h"
 #include "P4MaterialFactoryContext.h"
+#include "P4KadanMaterialExpressions.h"
 #include "P4MaterialGameSettings.h"
 #include "P4MaterialInstanceGameSettings.h"
 #include "P4SwitchGpuFactoryParameters.h"
 #include "KadanSwitchShaderCompiler.h"
 #include "Features/IModularFeatures.h"
 #include "MaterialShared.h"
+#include "Materials/MaterialExpressionQualitySwitch.h"
 #include "Serialization/MemoryImage.h"
 #include "Serialization/MemoryImageWriter.h"
 #include "Serialization/MemoryLayout.h"
@@ -16,6 +18,7 @@
 #include "Materials/MaterialInstanceConstant.h"
 #include "Misc/Compression.h"
 #include "Misc/ScopeExit.h"
+#include "Misc/SecureHash.h"
 #include "Modules/ModuleManager.h"
 #include "RenderingThread.h"
 #include "ShaderCompiler.h"
@@ -389,6 +392,18 @@ FP4SwitchMaterialContext::~FP4SwitchMaterialContext()
         Context->SetMaterialSSR(false);
 }
 
+TArray<TPair<FString, int32>> P4SwitchSourcePatchUses()
+{
+    const IKadanSwitchCompileContext* Context = SwitchCompileContext();
+    return Context ? Context->SourcePatchUses() : TArray<TPair<FString, int32>>();
+}
+
+void P4ResetSwitchSourcePatchUses()
+{
+    if (IKadanSwitchCompileContext* Context = SwitchCompileContext())
+        Context->ResetSourcePatchUses();
+}
+
 FMaterialResource* P4CacheMaterialForPlatform(
     UMaterial* Material, EShaderPlatform Platform, UMaterialInstance* Instance)
 {
@@ -406,7 +421,22 @@ FMaterialResource* P4CacheMaterialForPlatform(
     FMaterialResource* Resource = Platform == SP_SWITCH
         ? static_cast<FMaterialResource*>(new FP4SwitchMaterialResource(Material, Instance))
         : Material->AllocateResource();
-    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform));
+    // The game renders at material quality High (r.MaterialQualityLevel 1, read live in Eden; none of the game's configs
+    // or device profiles, console or handheld, sets another). For a material whose Quality Switch uses
+    // that level, its runtime asks for a High resource only (Material.cpp FindOrCreateMaterialResource, no fallback to
+    // the default quality), so the one resource exported is compiled and named for High. Otherwise the default quality,
+    // which the game uses at every level the material does not use.
+    EMaterialQualityLevel::Type Quality = EMaterialQualityLevel::Num;
+    if (Platform == SP_SWITCH)
+    {
+        // As stock's quality level usage (not exported): a level is used when a Quality Switch has its input.
+        TArray<UMaterialExpressionQualitySwitch*> Switches;
+        Material->GetAllExpressionsInMaterialAndFunctionsOfType(Switches);
+        for (UMaterialExpressionQualitySwitch* Switch : Switches)
+            if (Switch && Switch->Inputs[EMaterialQualityLevel::High].GetTracedInput().Expression)
+                Quality = EMaterialQualityLevel::High;
+    }
+    Resource->SetMaterial(Material, Instance, GetMaxSupportedFeatureLevel(Platform), Quality);
     Resource->CacheShaders(Platform, nullptr);
     return Resource;
 }
@@ -535,6 +565,7 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
     Copy->bUsedWithStaticLighting = true;
     Copy->bUsedWithInstancedStaticMeshes = Request.Instanced;
     P4ApplyMaterialFactoryUsage(Copy.Get(), Request.Factories);
+    P4ApplyGameRenderLimits(Copy.Get());
     // Compile a private copy of the complete chain. Flattening local overrides loses inherited
     // switches, layer associations and base-property overrides from intermediate instances.
     TArray<UMaterialInstanceConstant*> Chain;
@@ -572,6 +603,41 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         Instance->UpdateOverridableBaseProperties();
         P4MaterialInstancePrepareRecoveredViewPermutation(Chain[Index], Instance);
         Parent = Instance;
+    }
+    // Render After DOF with the blend mode the instance chain draws with.
+    P4ApplyGameModulateLimit(Copy.Get(), Parent->GetBlendMode());
+    // Stock 4.26 draws a volumetric distance function decal only in its deferred renderer, into the GBuffer; a forward
+    // renderer (the game's, or a forward-shading UE4 project) draws no such decal.
+    if (Copy->MaterialDomain == MD_DeferredDecal && Copy->DecalBlendMode == DBM_Volumetric_DistanceFunction)
+        return Fail(TEXT("Volumetric distance function decals draw only in UE4's deferred renderer. The game renders ")
+                    TEXT("forward, where UE4 draws no such decal either. Use a DBuffer decal blend mode."));
+    // The game's scene reads anywhere in the graph, material functions included, where the nodes cannot see the
+    // material they compile for: only Surface materials drawn translucent (with the instance chain's blend mode) and
+    // post process materials. The game binds its scene textures only for those passes; a UI, decal, light function,
+    // volume or virtual texture material is drawn where none are bound, whatever its blend mode.
+    {
+        TArray<UMaterialExpressionKadanSceneDepth*> Depths;
+        TArray<UMaterialExpressionKadanSceneColor*> Colors;
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Depths);
+        Copy->GetAllExpressionsInMaterialAndFunctionsOfType(Colors);
+        const UMaterialInterface* Effective = Parent;
+        const bool bReadsScene = Copy->MaterialDomain == MD_PostProcess ||
+            (Copy->MaterialDomain == MD_Surface && IsTranslucentBlendMode(Effective->GetBlendMode()));
+        if ((Depths.Num() || Colors.Num()) && !bReadsScene)
+            return Fail(FString(TEXT("Only Surface materials drawn translucent and post process materials can ")
+                                TEXT("read the game's scene. This material uses ")) +
+                (Depths.Num() && Colors.Num() ? TEXT("Game Scene Depth and Game Scene Color.")
+                    : Depths.Num()            ? TEXT("Game Scene Depth.")
+                                              : TEXT("Game Scene Color.")));
+        // Refraction, for the blend mode and shading models the instance chain draws with. A Game Scene Color node
+        // marks its material as reading the scene colour itself, through stock's read with its value unused. Inside a
+        // material function it cannot see its material's domain, which stock's read needs, so such a material is
+        // marked here (when refraction has not marked it already).
+        if (!P4ApplyGameRefraction(Copy.Get(), Effective->GetBlendMode(), Effective->GetShadingModels()) &&
+            Copy->MaterialDomain == MD_Surface &&
+            Colors.ContainsByPredicate([&Copy](UMaterialExpressionKadanSceneColor* Color)
+                { return !Copy->Expressions.Contains(Color); }))
+            P4MarkGameSceneColorRead(Copy.Get());
     }
     FMaterialResource* Resource = nullptr;
     {
@@ -639,6 +705,50 @@ FP4CreatorMaterialCompileResult P4CompileCreatorMaterialSwitch(const FP4CreatorM
         return Fail(Error);
     if (Sorted.Num() != int32(Texts.size()))
         return Fail(TEXT("The map's names changed between its two writes."));
+    // What the programs the map's shaders use (after the game's absent classes left it) read that the game's layout
+    // does not list: the format keeps it in the map's platform debug data (KadanUnlistedReadsTag), which UE's Derived
+    // Data Cache keeps with the map, so a cached map has it too.
+#if WITH_EDITORONLY_DATA
+    {
+        TSet<int32> Used;
+        TMap<FShaderId, TShaderRef<FShader>> Shaders;
+        Map->GetShaderList(Shaders);
+        for (const auto& Pair : Shaders)
+            if (Pair.Value.IsValid())
+                Used.Add(Pair.Value->GetResourceIndex());
+        TArray<FShaderPipelineRef> Pipelines;
+        Map->GetShaderPipelineList(Pipelines);
+        for (const FShaderPipelineRef& Pipeline : Pipelines)
+            if (Pipeline.IsValid())
+                for (const TShaderRef<FShader>& Shader : Pipeline.GetShaders())
+                    if (Shader.IsValid())
+                        Used.Add(Shader->GetResourceIndex());
+        // Each by the SHA-1 of its code before the optional data UE adds at its end, as the format hashed it.
+        TSet<FString> UsedCode;
+        for (const int32 Index : Used)
+            if (Index >= 0 && Index < int32(Out.Programs.size()) && !Out.Programs[size_t(Index)].empty())
+            {
+                const P4Bytes& Program = Out.Programs[size_t(Index)];
+                const FShaderCodeReader Reader(TArrayView<const uint8>(Program.data(), int32(Program.size())));
+                uint8 Hash[20];
+                FSHA1::HashBuffer(Program.data(), uint64(Reader.GetShaderCodeSize()), Hash);
+                UsedCode.Add(BytesToHex(Hash, 20));
+            }
+        TSet<FString> Reads;
+        for (const TArray<uint8>& Entry : Code->PlatformDebugData)
+        {
+            const FUTF8ToTCHAR Wide(reinterpret_cast<const ANSICHAR*>(Entry.GetData()), Entry.Num());
+            TArray<FString> Lines;
+            FString(Wide.Length(), Wide.Get()).ParseIntoArrayLines(Lines);
+            if (Lines.Num() < 2 || Lines[0] != KadanUnlistedReadsTag() || !UsedCode.Contains(Lines[1]))
+                continue;
+            for (int32 Line = 2; Line < Lines.Num(); ++Line)
+                Reads.Add(Lines[Line]);
+        }
+        Out.UnlistedGameLayoutReads = Reads.Array();
+        Out.UnlistedGameLayoutReads.Sort();
+    }
+#endif
 
     P4Bytes Block;
     OwnMap::Put32(Block, 1);

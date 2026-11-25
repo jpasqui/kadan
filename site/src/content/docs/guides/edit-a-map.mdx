@@ -42,7 +42,10 @@ length), Kadan writes the change to that object's row in the game's placement li
 review and the Kadan panel name each row that changed. The export tells you about an option Kadan
 can't write into the row yet; the game keeps its own value for that option. For an object you place, Kadan writes
 its options only for the kinds of objects whose options it has checked against the game's own placement lists. For
-any other kind, the export names the options you set, and the game uses that kind's own values. A save that already has the map's record keeps the game's own objects as
+any other kind, the export names the options you set, and the game uses that kind's own values. When you change a
+wall's length, the editor draws the wall's pieces, its far side and its collision at the new length, as the game
+builds the wall when it loads the map, and the editor's navigation follows. The level itself keeps the pieces it was
+saved with. A save that already has the map's record keeps the game's own objects as
 they were, because the game builds the map from the save then. To see your changes, play from a save
 that hasn't visited the map yet.
 

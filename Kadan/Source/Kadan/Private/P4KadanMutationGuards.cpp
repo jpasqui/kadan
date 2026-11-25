@@ -203,8 +203,6 @@ void RemoveSnapshots(TFunctionRef<bool(const FSnapshot&)> Select)
         });
 }
 bool Restoring = false, Capturing = false;
-// Files of locked packages the importer made writable to write them again.
-TSet<FString> Unprotected;
 // Editor property notifications on a recovered mesh must not compile missing source geometry.
 // Use the engine's existing cooked-editor cache path only for that notification, then restore it.
 TMap<TWeakObjectPtr<UPackage>, bool> MeshNotifications;
@@ -223,13 +221,16 @@ FString FileOf(FName Package)
     return FPaths::ConvertRelativePathToFull(File);
 }
 
-void SetFileReadOnly(const FString& File, bool ReadOnly)
+// Earlier versions of Kadan marked the file of every game asset they locked read-only. Kadan keeps a game asset by its
+// own guards and leaves its file writable, so the mark an earlier version left on a locked package's file is taken off.
+// Nothing else is: a file Kadan does not lock keeps whatever mark its owner gave it.
+void ClearEarlierReadOnlyMark(const FString& File)
 {
     if (File.IsEmpty())
         return;
     IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
-    if (Files.FileExists(*File) && Files.IsReadOnly(*File) != ReadOnly)
-        Files.SetReadOnly(*File, ReadOnly);
+    if (Files.FileExists(*File) && Files.IsReadOnly(*File))
+        Files.SetReadOnly(*File, false);
 }
 
 void SetPackageLock(FName Package, bool Locked)
@@ -241,8 +242,7 @@ void SetPackageLock(FName Package, bool Locked)
         const FName Owner(*(TEXT("Kadan.ReadOnly:") + Package.ToString()));
         Filter->AddBlacklistItem(Owner, Package.ToString());
         Owners.Add(Package, Owner);
-        // Unreal's own save refuses a read-only file, whatever asks for the save.
-        SetFileReadOnly(FileOf(Package), true);
+        ClearEarlierReadOnlyMark(FileOf(Package));
     }
     else if (!Locked && Owners.Contains(Package))
     {
@@ -250,7 +250,6 @@ void SetPackageLock(FName Package, bool Locked)
         Owners.Remove(Package);
         RemoveSnapshots([Package](const FSnapshot& One)
             { return !One.Object.IsValid() || One.Object->GetOutermost()->GetFName() == Package; });
-        SetFileReadOnly(FileOf(Package), false);
     }
 }
 
@@ -274,6 +273,25 @@ bool PackageIsLocked(UPackage* Package)
 FString AssetName(const UObject* Object)
 {
     return FPackageName::GetLongPackageAssetName(Object->GetOutermost()->GetName());
+}
+
+// A save that would write a game asset's own file is refused with Kadan's reason, shown as a notification. A save of
+// it to another file, as Unreal's autosave makes, is only logged.
+void RefuseLockedSave(UPackage* Package, const FString& File)
+{
+    const FString Name = FPackageName::GetLongPackageAssetName(Package->GetName());
+    const FString Own = FileOf(Package->GetFName());
+    if (!IsInGameThread() || Own.IsEmpty() || !FPaths::IsSamePath(Own, FPaths::ConvertRelativePathToFull(File)))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Kadan: %s is a game asset, so it is not saved to %s."), *Package->GetName(),
+            *File);
+        return;
+    }
+    UObject* Asset = Package->FindAssetInPackage();
+    FString Reason = Asset ? GetAssetPolicy(Asset).Reason : FString();
+    if (Reason.IsEmpty())
+        Reason = TEXT("Import your own source file to replace supported asset data.");
+    Tell(FString::Printf(TEXT("Kadan did not save %s because it is a game asset. %s"), *Name, *Reason));
 }
 
 // Package-copy paths can carry the game's source keys, naming the old package. Keep those
@@ -1015,10 +1033,6 @@ void FlushReadOnlyGuards()
             Package->bIsCookedForEditor = Pair.Value;
     MeshNotifications.Reset();
     FlushEditGuards();
-    // A file the importer made writable to write it again is read-only again.
-    for (const FString& File : Unprotected)
-        SetFileReadOnly(File, true);
-    Unprotected.Reset();
 }
 
 void UpdateReadOnlyAsset(UObject* Asset)
@@ -1115,34 +1129,19 @@ void InitializeMutationGuards()
                     if (!Owner.IsNone())
                         Filter->AddBlacklistItem(Owner, Package->GetName());
                 };
-                // Kadan's importer writes a game asset again (a stand-in it fills). The file is made writable for
-                // this save, and read-only again once it is written.
-                if (!Owner.IsNone())
-                {
-                    const FString Full = FPaths::ConvertRelativePathToFull(File);
-                    if (FPlatformFileManager::Get().GetPlatformFile().IsReadOnly(*Full))
-                    {
-                        SetFileReadOnly(Full, false);
-                        Unprotected.Add(Full);
-                    }
-                }
                 return !PreviousSave.IsBound() || PreviousSave.Execute(Package, File, Output);
             }
-            if (PreviousSave.IsBound() && !PreviousSave.Execute(Package, File, Output))
+            // Kadan's guard answers first for a game asset, so the save that is refused says why.
+            if (Package && PackageIsLocked(Package))
+            {
+                RefuseLockedSave(Package, File);
                 return false;
-            if (!Package)
-                return true;
-            if (!PackageIsLocked(Package))
-                return true;
-            UE_LOG(LogTemp, Warning,
-                TEXT(
-                    "Kadan: %s is a read-only game reference. Import your own source file to replace supported asset data."),
-                *Package->GetName());
-            return false;
+            }
+            return !PreviousSave.IsBound() || PreviousSave.Execute(Package, File, Output);
         });
     FCoreUObjectDelegates::IsPackageOKToSaveDelegate = OurSave;
     PackageSaved = UPackage::PackageSavedEvent.AddLambda(
-        [](const FString& File, UObject* Outer)
+        [](const FString&, UObject* Outer)
         {
             UPackage* Package = Cast<UPackage>(Outer);
             if (!Package || !Installed)
@@ -1150,12 +1149,6 @@ void InitializeMutationGuards()
             // What the importer saves of a locked asset is the game's asset as imported.
             RemoveSnapshots([Package](const FSnapshot& One)
                 { return !One.Object.IsValid() || One.Object->GetOutermost() == Package; });
-            if (IsLockedPackage(Package))
-            {
-                const FString Full = FPaths::ConvertRelativePathToFull(File);
-                SetFileReadOnly(Full, true);
-                Unprotected.Remove(Full);
-            }
         });
     Delete = FEditorDelegates::OnAssetsCanDelete.AddLambda(
         [](const TArray<UObject*>& Objects, FCanDeleteAssetResult& Result)
@@ -1231,9 +1224,6 @@ void ShutdownMutationGuards()
         for (const auto& Entry : Owners)
             Filter->UnregisterOwner(Entry.Value);
     }
-    // The files stay read-only: they are the game's assets whether Kadan is loaded or not.
-    for (const FString& File : Unprotected)
-        SetFileReadOnly(File, true);
     for (const auto& Pair : MeshNotifications)
         if (UPackage* Package = Pair.Key.Get())
             Package->bIsCookedForEditor = Pair.Value;
@@ -1241,7 +1231,6 @@ void ShutdownMutationGuards()
     Owners.Reset();
     Snapshots.Reset();
     SnapshotObjects.Reset();
-    Unprotected.Reset();
     PreviousSave.Unbind();
     OurSave.Unbind();
     Installed = false;

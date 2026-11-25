@@ -147,7 +147,7 @@ bool FP4BlueprintFreshInheritanceTest::RunTest(const FString&)
     if (!TestTrue(TEXT("synthetic annotation owns the exact unique imported fixture"), Child->GetPathName() == Fixture.Object(TEXT("Child")) &&
         FPackageName::TryConvertLongPackageNameToFilename(Fixture.Package(TEXT("Child")), File, TEXT(".uasset")))) return false;
     {
-        // Imported source is readonly even for these synthetic plans. Reuse the
+        // Imported source is locked even for these synthetic plans. Reuse the
         // existing private reimport fixture's exact native annotation publication;
         // this is not an ordinary creator save or a product permission toggle.
         P4ImportPublication::FImportScope Import;
@@ -156,7 +156,7 @@ bool FP4BlueprintFreshInheritanceTest::RunTest(const FString&)
             UPackage::SavePackage(Child->GetOutermost(), Child, RF_Public | RF_Standalone, *File, GError, nullptr, false, true, SAVE_NoError))) return false;
     }
     TestTrue(TEXT("source annotation restores native publication scope"), !P4ImportPublication::IsImporting() && !P4ImportPublication::IsSaving(Child->GetOutermost()));
-    TestTrue(TEXT("source annotation restores readonly file protection"), IFileManager::Get().IsReadOnly(*File));
+    TestFalse(TEXT("source annotation leaves the game asset's file writable on disk"), IFileManager::Get().IsReadOnly(*File));
     Child->GetOutermost()->SetDirtyFlag(false);
     if (!Fixture.Run(*this, true)) return false;
     Child = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Child")));

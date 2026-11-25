@@ -1,7 +1,7 @@
 # CI
 
 GitHub Actions checks the portable code, development tools, and documentation on source changes.
-The native plugin has a separate release qualification gate.
+The native plugin is built and released on the desktop, not in GitHub Actions.
 
 ## Environment
 
@@ -30,9 +30,11 @@ python tools/check.py --ci --report build/ci/checks.json
 ```
 
 The gate compiles and runs the portable C++ programs and discovers the Python tool tests,
-including the stubs generator tests. The Lua preview-controller checks use Lupa. Tests use
-authored fixtures and require no game dump, private receipt, licensed editor, or desktop
-connection. Required dependencies are checked before the suite runs, and unexpected skips fail
+including the stubs generator tests. Every `tests/*_test.cpp` is either run or named in
+`EXCLUDED_TESTS` in `tools/check.py` with the reason it is not, such as a private game file it
+reads as an argument; a test in neither fails the gate, and the report lists the excluded ones.
+The Lua preview-controller checks use Lupa. Tests use authored fixtures and require no game
+dump, private receipt, licensed editor, or desktop connection. Required dependencies are checked before the suite runs, and unexpected skips fail
 the gate. The report records what ran and the result.
 
 Use `python tools/check.py --core` or `python tools/check.py --tools` for a focused local run.
@@ -49,13 +51,10 @@ Portable checks exercise the core and tooling contracts. Building the editor plu
 a licensed Unreal Engine 4.26.2 installation, and native automation uses separately configured
 editor inputs. Game acceptance runs against the resulting mod. Record these results separately.
 
-The existing native release policy binds qualification to an exact archive and source. It
-requires the editor and game acceptance chain specified by `tools/native_quality_policy.json`.
-A hosted check result does not replace that qualification.
+A hosted check result does not replace an editor or game check.
 
-[Releases](RELEASING.md) describes the trusted manual release workflow. It uses a qualified
-artifact supplied on a configured native release runner and creates a draft after verification.
-Public pull request jobs have no connection to that environment.
+[Releases](RELEASING.md) describes how a release is built on the desktop from a clean checkout of
+its tag and uploaded as a draft by hand. No workflow builds or uploads a release.
 
 ## Releases and announcements
 
@@ -67,6 +66,5 @@ send no Discord announcement.
 ## Repository settings
 
 After the first workflow run, require the displayed `Portable checks` and `Documentation` jobs
-for `main`. Keep normal workflow tokens read-only and release writes scoped
-to the trusted release job. Branch rules and runner registration are GitHub settings; source
+for `main`. Keep workflow tokens read-only. Branch rules are GitHub settings; source
 files describe the checks but do not configure those account settings.

@@ -74,13 +74,19 @@ cbuffer View
 +++ replace
 	ImageBasedReflections.rgb *= View_C4IndirectLightingSpecularColorScale;
 	CompositedAverageBrightness.x *= Luminance( View_C4IndirectLightingSpecularColorScale );
-@@ C4 ambient: the game's ambient light, tinted by the base color, after the indirect diffuse requires DiffuseColor += (DiffuseIndirectLighting * DiffuseColorForIndirect
+@@ C4 ambient: the game's ambient light, tinted by the base color, after the indirect diffuse requires DiffuseColor += (DiffuseIndirectLighting * DiffuseColorForIndirect unless float3 DualBlendColorMul = 1.0f;
 --- find
 	Color += DiffuseColor;
 +++ replace
 	Color += DiffuseColor;
 	if (!C4Transmissive(GBuffer.ShadingModelID))   // none on the transmissive shading models
 		Color += BaseColor * (View_C4AmbientLightColor - Metallic * View_C4AmbientLightColor) * AOMultiBounce(BaseColor.g, MaterialAO);
+@@ C4 ambient, thin translucent: the same ambient light in the diffuse colour the thin translucent model adds (UE's thin translucent path keeps the diffuse colour apart and never adds it to Color) requires float3 DualBlendColorMul = 1.0f;
+--- find
+	float3 DualBlendColorMul = 1.0f;
++++ replace
+	float3 DualBlendColorMul = 1.0f;
+	DiffuseColor += BaseColor * (View_C4AmbientLightColor - Metallic * View_C4AmbientLightColor) * AOMultiBounce(BaseColor.g, MaterialAO);
 @@ decals: the mask is a float texture
 --- find
 Texture2D<uint> OpaqueBasePass_DBufferRenderMask;
@@ -152,11 +158,16 @@ TEXT(R"KSP(@@ decals: the game's mask, modes and buffers requires DBufferMask = 
 				C4LocalLightScale = pow(C4DirectionalScale, max(View_C4LightParam1.y, 0));
 				IndirectOcclusion = C4ReflectionOcclusion;
 			}
-@@ reflection: blended toward the directional shadow by the game's weight requires ReflectionColor = GetImageBasedReflectionLighting(
+@@ reflection: blended toward the directional shadow by the game's weight requires ReflectionColor = GetImageBasedReflectionLighting( unless ColorSeparateSpecular += ReflectionColor;
 --- find
 						Color += ReflectionColor;
 +++ replace
 						Color += ReflectionColor * (View_C4LightParam.x + (DirectionalLightShadow - View_C4LightParam.x * DirectionalLightShadow));
+@@ reflection, thin translucent: the same blend on the separate specular the thin translucent model keeps its reflection in requires ColorSeparateSpecular += ReflectionColor;
+--- find
+						ColorSeparateSpecular += ReflectionColor;
++++ replace
+						ColorSeparateSpecular += ReflectionColor * (View_C4LightParam.x + (DirectionalLightShadow - View_C4LightParam.x * DirectionalLightShadow));
 )KSP"),
 TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (DiffuseIndirectLighting
 --- find
@@ -213,6 +224,65 @@ TEXT(R"KSP(@@ indirect diffuse: no AO multi-bounce requires DiffuseColor += (Dif
 +++ replace
 	float MaterialAO = GetMaterialAmbientOcclusion(PixelMaterialInputs);
 	C4MaterialAO = MaterialAO;
+@@ pixel depth offset: the depth from w itself (the game's SvPosition.w, and so ScreenPosition's scale, is 1/w: the fragment's w as its programs read it, spirv_front.h), where stock adds the offset to a w it reads as w requires float DeviceDepth = min(MaterialParameters.ScreenPosition.z / (MaterialParameters.ScreenPosition.w + PixelDepthOffset), MaterialParameters.SvPosition.z);
+--- find
+	float DeviceDepth = min(MaterialParameters.ScreenPosition.z / (MaterialParameters.ScreenPosition.w + PixelDepthOffset), MaterialParameters.SvPosition.z);
++++ replace
+	float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+	float DeviceDepth = min(MaterialParameters.SvPosition.z * C4ViewW / (C4ViewW + PixelDepthOffset), MaterialParameters.SvPosition.z);
+@@ pixel depth offset: the offset the clamped depth leaves, in w requires float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+--- find
+	PixelDepthOffset = (MaterialParameters.ScreenPosition.z - DeviceDepth * MaterialParameters.ScreenPosition.w) / DeviceDepth;
++++ replace
+	PixelDepthOffset = (MaterialParameters.SvPosition.z - DeviceDepth) * C4ViewW / DeviceDepth;
+@@ pixel depth offset: the screen position's (and SvPosition's) w as the game's 1/w of the offset w requires float C4ViewW = 1 / MaterialParameters.SvPosition.w;
+--- find
+	MaterialParameters.ScreenPosition.w += PixelDepthOffset;
++++ replace
+	MaterialParameters.ScreenPosition.w = 1 / (C4ViewW + PixelDepthOffset);
+)KSP"),
+TEXT(R"KSP(@@ pixel depth: the Pixel Depth node's w (HLSLMaterialTranslator.cpp PixelDepth, also Depth Fade's) through a helper, as the game's pixel ScreenPosition.w is 1/w (see pixel depth offset)
+--- find
+GetScreenPosition(Parameters).w
++++ replace
+C4PixelDepth(Parameters)
+@@ pixel depth: the helper, w itself for a pixel, the vertex's clip w unchanged requires C4PixelDepth(Parameters)
+--- find
+float4 GetScreenPosition(FMaterialPixelParameters Parameters)
+{
+	return Parameters.ScreenPosition;
+}
++++ replace
+float4 GetScreenPosition(FMaterialPixelParameters Parameters)
+{
+	return Parameters.ScreenPosition;
+}
+float C4PixelDepth(FMaterialVertexParameters Parameters)
+{
+	return GetScreenPosition(Parameters).w;
+}
+float C4PixelDepth(FMaterialPixelParameters Parameters)
+{
+	return 1 / Parameters.ScreenPosition.w;
+}
+@@ refraction without the game's distortion pass (it keeps it off, r.RefractionQuality 0): the scene behind, read at UE's own distortion offset (DistortionCommon.ush ComputeBufferUVDistortion), under the surface, which then covers it; a material without a Refraction input folds this away requires 		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
+--- find
+		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
++++ replace
+		Out.MRT[0] =  float4 (Color * Fogging.a + Fogging.rgb, Opacity);
+		{
+			float2 C4Refraction = GetMaterialRefraction(PixelMaterialInputs);
+			if (C4Refraction.x != 1)
+			{
+				float3 C4ViewNormal = normalize(mul(MaterialParameters.WorldNormal, (float3x3)View_TranslatedWorldToView));
+				float C4InvTanHalfFov = View_ViewToClip[0][0];
+				float2 C4Offset = C4ViewNormal.xy * (C4Refraction.x - 1) * View_ViewSizeAndInvSize.xy * View_BufferSizeAndInvSize.zw;
+				C4Offset *= View_ViewSizeAndInvSize.xy * float2(0.00023, -0.00023) * float2(C4InvTanHalfFov, View_ViewSizeAndInvSize.x * View_ViewSizeAndInvSize.w * C4InvTanHalfFov);
+				float2 C4UV = clamp(MaterialParameters.SvPosition.xy * View_BufferSizeAndInvSize.zw + C4Offset, View_BufferBilinearUVMinMax.xy, View_BufferBilinearUVMinMax.zw);
+				float3 C4Behind = DecodeSceneColorForMaterialNode(C4UV);
+				Out.MRT[0] = float4(Out.MRT[0].rgb * Out.MRT[0].a + C4Behind * (1 - Out.MRT[0].a), 1);
+			}
+		}
 @@ translucency: no pixel where the material is fully transparent, on materials with bC4MaterialParam10
 --- find
 	float  Opacity = GetMaterialOpacity(PixelMaterialInputs);
