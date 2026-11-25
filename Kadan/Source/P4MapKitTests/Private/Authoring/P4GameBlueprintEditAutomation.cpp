@@ -79,11 +79,11 @@ bool FP4GameBlueprintFamilyPolicy::RunTest(const FString&)
         FString(Package->GetMetaData()->GetValue(BP, TEXT("P4OriginalRecord"))), Before);
     Package->GetMetaData()->SetValue(BP, TEXT("P4BlueprintStandIn"), TEXT("1"));
     Package->SetDirtyFlag(true);
-    TestFalse(TEXT("Dirty stand-in remains locked"), GetAssetPolicy(BP).AllowEdit);
+    TestFalse(TEXT("Dirty stand-in remains protected"), GetAssetPolicy(BP).AllowEdit);
     TestFalse(TEXT("Dirty stand-in cannot become a replacement"), P4IsGameReplacement(BP));
     Package->GetMetaData()->RemoveValue(BP, TEXT("P4BlueprintStandIn"));
     Package->GetMetaData()->SetValue(BP, TEXT("P4BlueprintReconstructionIncomplete"), TEXT("1"));
-    TestFalse(TEXT("Incomplete reconstruction stays locked"), GetAssetPolicy(BP).AllowEdit);
+    TestFalse(TEXT("Incomplete reconstruction remains protected"), GetAssetPolicy(BP).AllowEdit);
     TestFalse(TEXT("Incomplete reconstruction cannot ship"), P4IsGameReplacement(BP));
     Package->SetDirtyFlag(false);
     TArray<UObject*> Objects;
@@ -144,7 +144,7 @@ bool FP4EditGameActorBlueprint::RunTest(const FString&)
         !TestTrue(TEXT("Recovered original"), P4Kadan::IsRecoveredGameActorBlueprint(BP)) ||
         !TestTrue(TEXT("Owned test build has enabled the family"), P4Kadan::GetAssetPolicy(BP).AllowEdit))
         return false;
-    P4Kadan::UpdateReadOnlyAsset(BP);
+    P4Kadan::TrackAssetSource(BP);
     USimpleConstructionScript* SCS = BP->SimpleConstructionScript;
     if (!TestNotNull(TEXT("Construction script"), SCS) || SCS->FindSCSNode(TEXT("KadanEditMarker")))
     {

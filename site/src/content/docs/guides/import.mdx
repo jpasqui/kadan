@@ -65,8 +65,14 @@ A game map's day, night and Olimar versions are its sublevels, named with `_Day`
 
 ## Asset status
 
-If an imported asset or one of its properties doesn't support an edit, Kadan marks it as
-read-only and gives the reason.
+A game asset that Kadan recovered in full opens in Unreal's own editors, and you can edit and
+save it. Kadan keeps a stand-in or an incomplete import as a read-only reference and gives the
+reason. On a game actor placed in an imported map, a property whose change can't reach the game
+is read-only too.
+
+Saving an edit doesn't mean that it ships. Kadan exports edits to game maps, data tables, actor
+Blueprints, material instances and skeletons at the game's own paths. For any other edited game
+asset, **What ships** says that the edit can't be exported.
 
 Kadan gives every asset that it imports a game tag, and it keeps the game's asset identities when
 it exports supported changes. A copy of a game asset is yours, so you can edit it. Check

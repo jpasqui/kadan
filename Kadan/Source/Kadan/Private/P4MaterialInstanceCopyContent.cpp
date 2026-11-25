@@ -4,7 +4,6 @@
 #include "P4MaterialInstancePermutation.h"
 #include "P4CreatorSource.h"
 #include "P4GameReplacement.h"
-#include "P4KadanAssetPolicy.h"
 #include "P4LevelContent.h"
 #include "P4MaterialInstanceComparison.h"
 #include "P4NativeHash.h"
@@ -698,7 +697,7 @@ bool Original(UObject* Object, bool MIC, FString& Error)
     if (!Ready(Object) || Object->GetOutermost()->IsDirty() || P4HasCreatorSource(Object) ||
         P4HasCopiedGameData(Object) || P4HasIntrinsicGameProxy(Object) || P4IsGameReplacement(Object, &Replaced) ||
         !P4HasIntrinsicGameSource(Object, &Origin) || !P4ExactNativeString(Origin, Object->GetOutermost()->GetName()) ||
-        P4Kadan::GetAssetPolicy(Object).AllowEdit || !LiteralRecord(Object, Record, RecordText, Error) ||
+        !LiteralRecord(Object, Record, RecordText, Error) ||
         !Metadata(Object, Meta, MIC, Error))
     {
         if (Error.IsEmpty())

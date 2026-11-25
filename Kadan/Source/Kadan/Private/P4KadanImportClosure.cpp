@@ -8,7 +8,7 @@ using namespace P4KadanImport;
 
 // A game asset of a kind a map import leaves the game's, which a Blueprint names. The game's own
 // asset is brought in from its file: whole when this editor holds all of it, otherwise kept for
-// reference only, read-only, with what it does not hold named, and it cannot go into a mod. Nothing
+// reference only, with what it does not hold named, and it cannot go into a mod. Nothing
 // is made up in its place: when even that cannot be done the project holds nothing for it, and the
 // Blueprint keeps the game's value with a note.
 void FP4KadanImportRun::KeepForReference(const TSharedPtr<FP4KadanSourceAsset>& Asset)
@@ -101,7 +101,7 @@ void FP4KadanImportRun::KeepForReference(const TSharedPtr<FP4KadanSourceAsset>& 
             Out.ReferenceOnly.AddUnique(Asset->Package);
             Warnings.Add(Named +
                 TEXT(
-                    " is the game's. A Blueprint names it, so the game's own asset was kept for reference only: it is read-only and cannot go into a mod (") +
+                    " was imported for reference because a Blueprint uses it. Kadan cannot export its edits (") +
                 (Sound ? FString(TEXT("its sound event payload was not recovered")) : First.Left(300)) + TEXT(")."));
         }
     }

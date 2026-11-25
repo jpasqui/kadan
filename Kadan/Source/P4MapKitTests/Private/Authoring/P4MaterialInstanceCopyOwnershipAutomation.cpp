@@ -220,7 +220,7 @@ bool FP4MaterialInstanceCopyOwnership::RunTest(const FString&)
     Receipt->SetStringField(TEXT("source_current_native_state_before"), OriginalState);
     if (!TestTrue(TEXT("The original remains locked and its complete current native state is readable"),
             Error.IsEmpty() && !Before.IsEmpty() && OriginalState.Len() == 64 &&
-                !P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit && P4Kadan::IsLockedObject(Original.Get())))
+                P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit))
         return false;
     ON_SCOPE_EXIT
     {
@@ -233,7 +233,7 @@ bool FP4MaterialInstanceCopyOwnership::RunTest(const FString&)
                 P4ExactNativeString(
                     Meta->GetValue(Original.Get(), TEXT("P4MaterialInstanceNativeSourceV1")), NativeSource) &&
                 P4ExactNativeString(FileHash(Saved), ExpectedSaved) &&
-                !P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit);
+                P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit);
     };
     const auto SourceDiagnostic = P4DiagnoseOriginalAsset(Original.Get());
     Receipt->SetStringField(TEXT("source_original_diagnostic_error"), SourceDiagnostic.Error);
@@ -276,7 +276,7 @@ bool FP4MaterialInstanceCopyOwnership::RunTest(const FString&)
     {
         FString From;
         return Copy.IsValid() && P4Kadan::GetAssetPolicy(Copy.Get()).AllowEdit &&
-            !P4Kadan::IsLockedObject(Copy.Get()) && P4IsCreatorAsset(Copy.Get()) && !P4HasCreatorSource(Copy.Get()) &&
+            P4IsCreatorAsset(Copy.Get()) && !P4HasCreatorSource(Copy.Get()) &&
             P4HasIntrinsicGameSource(Copy.Get(), &From) && P4ExactNativeString(From, Package);
     };
     TestTrue(
@@ -416,7 +416,7 @@ bool FP4MaterialInstanceCopyOwnership::RunTest(const FString&)
     CopyMeta->SetValue(Copy.Get(), TEXT("P4OriginalRecord"), *Marker);
     if (HadNativeSource)
         CopyMeta->SetValue(Copy.Get(), TEXT("P4MaterialInstanceNativeSourceV1"), *NativeSource);
-    P4Kadan::UpdateReadOnlyAsset(Copy.Get());
+    P4Kadan::TrackAssetSource(Copy.Get());
     TSharedPtr<FJsonObject> History;
     const TSharedPtr<FJsonObject>* Records = nullptr;
     TestTrue(TEXT("Metadata-preserving copies archive exact source history and remain editable"),
@@ -479,7 +479,7 @@ bool FP4MaterialInstanceCopyOwnership::RunTest(const FString&)
     TestTrue(TEXT("The actual saved edit remains exportable without unlocking the game original"),
         Edited && Edited->ParameterValue == Scalar.ParameterValue + 0.125f &&
             P4ExportAssetAvailability(Copy.Get(), Mod).Route == EP4ExportAssetRoute::CreatorMaterialInstance &&
-            !P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit);
+            P4Kadan::GetAssetPolicy(Original.Get()).AllowEdit);
     Receipt->SetBoolField(TEXT("actual_duplicate_and_two_cold_cycles_completed"), true);
     return !HasAnyErrors();
 }

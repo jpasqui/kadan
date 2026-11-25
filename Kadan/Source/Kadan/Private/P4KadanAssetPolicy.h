@@ -19,7 +19,7 @@ struct FAssetPolicy
     bool ReferenceOnly = false;
     bool StandIn = false;
     // A material whose graph, or whose parent's graph, has Kadan game nodes: the editor draws it with
-    // stand-in values where the game reads the scene. PreviewNotice says so in the read-only notice.
+    // stand-in values where the game reads the scene.
     bool PreviewDiffers = false;
     FString Reason, PreviewNotice;
     TArray<FAssetPolicyIssue> Issues;
@@ -28,7 +28,7 @@ struct FAssetPolicy
 // Editor-thread snapshot. Reads provenance and the live material preview graph; never saves,
 // cooks, diagnoses content or hashes package files. Creator assets keep their ordinary editor.
 KADAN_API FAssetPolicy GetAssetPolicy(UObject* Asset);
-// Classification does not grant permission to stand-ins, broken imports or native classes.
+// Classification is used by the original-asset export routes.
 KADAN_API EGameAssetFamily GameAssetFamily(const UObject* Asset);
 KADAN_API bool IsRecoveredGameActorBlueprint(const UObject* Asset);
 KADAN_API bool IsRecoveredGameMaterialInstance(const UObject* Asset);

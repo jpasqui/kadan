@@ -238,7 +238,7 @@ bool P4MarkOriginalAsset(UObject* Asset, const FP4OriginalRecord& Record, FStrin
             TEXT("1");
         P4RecordKnownGameSource(Asset, Record.Package, Proxy);
     }
-    P4Kadan::UpdateReadOnlyAsset(Asset);
+    P4Kadan::TrackAssetSource(Asset);
     return true;
 }
 bool P4CaptureOriginalRecord(UObject* Asset, FP4OriginalRecord Record, FString& Error)
@@ -265,7 +265,7 @@ bool P4MarkLegacyOriginalAsset(
         return false;
     Record.Version = 2;
     Record.Values = Notes;
-    // Every game asset is read-only except levels and data tables, which creators edit.
+    // Retain the original record format for existing source comparison contracts.
     Record.ReadOnly = !Asset->IsA<UWorld>() && !Asset->IsA<UDataTable>();
     if (!ComparisonSchema.IsEmpty())
         Record.ComparisonSchema = ComparisonSchema;

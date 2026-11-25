@@ -117,8 +117,8 @@ bool FP4RetainedTemplateMigrationTest::RunTest(const FString&)
         FP4OriginalRecord Record;
         FString Error;
         const auto Policy = P4Kadan::GetAssetPolicy(Blueprint);
-        if (!TestTrue(TEXT("The loaded target is a clean original protected recovered Blueprint of importer version 2"),
-                Blueprint && !Blueprint->GetOutermost()->IsDirty() && Policy.Original && !Policy.AllowEdit &&
+        if (!TestTrue(TEXT("The loaded target is a clean recovered Blueprint of importer version 2"),
+                Blueprint && !Blueprint->GetOutermost()->IsDirty() && Policy.Original &&
                     !Policy.StandIn && P4ReadOriginalRecord(Blueprint, Record, Error) && Record.Version == 2 &&
                     Record.Kind == TEXT("blueprint") && Record.SourceDigestKind == TEXT("blueprint-import") &&
                     Record.Fidelity == TEXT("recovered") &&

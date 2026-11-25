@@ -215,7 +215,7 @@ void P4RegisterKadanEditor()
         return;
     Registered = true;
     P4Kadan::InitializeAssetPolicy();
-    P4Kadan::InitializeReadOnlyRouting();
+    P4Kadan::InitializeAssetActions();
     P4Kadan::InitializePropertyGuards();
     FGlobalTabmanager::Get()
         ->RegisterNomadTabSpawner(TabName, FOnSpawnTab::CreateStatic(&Spawn))
@@ -236,7 +236,7 @@ void P4UnregisterKadanEditor()
         return;
     Registered = false;
     P4Kadan::ShutdownPropertyGuards();
-    P4Kadan::ShutdownReadOnlyRouting();
+    P4Kadan::ShutdownAssetActions();
     P4Kadan::ShutdownAssetPolicy();
     if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
         FModuleManager::GetModuleChecked<FLevelEditorModule>("LevelEditor")

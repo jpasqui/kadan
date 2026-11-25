@@ -18,9 +18,6 @@
 #include "P4MaterialInstanceGameSettings.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "GameFramework/Actor.h"
-#include "Framework/Commands/GenericCommands.h"
-#include "Framework/Commands/InputBindingManager.h"
-#include "Framework/Commands/UICommandList.h"
 #include "Framework/Docking/TabManager.h"
 #include "IMaterialEditor.h"
 #include "Materials/Material.h"
@@ -33,7 +30,6 @@
 #include "UObject/MetaData.h"
 #include "UObject/Package.h"
 #include "Widgets/Docking/SDockTab.h"
-#include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -49,14 +45,7 @@ struct FTabGuard
     TWeakPtr<SDockTab> Tab;
     TSharedPtr<SWidget> OriginalContent, Wrapper;
 };
-struct FCommandGuard
-{
-    TWeakPtr<FUICommandList> Commands;
-    TSharedPtr<const FUICommandInfo> Command;
-    FUIAction OriginalAction;
-};
 TArray<FTabGuard> Tabs;
-TArray<FCommandGuard> Commands;
 TMap<TWeakObjectPtr<UObject>, FAssetPolicy> UIReadbacks;
 
 UAssetEditorSubsystem* Subsystem()
@@ -247,51 +236,12 @@ FText Banner(const TWeakPtr<IMaterialEditor>& Editor)
     return FText::FromString(Text);
 }
 
-void GuardCommand(
-    const TSharedRef<FUICommandList>& List, TSharedPtr<const FUICommandInfo> Command, TWeakPtr<IMaterialEditor> Editor)
-{
-    if (!Command)
-        return;
-    for (const FCommandGuard& Guard : Commands)
-        if (Guard.Commands.Pin() == List && Guard.Command == Command)
-            return;
-    const FUIAction* Existing = List->GetActionForCommand(Command);
-    if (!Existing)
-        return;
-    FCommandGuard Guard;
-    Guard.Commands = List;
-    Guard.Command = Command;
-    Guard.OriginalAction = *Existing;
-    FUIAction Filtered = *Existing;
-    const FCanExecuteAction Previous = Existing->CanExecuteAction;
-    Filtered.CanExecuteAction = FCanExecuteAction::CreateLambda(
-        [Editor, Previous]()
-        {
-            UMaterial* Asset = EditedMaterial(Editor);
-            return IsValid(Asset) && UIReadback(Asset).AllowEdit && (!Previous.IsBound() || Previous.Execute());
-        });
-    List->MapAction(Command, Filtered);
-    Commands.Add(MoveTemp(Guard));
-}
-
-void GuardMaterial(UObject* Asset, IAssetEditorInstance* Editor)
+void ShowMaterialStatus(UObject* Asset, IAssetEditorInstance* Editor)
 {
     if (!Cast<UMaterial>(Asset) || !Editor || Editor->GetEditorName() != FName(TEXT("MaterialEditor")))
         return;
     IMaterialEditor* MaterialEditor = static_cast<IMaterialEditor*>(Editor);
     const TWeakPtr<IMaterialEditor> WeakEditor = StaticCastSharedRef<IMaterialEditor>(MaterialEditor->AsShared());
-    const TSharedRef<FUICommandList> List = MaterialEditor->GetToolkitCommands();
-    GuardCommand(List, FGenericCommands::Get().Undo, WeakEditor);
-    GuardCommand(List, FGenericCommands::Get().Redo, WeakEditor);
-    // FMaterialEditor::SaveAsset_Execute calls UpdateOriginalMaterial directly. Filtering
-    // Apply alone would therefore leave a save/Save As bypass through the toolkit menu.
-    for (const TCHAR* Name : {TEXT("SaveAsset"), TEXT("SaveAssetAs"), TEXT("ReimportAsset")})
-        GuardCommand(List, FInputBindingManager::Get().FindCommandInContext(TEXT("AssetEditor"), Name), WeakEditor);
-    // These names are UE4.26's exported FMaterialEditorCommands, not widget labels.
-    for (const TCHAR* Name : {TEXT("Apply"), TEXT("Flatten"), TEXT("CleanUnusedExpressions"), TEXT("UseCurrentTexture"),
-             TEXT("ConvertObjects"), TEXT("ConvertToTextureObjects"), TEXT("ConvertToTextureSamples"),
-             TEXT("ConvertToConstant")})
-        GuardCommand(List, FInputBindingManager::Get().FindCommandInContext(TEXT("MaterialEditor"), Name), WeakEditor);
     const TSharedPtr<FTabManager> Manager = Editor->GetAssociatedTabManager();
     if (!Manager)
         return;
@@ -319,12 +269,7 @@ void GuardMaterial(UObject* Asset, IAssetEditorInstance* Editor)
         Guard.Wrapper = SNew(SVerticalBox) +
             SVerticalBox::Slot().AutoHeight().Padding(
                 8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([WeakEditor]() { return Banner(WeakEditor); })] +
-            SVerticalBox::Slot().FillHeight(1)[SNew(SBox).IsEnabled_Lambda(
-                [WeakEditor]()
-                {
-                    UMaterial* Current = EditedMaterial(WeakEditor);
-                    return IsValid(Current) && UIReadback(Current).AllowEdit;
-                })[Guard.OriginalContent.ToSharedRef()]];
+            SVerticalBox::Slot().FillHeight(1)[Guard.OriginalContent.ToSharedRef()];
         Tab->SetContent(Guard.Wrapper.ToSharedRef());
         Tabs.Add(MoveTemp(Guard));
     }
@@ -340,7 +285,7 @@ bool Refresh(float)
         {
             BoundSubsystem = Editors;
             OpenedHandle = Editors->OnAssetOpenedInEditor().AddLambda(
-                [](UObject* Asset, IAssetEditorInstance* Editor) { GuardMaterial(Asset, Editor); });
+                [](UObject* Asset, IAssetEditorInstance* Editor) { ShowMaterialStatus(Asset, Editor); });
         }
     }
     if (!Editors)
@@ -352,10 +297,9 @@ bool Refresh(float)
         {
             UIReadback(Asset);
             for (IAssetEditorInstance* Editor : Editors->FindEditorsForAsset(Asset))
-                GuardMaterial(Asset, Editor);
+                ShowMaterialStatus(Asset, Editor);
         }
     Tabs.RemoveAll([](const FTabGuard& Guard) { return !Guard.Tab.IsValid(); });
-    Commands.RemoveAll([](const FCommandGuard& Guard) { return !Guard.Commands.IsValid(); });
     return true;
 }
 } //namespace
@@ -478,8 +422,11 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
     if (Asset->HasAnyFlags(RF_ClassDefaultObject))
         if (Asset->GetClass()->ClassGeneratedBy)
             Source = Asset->GetClass()->ClassGeneratedBy;
+    UMetaData* const Metadata = Source->GetOutermost()->GetMetaData();
+    const bool IncompleteBlueprint = Source->IsA<UBlueprint>() &&
+        FString(Metadata->GetValue(Source, TEXT("P4BlueprintReconstructionIncomplete"))) == TEXT("1");
     Out.StandIn = P4HasIntrinsicGameProxy(Source) ||
-        FString(Source->GetOutermost()->GetMetaData()->GetValue(Source, TEXT("P4BlueprintStandIn"))) == TEXT("1");
+        FString(Metadata->GetValue(Source, TEXT("P4BlueprintStandIn"))) == TEXT("1");
     FP4OriginalRecord Record;
     FString Error;
     Out.Original = P4ReadOriginalRecord(Source, Record, Error);
@@ -488,7 +435,7 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
         NativeClass = Asset->GetClass();
     const bool GameClass = NativeClass && NativeClass->GetOutermost()->GetName() == TEXT(P4_GAME_SCRIPT_PACKAGE);
     Out.Original |= GameClass;
-    Out.ReferenceOnly = Out.StandIn || (Out.Original && Record.ReferenceOnly);
+    Out.ReferenceOnly = Out.StandIn || IncompleteBlueprint || (Out.Original && Record.ReferenceOnly);
     // "Replace with my own file" writes the game asset's package while it imports the creator's file.
     if (P4IsReplacingGameAsset(Source))
     {
@@ -509,30 +456,24 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
     }
     const bool CreatorReplacement = P4HasCreatorSource(Source);
     FString IntrinsicPackage;
-    if (CreatorReplacement)
+    if (CreatorReplacement && P4IsGameReplacement(Source))
     {
+        Out.StandIn = false;
         Out.ReferenceOnly = false;
-        if (P4IsGameReplacement(Source))
-        {
-            // The creator's file at the game asset's own path (K9). It is the creator's, and its record keeps
-            // the game asset's history apart from the keys that say an asset is the game's.
-            Out.Original = false;
-            Out.Reason = TEXT(
-                "This is your own file in place of the game's asset at its path. Export ships it, so everywhere the game uses this asset gets yours.");
-        }
-        else if (Out.Original || !Error.IsEmpty())
-        {
-            // A file imported over a game asset some other way still says it is the game's. Only "Replace with my
-            // own file" records a replacement at the game's path.
-            Out.AllowEdit = false;
-            Out.Reason = TEXT(
-                "Your file was imported over the game's asset. To ship it in the game asset's place, right-click it and choose Replace with my own file.");
-        }
+        Out.Original = false;
+        Out.Reason = TEXT(
+            "This is your own file in place of the game's asset at its path. Export ships it, so everywhere the game uses this asset gets yours.");
     }
-    else if (Out.StandIn)
+    else if (Out.StandIn || IncompleteBlueprint)
     {
         Out.AllowEdit = false;
-        Out.Reason = TEXT("This is a reference-only stand-in. Its game data was not recovered.");
+        Out.Reason = Out.StandIn ? TEXT("The game data for this stand-in was not recovered. Kadan keeps it for reference.")
+                                : TEXT("Blueprint reconstruction is incomplete. Kadan keeps it for reference.");
+    }
+    else if (CreatorReplacement && !Out.ReferenceOnly && (Out.Original || !Error.IsEmpty()))
+    {
+        Out.Reason = TEXT(
+            "Your file was imported over the game's asset. To ship it in the game asset's place, right-click it and choose Replace with my own file.");
     }
     else if (!Out.Original && Error.IsEmpty() && P4HasIntrinsicGameSource(Source, &IntrinsicPackage) &&
         FName(*IntrinsicPackage) == Source->GetOutermost()->GetFName())
@@ -540,7 +481,6 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
         // A validated same-package game origin remains the game's when its
         // comparison record is absent. This does not recreate a record or baseline.
         Out.Original = true;
-        Out.AllowEdit = false;
         Out.Reason = TEXT(
             "This is the game's own asset, but its original import record is missing. Reimport it from the game.");
     }
@@ -554,31 +494,8 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
     }
     else if (!Error.IsEmpty())
     {
-        Out.AllowEdit = false;
         Out.Reason = TEXT("The asset's source information cannot be read. Reimport the asset.");
         UE_LOG(LogTemp, Warning, TEXT("Kadan source information %s: %s"), *Asset->GetPathName(), *Error);
-    }
-    else if (Out.Original &&
-        (GameAssetShipping(GameAssetFamily(Source)) == EGameAssetShipping::Locked ||
-            (Record.ReadOnly && !IsRecoveredGameMaterialInstance(Source)) ||
-            (Record.ReferenceOnly && !IsRecoveredGameActorBlueprint(Source) &&
-                !IsRecoveredGameMaterialInstance(Source)) ||
-            (GameAssetFamily(Source) == EGameAssetFamily::MaterialInstance &&
-                !IsRecoveredGameMaterialInstance(Source)) ||
-            (GameAssetFamily(Source) == EGameAssetFamily::ActorBlueprint && !IsRecoveredGameActorBlueprint(Source))))
-    {
-        Out.AllowEdit = false;
-        Out.Reason = Cast<UMaterial>(Asset)
-            ? TEXT(
-                  "Exporting edits to the game's material graph is not supported. Make a material instance or a new material in your mod folder.")
-            : Record.ReferenceOnly
-            ? TEXT(
-                  "This game asset has data kept for reference. Exporting edits to it is not supported. Create supported content in your mod folder.")
-            : (Asset->GetClass() == UTexture2D::StaticClass() || Asset->GetClass() == UStaticMesh::StaticClass())
-            ? TEXT(
-                  "This is an original game asset. Exporting edits to it is not supported. To ship your own in its place, right-click it and choose Replace with my own file.")
-            : TEXT(
-                  "This is an original game asset. Exporting edits to it is not supported. Import your own source file into your mod folder or create a supported asset there.");
     }
     else if (Out.Original && IsRecoveredGameActorBlueprint(Source))
     {
@@ -592,6 +509,11 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
         Out.Reason = TEXT("Export ships this material instance whole at the game's path, including parameters, "
                           "switches, base overrides and C4 settings.");
     }
+    else if (Out.Original && Record.ReferenceOnly)
+    {
+        Out.AllowEdit = false;
+        Out.Reason = TEXT("The editor cannot represent all of this asset's game data. Kadan keeps it for reference.");
+    }
     if (UMaterial* Material = Cast<UMaterial>(Asset))
     {
         if (Out.AllowEdit)
@@ -600,8 +522,6 @@ FAssetPolicy GetAssetPolicy(UObject* Asset)
     Out.PreviewDiffers = PreviewDiffersFromGame(Asset);
     if (Out.PreviewDiffers)
         Out.PreviewNotice = PreviewNoticeText();
-    // Browser/package guards consume this same policy. Stock asset actions route
-    // protected objects to a separate reference editor; creator editors stay stock.
     return Out;
 }
 
@@ -652,11 +572,7 @@ void ShutdownAssetPolicy()
         if (TSharedPtr<SDockTab> Tab = Guard.Tab.Pin())
             if (Tab->GetContent() == Guard.Wrapper)
                 Tab->SetContent(Guard.OriginalContent.ToSharedRef());
-    for (const FCommandGuard& Guard : Commands)
-        if (TSharedPtr<FUICommandList> List = Guard.Commands.Pin())
-            List->MapAction(Guard.Command, Guard.OriginalAction);
     Tabs.Reset();
-    Commands.Reset();
     UIReadbacks.Reset();
     BoundSubsystem.Reset();
     OpenedHandle.Reset();

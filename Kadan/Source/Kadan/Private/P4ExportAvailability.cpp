@@ -9,6 +9,7 @@
 #include "Animation/AnimComposite.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/BlendSpaceBase.h"
+#include "P4KadanAssetPolicy.h"
 
 namespace P4Export
 {
@@ -30,6 +31,15 @@ FP4ExportAvailability AssetAvailability(
     {
         return Result;
     }
+    if (Original.Record.ReferenceOnly || Asset->IsA<UBlueprint>() || P4IsVerifiedStandIn(Asset))
+    {
+        const auto Policy = P4Kadan::GetAssetPolicy(Asset);
+        if (Policy.ReferenceOnly && !Policy.AllowEdit)
+        {
+            Result.Reason = Policy.Reason;
+            return Result;
+        }
+    }
     if (Original.IsOriginal() && P4IsGameReplacement(Asset, &GameReplacement) &&
         GameReplacement.Kind == TEXT("edited-game-actor-blueprint"))
     {
@@ -46,7 +56,12 @@ FP4ExportAvailability AssetAvailability(
     }
     if (Original.IsOriginal())
     {
-        if (Asset->IsA<UWorld>())
+        if (Asset->IsA<USkeleton>() && !GameReplacement.Package.IsEmpty())
+        {
+            Result.Route = EP4ExportAssetRoute::CreatorSkinned;
+            Result.Reason = TEXT("The edited skeleton is cooked whole at its original game path.");
+        }
+        else if (Asset->IsA<UWorld>())
         {
             Result.Route = EP4ExportAssetRoute::OriginalLevelChanges;
             Result.Reason = TEXT(
@@ -67,11 +82,6 @@ FP4ExportAvailability AssetAvailability(
     if (Original.State != EP4OriginalState::NotImported)
     {
         Result.Reason = TEXT("Original asset state must be resolved before export");
-        return Result;
-    }
-    if (P4IsVerifiedStandIn(Asset))
-    {
-        Result.Reason = TEXT("A Blueprint stand-in cannot be exported.");
         return Result;
     }
     if (const UWorld* World = Cast<UWorld>(Asset))

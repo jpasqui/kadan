@@ -3,6 +3,7 @@
 #include "P4GamePaths.h"
 #include "P4ExportContainer.h"
 #include "P4GameReplacement.h"
+#include "P4KadanAssetPolicy.h"
 #include "P4OriginalRecord.h"
 #include "P4AuthoringRows.h"
 #include "P4LevelChanges.h"
@@ -249,6 +250,7 @@ bool P4PreviewExportSelection(const FP4ModDescriptor& Mod, const TArray<FP4Expor
         }
         bool Original = false, AllUnchanged = true, Level = false, Table = false, Changed = false, Replacement = false,
              NotCompared = false;
+        FString IncompleteLevelOrTable;
         for (const FAssetData& Asset : Assets)
         {
             Row.AssetClass = Asset.AssetClass.ToString();
@@ -273,6 +275,12 @@ bool P4PreviewExportSelection(const FP4ModDescriptor& Mod, const TArray<FP4Expor
             if (Status.IsOriginal())
             {
                 Original = true;
+                if (Status.Record.ReferenceOnly && (Row.AssetClass == TEXT("World") || Row.AssetClass == TEXT("DataTable")))
+                {
+                    const auto Policy = P4Kadan::GetAssetPolicy(Object);
+                    if (!Policy.AllowEdit)
+                        IncompleteLevelOrTable = Policy.Reason;
+                }
                 if (WholeReplacement)
                 {
                     AllUnchanged = false;
@@ -281,10 +289,11 @@ bool P4PreviewExportSelection(const FP4ModDescriptor& Mod, const TArray<FP4Expor
                 else
                 {
                     const FP4OriginalDiagnostic Compared = P4DiagnoseOriginalAsset(Object);
-                    AllUnchanged &= !Object->GetOutermost()->IsDirty() &&
-                        Compared.Comparison == EP4OriginalComparison::Equal;
-                    Changed |= Object->GetOutermost()->IsDirty() ||
-                        Compared.Comparison == EP4OriginalComparison::Different;
+                    const bool Equal = Compared.Comparison == EP4OriginalComparison::Equal;
+                    // A skeleton can stay dirty after undoing a socket edit.
+                    const bool Dirty = Object->GetOutermost()->IsDirty() && !(Equal && Row.AssetClass == TEXT("Skeleton"));
+                    AllUnchanged &= !Dirty && Equal;
+                    Changed |= Dirty || Compared.Comparison == EP4OriginalComparison::Different;
                     NotCompared |= Compared.Comparison == EP4OriginalComparison::NotCompared;
                 }
             }
@@ -314,11 +323,19 @@ bool P4PreviewExportSelection(const FP4ModDescriptor& Mod, const TArray<FP4Expor
                 }
                 else if (Original && Game && !Row.Explicit && !Changed && NotCompared && !Level && !Table)
                 {
-                    // A game asset that selected content only uses, such as the game material of a replaced mesh,
-                    // whose kind has no comparison with its import yet (game material instances). It is read-only
-                    // and unsaved changes are put back, so it is the game's as the game has it and is not cooked.
+                    // A dependency without a comparison baseline uses the game's package at runtime.
                     Row.Disposition = EP4ExportDisposition::UnchangedGame;
                     Row.Reason = TEXT("This is a game asset your content uses, so it is not cooked.");
+                }
+                else if (!IncompleteLevelOrTable.IsEmpty())
+                {
+                    if (Row.Explicit || Changed)
+                        Refuse(IncompleteLevelOrTable);
+                    else
+                    {
+                        Row.Disposition = EP4ExportDisposition::UnchangedGame;
+                        Row.Reason = IncompleteLevelOrTable;
+                    }
                 }
                 else if (Level && Original)
                 {
@@ -335,12 +352,10 @@ bool P4PreviewExportSelection(const FP4ModDescriptor& Mod, const TArray<FP4Expor
                 }
                 else
                 {
-                    // A game asset differs from what its import recorded. Game assets are read-only, so the
-                    // export refuses it by name.
                     Row.Disposition = EP4ExportDisposition::NeedsReplacementProof;
                     Row.Reason = Changed
                         ? TEXT(
-                              "This game asset was changed after it was imported. Game assets are read-only, so put it back or import it again.")
+                              "Kadan cannot export these edits at the game's path.")
                         : (Row.AssetClass == TEXT("Texture2D") || Row.AssetClass == TEXT("StaticMesh"))
                         ? TEXT(
                               "Game data cannot be cooked. To ship your own in its place, right-click it and choose Replace with my own file.")

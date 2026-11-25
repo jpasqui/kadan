@@ -1,13 +1,10 @@
-// What Kadan lets a creator change in a game level and in a game table: what Tsuchi can apply. Other edits
-// are put back when they are made, and the person is told which actor, property or row it was.
+// Reject changes to imported level actors that the map overlay cannot represent.
 #include "P4KadanReadOnly.h"
 #include "Components/SceneComponent.h"
 #include "P4RecoveredPostProcessAuthoring.h"
 #include "P4LevelContent.h"
 #include "P4OriginalImportSave.h"
-#include "P4OriginalRecord.h"
 #include "Components/ActorComponent.h"
-#include "DataTableEditorUtils.h"
 #include "Editor.h"
 #include "Engine/DataTable.h"
 #include "Engine/Level.h"
@@ -16,10 +13,6 @@
 #include "UObject/TextProperty.h"
 #include "GameFramework/Actor.h"
 #include "InstancedFoliageActor.h"
-#include "Misc/PackageName.h"
-#include "Serialization/ObjectReader.h"
-#include "Serialization/ObjectWriter.h"
-#include "UObject/MetaData.h"
 #include "UObject/Package.h"
 #include "UObject/UnrealType.h"
 
@@ -32,8 +25,6 @@ FDelegateHandle PreChanged, Changed, ModifiedHandle, MapOpened;
 
 // The game's actors of each imported level, read once from what the level said when it was imported.
 TMap<TWeakObjectPtr<UWorld>, TSet<FName>> GameActors;
-// Rows of game tables imported before Kadan kept their names: the rows they had when first seen.
-TMap<TWeakObjectPtr<const UDataTable>, TArray<FName>> SeenRows;
 
 // What a property of a game actor said before a change, kept until the change is judged.
 struct FBefore
@@ -56,14 +47,6 @@ struct FParts
     TSet<FName> Components;
 };
 TArray<FParts> Parts;
-// What a game table held before its rows were changed.
-struct FTableBefore
-{
-    TWeakObjectPtr<UDataTable> Table;
-    TArray<uint8> Bytes;
-    TArray<FName> Rows;
-};
-TArray<FTableBefore> Tables;
 
 FString Label(const UObject* Object)
 {
@@ -235,52 +218,10 @@ TSet<FName> ComponentsOf(const AActor* Actor)
     return Out;
 }
 
-bool IsTableGuarded(const UDataTable* Table)
-{
-    if (!Table)
-        return false;
-    FP4OriginalRecord Record;
-    FString Error;
-    return Table->GetOutermost()->GetMetaData()->HasValue(Table, TEXT("P4GameRows")) ||
-        P4ReadOriginalRecord(const_cast<UDataTable*>(Table), Record, Error);
-}
-
-void RememberTable(UDataTable* Table)
-{
-    if (Ignoring() || !IsTableGuarded(Table))
-        return;
-    GameRowsOf(Table);
-    for (const FTableBefore& One : Tables)
-        if (One.Table.Get() == Table)
-            return;
-    FTableBefore One;
-    One.Table = Table;
-    One.Rows = Table->GetRowNames();
-    FObjectWriter Writer(Table, One.Bytes, false, false, false);
-    Tables.Add(MoveTemp(One));
-}
-
-class FTableListener : public FDataTableEditorUtils::INotifyOnDataTableChanged
-{
-public:
-    virtual void PreChange(const UDataTable* Table, FDataTableEditorUtils::EDataTableChangeInfo Info) override
-    {
-        if (Info == FDataTableEditorUtils::EDataTableChangeInfo::RowList)
-            RememberTable(const_cast<UDataTable*>(Table));
-    }
-    virtual void PostChange(const UDataTable*, FDataTableEditorUtils::EDataTableChangeInfo) override {}
-};
-TUniquePtr<FTableListener> TableListener;
-
 void OnModified(UObject* Object)
 {
     if (Ignoring() || !Object)
         return;
-    if (UDataTable* Table = Cast<UDataTable>(Object))
-    {
-        RememberTable(Table);
-        return;
-    }
     AActor* Actor = GameActorOf(Object);
     if (!Actor)
         return;
@@ -437,56 +378,6 @@ void PutBackLevels()
     Befores.Reset();
 }
 
-void PutBackTables()
-{
-    TArray<FTableBefore> Held = MoveTemp(Tables);
-    Tables.Reset();
-    for (FTableBefore& One : Held)
-    {
-        UDataTable* Table = One.Table.Get();
-        if (!IsValid(Table))
-            continue;
-        const TArray<FName> Game = GameRowsOf(Table), Now = Table->GetRowNames();
-        const FString Name = FPackageName::GetLongPackageAssetName(Table->GetOutermost()->GetName());
-        TArray<FString> Messages;
-        TArray<FName> Lost, Added;
-        for (const FName& Row : One.Rows)
-            if (Game.Contains(Row) && !Now.Contains(Row))
-                Lost.Add(Row);
-        for (const FName& Row : Now)
-            if (!One.Rows.Contains(Row))
-                Added.Add(Row);
-        if (Lost.Num())
-            Messages.Add(FString::Printf(
-                TEXT(
-                    "Kadan put back the game row %s in %s because game rows cannot be deleted or renamed. Add a new row instead."),
-                *Lost[0].ToString(), *Name));
-        TArray<FName> OrderBefore, OrderNow;
-        for (const FName& Row : One.Rows)
-            if (Game.Contains(Row) && Now.Contains(Row))
-                OrderBefore.Add(Row);
-        for (const FName& Row : Now)
-            if (Game.Contains(Row) && One.Rows.Contains(Row))
-                OrderNow.Add(Row);
-        if (OrderBefore != OrderNow)
-            Messages.Add(FString::Printf(
-                TEXT("Kadan put back the order of the game rows in %s because game rows cannot be moved."), *Name));
-        if (Added.Num() && IsKindTable(Table))
-            Messages.Add(FString::Printf(
-                TEXT(
-                    "Kadan removed the new row %s from %s. New treasures, creatures and Pikmin types are made through content."),
-                *Added[0].ToString(), *Name));
-        if (!Messages.Num())
-            continue;
-        FDataTableEditorUtils::BroadcastPreChange(Table, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
-        {
-            FObjectReader Reader(Table, One.Bytes, false, false);
-        }
-        FDataTableEditorUtils::BroadcastPostChange(Table, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
-        for (const FString& Message : Messages)
-            Tell(Message);
-    }
-}
 } //namespace
 
 AActor* GameActorOf(const UObject* Object)
@@ -538,30 +429,6 @@ bool CanEditGameProperty(
     return Ok;
 }
 
-TArray<FName> GameRowsOf(const UDataTable* Table)
-{
-    TArray<FName> Out;
-    if (!Table)
-        return Out;
-    const FString Kept = Table->GetOutermost()->GetMetaData()->GetValue(Table, TEXT("P4GameRows"));
-    if (!Kept.IsEmpty())
-    {
-        TArray<FString> Names;
-        Kept.ParseIntoArray(Names, TEXT("\n"), true);
-        for (const FString& Name : Names)
-            Out.Add(FName(*Name));
-        return Out;
-    }
-    FP4OriginalRecord Record;
-    FString Error;
-    if (!P4ReadOriginalRecord(const_cast<UDataTable*>(Table), Record, Error))
-        return Out;
-    // Imported before Kadan kept the game's row names: the rows the table had when this editor first saw it.
-    if (const TArray<FName>* Seen = SeenRows.Find(Table))
-        return *Seen;
-    return SeenRows.Add(Table, Table->GetRowNames());
-}
-
 bool IsKindTable(const UDataTable* Table)
 {
     if (!Table)
@@ -583,7 +450,6 @@ void FlushEditGuards()
         return;
     TGuardValue<bool> Guard(Restoring, true);
     PutBackLevels();
-    PutBackTables();
 }
 
 void InitializeEditGuards()
@@ -595,24 +461,20 @@ void InitializeEditGuards()
     Changed = FCoreUObjectDelegates::OnObjectPropertyChanged.AddStatic(&OnChanged);
     ModifiedHandle = FCoreUObjectDelegates::OnObjectModified.AddStatic(&OnModified);
     MapOpened = FEditorDelegates::OnMapOpened.AddLambda([](const FString&, bool) { GameActors.Reset(); });
-    TableListener = MakeUnique<FTableListener>();
 }
 
 void ShutdownEditGuards()
 {
     if (!Active)
         return;
-    TableListener.Reset();
     FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(PreChanged);
     FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(Changed);
     FCoreUObjectDelegates::OnObjectModified.Remove(ModifiedHandle);
     FEditorDelegates::OnMapOpened.Remove(MapOpened);
     GameActors.Reset();
-    SeenRows.Reset();
     Befores.Reset();
     Refusals.Reset();
     Parts.Reset();
-    Tables.Reset();
     Active = false;
 }
 } //namespace P4Kadan

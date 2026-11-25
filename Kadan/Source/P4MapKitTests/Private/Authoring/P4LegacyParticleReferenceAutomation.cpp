@@ -47,7 +47,7 @@ bool FP4CanonicalLegacyParticleReferenceTest::RunTest(const FString&)
     ON_SCOPE_EXIT
     {
         Meta->RemoveValue(Asset.Get(), TEXT("P4OriginalRecord"));
-        P4Kadan::UpdateReadOnlyAsset(Asset.Get());
+        P4Kadan::TrackAssetSource(Asset.Get());
         FAssetRegistryModule::AssetDeleted(Asset.Get());
         Asset->ClearFlags(RF_Public | RF_Standalone);
         Asset->MarkPendingKill();

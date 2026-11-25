@@ -159,10 +159,16 @@ qualify the same material on a skeletal mesh or particle system.
 
 Material Details displays **Game settings**. Known fields have readable labels, while unknown
 values belong in **Advanced**. Preserve unknown values unless testing a specific change.
-Serialized names remain searchable. Scene clipping is uncompiled and read-only. An instance
+Serialized names remain searchable. Scene clipping can be saved, but Kadan's shader compiler does not apply it yet. An instance
 shows supported C4 fields with override checkboxes. Unchecked fields inherit through the
 parent chain. Enable an override to change its value, or use **Open parent** to inspect
 the parent. Reimport older instances that lack typed C4 settings before exporting edits.
+
+## Skeleton sockets
+
+Open a recovered skeleton in Unreal's Skeleton Editor. Right-click a bone in the
+Skeleton Tree and choose **Add Socket**, then save the skeleton. Add the skeleton
+to the mod's export selection to ship it at the game's original package path.
 
 ## Properties
 

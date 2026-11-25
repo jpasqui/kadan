@@ -43,7 +43,8 @@ struct FCandidate
     FProperty* Field;
 };
 // A soft reference to a material of the creator's that is not loaded yet. Outside the mod's folder only a
-// material the registry lists without the game's lock is read, so game assets are not loaded for this.
+// material the registry lists without Kadan's lock is read, so a locked game reference is not loaded for this. The
+// lock is told by the tag this version writes and by the one earlier versions wrote.
 bool OwnMaterialPath(const FString& Root, const FSoftObjectPath& Path)
 {
     const FString Package = Path.GetLongPackageName();
@@ -54,9 +55,14 @@ bool OwnMaterialPath(const FString& Root, const FSoftObjectPath& Path)
     const FAssetData Asset = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"))
                                  .Get()
                                  .GetAssetByObjectPath(FName(*Path.GetAssetPathString()));
-    FString Locked;
-    if (!Asset.IsValid() || (Asset.GetTagValue(FName(TEXT("P4KadanReadOnly")), Locked) && Locked == TEXT("1")))
+    if (!Asset.IsValid())
         return false;
+    for (const TCHAR* Tag : {TEXT("P4KadanReferenceOnlyLock"), TEXT("P4KadanReadOnly")})
+    {
+        FString Locked;
+        if (Asset.GetTagValue(FName(Tag), Locked) && Locked == TEXT("1"))
+            return false;
+    }
     return Asset.AssetClass == FName(TEXT("Material")) || Asset.AssetClass == FName(TEXT("MaterialInstanceConstant"));
 }
 bool UsesGeneratedGraph(UObject* Object, const FRemap& Replacements, bool& Uses, FString& Error)

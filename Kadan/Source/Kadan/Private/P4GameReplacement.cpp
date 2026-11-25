@@ -1,4 +1,5 @@
 #include "P4GameReplacement.h"
+#include "Animation/Skeleton.h"
 #include "P4Common.h"
 #include "P4GamePaths.h"
 #include "P4AuthoringRows.h"
@@ -51,6 +52,29 @@ const TCHAR* const GameKeys[] = {TEXT("P4OriginalRecord"), TEXT("P4NativeTexture
 TSet<FName> Replacing;
 const TCHAR* const BlueprintEditKey = TEXT("P4KadanEditedGameBlueprint");
 const TCHAR* const InstanceEditKey = TEXT("P4KadanEditedGameMaterialInstance");
+const TCHAR* const SkeletonEditKind = TEXT("edited-game-skeleton");
+
+bool SkeletonReplacement(const UObject* Asset, FP4GameReplacement* Out)
+{
+    if (P4Kadan::GameAssetShipping(P4Kadan::EGameAssetFamily::Skeleton) != P4Kadan::EGameAssetShipping::WholePackage ||
+        Asset->GetClass() != USkeleton::StaticClass() || P4HasCreatorSource(Asset) ||
+        P4HasIntrinsicGameProxy(Asset))
+        return false;
+    FP4OriginalRecord Record;
+    FString Error;
+    if (!P4ReadOriginalRecord(const_cast<UObject*>(Asset), Record, Error) || Record.ReferenceOnly ||
+        Record.Kind != TEXT("object") || Record.ComparisonSchema != TEXT("object-lines-v1") ||
+        Record.Fidelity != TEXT("exact") || Record.ComparisonDigest.IsEmpty() ||
+        !P4IsContentPackageIgnoringCase(Record.Package) || P4IsModFolderPackage(Record.Package))
+        return false;
+    if (Out)
+    {
+        Out->Package = Record.Package;
+        Out->Class = Record.Class;
+        Out->Kind = SkeletonEditKind;
+    }
+    return true;
+}
 
 bool InstanceReplacement(const UObject* Asset, FP4GameReplacement* Out)
 {
@@ -345,6 +369,8 @@ bool P4IsGameReplacement(const UObject* Asset, FP4GameReplacement* Out)
     {
         return true;
     }
+    if (SkeletonReplacement(Asset, Out))
+        return true;
     if (Asset->GetClass() != UTexture2D::StaticClass() && Asset->GetClass() != UStaticMesh::StaticClass())
         return false;
     const TSharedPtr<FJsonObject> Json = ReadRecord(Asset);
@@ -370,7 +396,7 @@ void P4RecordGameBlueprintEdit(UObject* Object)
         return;
     UPackage* Package = Object->GetOutermost();
     UBlueprint* Blueprint = FindObject<UBlueprint>(Package, *FPackageName::GetLongPackageAssetName(Package->GetName()));
-    if (!IsRecoveredGameActorBlueprint(Blueprint) || !GetAssetPolicy(Blueprint).AllowEdit)
+    if (!IsRecoveredGameActorBlueprint(Blueprint))
         return;
     Package->GetMetaData()->SetValue(Blueprint, BlueprintEditKey, *Package->GetName());
 }
@@ -386,7 +412,7 @@ void P4RecordGameMaterialInstanceEdit(UObject* Object)
     UPackage* Package = Object->GetOutermost();
     auto* Instance = FindObject<UMaterialInstanceConstant>(
         Package, *FPackageName::GetLongPackageAssetName(Package->GetName()));
-    if (IsRecoveredGameMaterialInstance(Instance) && GetAssetPolicy(Instance).AllowEdit)
+    if (IsRecoveredGameMaterialInstance(Instance))
     {
         Package->GetMetaData()->SetValue(Instance, InstanceEditKey, *Package->GetName());
     }
@@ -407,6 +433,9 @@ bool P4IsGameReplacementPackage(const FString& Package, FP4GameReplacement* Out)
 
 bool P4GameReplacementShips(UObject* Asset, FP4GameReplacement* Out)
 {
+    FP4GameReplacement Replacement;
+    if (!Out)
+        Out = &Replacement;
     if (!P4IsGameReplacement(Asset, Out))
     {
         return false;
@@ -416,7 +445,9 @@ bool P4GameReplacementShips(UObject* Asset, FP4GameReplacement* Out)
         return true;
     }
     const FP4OriginalDiagnostic Compared = P4DiagnoseOriginalAsset(Asset);
-    if (Asset->GetOutermost()->IsDirty() || Compared.Comparison != EP4OriginalComparison::Equal)
+    const bool Changed = Out->Kind == SkeletonEditKind ? Compared.Comparison == EP4OriginalComparison::Different
+        : Asset->GetOutermost()->IsDirty() || Compared.Comparison != EP4OriginalComparison::Equal;
+    if (Changed)
     {
         return true;
     }
@@ -507,9 +538,9 @@ UObject* P4ReplaceGameAsset(UObject* Asset, const FString& InFile, FString& Erro
     }
     UObject* Made = nullptr;
     {
-        // The package is writable while the import runs. The guards lock it again when this fails.
+        // Preserve the package identity while the factory replaces its contents.
         FReplacing Scope(Package->GetFName());
-        P4Kadan::UpdateReadOnlyAsset(Asset);
+        P4Kadan::TrackAssetSource(Asset);
         Made = Texture ? ReplaceTexture(CastChecked<UTexture2D>(Asset), File, Error)
                        : ReplaceMesh(CastChecked<UStaticMesh>(Asset), File, Error);
         if (Made)
@@ -518,12 +549,12 @@ UObject* P4ReplaceGameAsset(UObject* Asset, const FString& InFile, FString& Erro
     if (!Made)
     {
         if (IsValid(Asset))
-            P4Kadan::UpdateReadOnlyAsset(Asset);
+            P4Kadan::TrackAssetSource(Asset);
         return nullptr;
     }
     // The asset registry keeps the package's entry: it is not a new package (AssetCreated would mark it as one
     // that was never saved), and its tags are read again when it is saved.
-    P4Kadan::UpdateReadOnlyAsset(Made);
+    P4Kadan::TrackAssetSource(Made);
     if (!P4IsGameReplacement(Made))
     {
         Error = TEXT("Kadan could not record that your file replaces the game's asset.");

@@ -1,4 +1,5 @@
 #include "P4KadanAssetPolicy.h"
+#include "P4KadanReadOnly.h"
 #include "P4OriginalRecord.h"
 #include "P4ExportDriver.h"
 #include "Curves/CurveFloat.h"
@@ -6,9 +7,11 @@
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/Guid.h"
+#include "Misc/ScopeExit.h"
 #include "Serialization/ObjectWriter.h"
 #include "UObject/Package.h"
 #include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "UObject/UnrealType.h"
 
 #if WITH_DEV_AUTOMATION_TESTS && defined(P4_MAPKIT_TESTS) && P4_MAPKIT_TESTS
@@ -32,12 +35,20 @@ bool FP4AssetPolicyCapabilityReasonsTest::RunTest(const FString&)
         Record.SourceDigest = FString::ChrN(64, TEXT('a'));
         Record.ComparisonDigest = FString::ChrN(64, TEXT('b'));
         Record.ReferenceOnly = ReferenceOnly;
+        Record.ReadOnly = true; // Legacy import metadata alone does not determine editability.
         FString Error;
         const bool Marked = P4MarkOriginalAsset(Asset, Record, Error);
         return TestTrue(*FString::Printf(TEXT("Policy fixture provenance is readable: %s"), *Error), Marked);
     };
     TStrongObjectPtr<UPackage> Package(CreatePackage(*(Root / TEXT("Curve"))));
-    TStrongObjectPtr<UCurveFloat> Curve(NewObject<UCurveFloat>(Package.Get(), TEXT("Curve"), RF_Transient));
+    TStrongObjectPtr<UCurveFloat> Curve(NewObject<UCurveFloat>(
+        Package.Get(), TEXT("Curve"), RF_Public | RF_Standalone | RF_Transactional));
+    ON_SCOPE_EXIT
+    {
+        MarkOriginal(Curve.Get(), false);
+        Curve->ClearFlags(RF_Public | RF_Standalone);
+        Package->SetDirtyFlag(false);
+    };
     TestTrue(TEXT("Creator content keeps its ordinary editor"), P4Kadan::GetAssetPolicy(Curve.Get()).AllowEdit);
     for (bool ReferenceOnly : {false, true})
     {
@@ -56,9 +67,8 @@ bool FP4AssetPolicyCapabilityReasonsTest::RunTest(const FString&)
         TestTrue(
             TEXT("Recovered original provenance is distinguished from stand-ins"), Policy.Original && !Policy.StandIn);
         TestEqual(TEXT("Reference-only status comes from its actual record"), Policy.ReferenceOnly, ReferenceOnly);
-        TestFalse(TEXT("Recovery alone does not admit an original-path edit"), Policy.AllowEdit);
-        TestTrue(
-            TEXT("The reason names the missing edited export path"), Policy.Reason.Contains(TEXT("Exporting edits")));
+        TestEqual(TEXT("Complete originals can be edited and incomplete originals are protected"), Policy.AllowEdit,
+            !ReferenceOnly);
         TestFalse(TEXT("A recovered original is not described as unrecovered"),
             Policy.Reason.Contains(TEXT("not recovered")));
         TestFalse(TEXT("The exporter independently refuses the original curve"),
@@ -72,6 +82,15 @@ bool FP4AssetPolicyCapabilityReasonsTest::RunTest(const FString&)
         TestEqual(TEXT("Capability readback preserves package flags"), Package->GetPackageFlags(), PackageFlags);
         for (const auto& Field : Flags)
             TestTrue(TEXT("Original engine property flags remain exact"), Field.Key->GetPropertyFlags() == Field.Value);
+        TestEqual(TEXT("Only the incomplete package has an editor lock"),
+            P4Kadan::IsLockedPackage(Package.Get()), ReferenceOnly);
+        const float PreviousValue = Curve->GetFloatValue(0.f);
+        FCoreUObjectDelegates::ObjectsModifiedThisFrame.Reset();
+        Curve->Modify();
+        Curve->FloatCurve.UpdateOrAddKey(0.f, PreviousValue + 1.f);
+        P4Kadan::FlushReadOnlyGuards();
+        TestEqual(TEXT("Script edits survive on complete assets and roll back on incomplete assets"),
+            Curve->GetFloatValue(0.f), ReferenceOnly ? PreviousValue : PreviousValue + 1.f);
     }
     TStrongObjectPtr<UPackage> WorldPackage(CreatePackage(*(Root / TEXT("World"))));
     TStrongObjectPtr<UWorld> World(NewObject<UWorld>(WorldPackage.Get(), TEXT("World"), RF_Transient));

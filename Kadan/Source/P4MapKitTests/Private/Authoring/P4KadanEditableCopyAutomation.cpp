@@ -59,7 +59,7 @@ UObject* LoadAsset(const FString& Package)
     return LoadObject<UObject>(nullptr, *(Package + TEXT(".") + FPackageName::GetLongPackageAssetName(Package)));
 }
 
-// A complete original of the game: imported by Kadan, locked, holding all of its values.
+// A complete original of the game: imported by Kadan and holding all of its values.
 bool CompleteOriginal(UObject* Asset, FString& Note)
 {
     FP4OriginalRecord Record;
@@ -193,7 +193,7 @@ bool Exact(UObject* Original, UObject* Copy, FString& Differences)
 
 bool Editable(UObject* Copy)
 {
-    return P4Kadan::GetAssetPolicy(Copy).AllowEdit && !P4Kadan::IsLockedObject(Copy) && P4IsCreatorAsset(Copy);
+    return P4Kadan::GetAssetPolicy(Copy).AllowEdit && P4IsCreatorAsset(Copy);
 }
 
 // An edit made as the Details panel makes it, and whether Kadan's guards leave it in place. The value is put
@@ -269,7 +269,7 @@ bool FP4KadanEditableCopyCreate::RunTest(const FString&)
         }
         TStrongObjectPtr<UObject> Hold(Original);
         const FP4OriginalDiagnostic Game = P4DiagnoseOriginalAsset(Original);
-        const bool Locked = !P4Kadan::GetAssetPolicy(Original).AllowEdit && P4Kadan::IsLockedObject(Original);
+        const bool OriginalEditable = P4Kadan::GetAssetPolicy(Original).AllowEdit;
         UObject* Copy = Tools.DuplicateAsset(FPackageName::GetLongPackageAssetName(Package) +
                 FPlatformMisc::GetEnvironmentVariable(TEXT("P4_EDITABLE_COPY_SUFFIX")),
             Folder(), Original);
@@ -287,9 +287,9 @@ bool FP4KadanEditableCopyCreate::RunTest(const FString&)
         const bool Passed = Complete && IsEditable && IsExact && Saved;
         const FString Line = FString::Printf(
             TEXT(
-                "%s %s | %s | %s | original vs game %d %s | original locked %d | copy editable %d | copy exact %d (%s) | saved %d %s"),
+                "%s %s | %s | %s | original vs game %d %s | original editable %d | copy editable %d | copy exact %d (%s) | saved %d %s"),
             Passed ? TEXT("PASS") : TEXT("FAIL"), *Package, *Original->GetClass()->GetName(), *Note,
-            int32(Game.Comparison), *Game.Error.Left(200), Locked, IsEditable, IsExact, *Differences, Saved, *Why);
+            int32(Game.Comparison), *Game.Error.Left(200), OriginalEditable, IsEditable, IsExact, *Differences, Saved, *Why);
         Report.Add(Line);
         if (Passed)
             AddInfo(TEXT("COPYCHECK ") + Line);

@@ -1,7 +1,6 @@
 #include "P4KadanReadOnly.h"
 #include "P4Common.h"
 #include "P4GamePaths.h"
-#include "P4GameNames.h"
 #include "P4GameReplacement.h"
 #include "P4KadanAssetPolicy.h"
 #include "P4KadanTestSeams.h"
@@ -63,8 +62,8 @@ FString CopyCompletionFailurePackage;
 FDelegateHandle Loaded, Saved, Delete, Tags, Added, Removed, PackageSaved, Modified, PreModified, Ticking;
 FCoreUObjectDelegates::FIsPackageOKToSaveDelegate PreviousSave, OurSave;
 TMap<FName, FName> Owners;
-const FName LockTag(TEXT("P4KadanReadOnly"));
-const FName GameScript(TEXT(P4_GAME_SCRIPT_PACKAGE));
+const FName LockTag(TEXT("P4KadanReferenceOnlyLock"));
+TSet<FName> CheckedLegacyFiles;
 TArray<FString> Messages;
 // What a locked object was before something modified it, put back on the next tick.
 // The held values may be the only references left after consolidate or a graph edit.
@@ -221,9 +220,9 @@ FString FileOf(FName Package)
     return FPaths::ConvertRelativePathToFull(File);
 }
 
-// Earlier versions of Kadan marked the file of every game asset they locked read-only. Kadan keeps a game asset by its
-// own guards and leaves its file writable, so the mark an earlier version left on a locked package's file is taken off.
-// Nothing else is: a file Kadan does not lock keeps whatever mark its owner gave it.
+// Earlier versions of Kadan marked the file of every game asset they locked read-only. Kadan leaves every file
+// writable, so the mark an earlier version left on a package's file is taken off. Nothing else is: a file Kadan never
+// locked keeps whatever mark its owner gave it.
 void ClearEarlierReadOnlyMark(const FString& File)
 {
     if (File.IsEmpty())
@@ -233,13 +232,31 @@ void ClearEarlierReadOnlyMark(const FString& File)
         Files.SetReadOnly(*File, false);
 }
 
+// The same for a package an earlier version locked and this one leaves editable. Such a version saved the asset with
+// the registry tag P4KadanReadOnly, which this one no longer writes. A package whose mark could not be taken off is
+// tried again the next time the registry tells of it.
+void ClearLegacyFileMark(const FAssetData& Asset)
+{
+    static const FName PreviousLockTag(TEXT("P4KadanReadOnly"));
+    FString Mark;
+    if (CheckedLegacyFiles.Contains(Asset.PackageName) || !Asset.GetTagValue(PreviousLockTag, Mark) ||
+        Mark != TEXT("1"))
+        return;
+    const FString File = FileOf(Asset.PackageName);
+    if (File.IsEmpty())
+        return;
+    IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
+    if (!Files.IsReadOnly(*File) || Files.SetReadOnly(*File, false))
+        CheckedLegacyFiles.Add(Asset.PackageName);
+}
+
 void SetPackageLock(FName Package, bool Locked)
 {
     auto& Filter =
         FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get().GetWritableFolderBlacklist();
     if (Locked && !Owners.Contains(Package))
     {
-        const FName Owner(*(TEXT("Kadan.ReadOnly:") + Package.ToString()));
+        const FName Owner(*(TEXT("Kadan.ReferenceOnly:") + Package.ToString()));
         Filter->AddBlacklistItem(Owner, Package.ToString());
         Owners.Add(Package, Owner);
         ClearEarlierReadOnlyMark(FileOf(Package));
@@ -275,15 +292,15 @@ FString AssetName(const UObject* Object)
     return FPackageName::GetLongPackageAssetName(Object->GetOutermost()->GetName());
 }
 
-// A save that would write a game asset's own file is refused with Kadan's reason, shown as a notification. A save of
-// it to another file, as Unreal's autosave makes, is only logged.
+// A save that would write the own file of a game asset Kadan holds only for reference is refused with Kadan's reason,
+// shown as a notification. A save of it to another file, as Unreal's autosave makes, is only logged.
 void RefuseLockedSave(UPackage* Package, const FString& File)
 {
     const FString Name = FPackageName::GetLongPackageAssetName(Package->GetName());
     const FString Own = FileOf(Package->GetFName());
     if (!IsInGameThread() || Own.IsEmpty() || !FPaths::IsSamePath(Own, FPaths::ConvertRelativePathToFull(File)))
     {
-        UE_LOG(LogTemp, Warning, TEXT("Kadan: %s is a game asset, so it is not saved to %s."), *Package->GetName(),
+        UE_LOG(LogTemp, Warning, TEXT("Kadan: %s is an incomplete game reference, so it is not saved to %s."), *Package->GetName(),
             *File);
         return;
     }
@@ -291,7 +308,7 @@ void RefuseLockedSave(UPackage* Package, const FString& File)
     FString Reason = Asset ? GetAssetPolicy(Asset).Reason : FString();
     if (Reason.IsEmpty())
         Reason = TEXT("Import your own source file to replace supported asset data.");
-    Tell(FString::Printf(TEXT("Kadan did not save %s because it is a game asset. %s"), *Name, *Reason));
+    Tell(FString::Printf(TEXT("Kadan did not save %s because it is an incomplete game reference. %s"), *Name, *Reason));
 }
 
 // Package-copy paths can carry the game's source keys, naming the old package. Keep those
@@ -760,13 +777,14 @@ void RegistryAsset(const FAssetData& Asset)
 {
     if (!P4IsContentPackageIgnoringCase(Asset.PackageName.ToString()))
         return;
+    ClearLegacyFileMark(Asset);
     // A Duplicate of a game original: the game's values its package metadata held.
     if (Asset.IsAssetLoaded() && !P4ImportPublication::IsImporting())
         CarryCopiedGameData(Asset.GetAsset());
     // Preserve source evidence for package copies that retained original metadata.
     if (Asset.IsAssetLoaded() && !P4ImportPublication::IsImporting() && ForgetCopiedSource(Asset.GetAsset()))
     {
-        UpdateReadOnlyAsset(Asset.GetAsset());
+        TrackAssetSource(Asset.GetAsset());
         return;
     }
     FString Locked;
@@ -776,9 +794,9 @@ void RegistryAsset(const FAssetData& Asset)
     {
         // Older packages may store provenance only in UObject metadata. Classify
         // an already loaded object, never materialize every tagless package during
-        // registry discovery. Real asset loading still invokes UpdateReadOnlyAsset
+        // registry discovery. Real asset loading still invokes TrackAssetSource
         // before edit/delete/save routes; missing tags never qualify creator source.
-        UpdateReadOnlyAsset(Asset.GetAsset());
+        TrackAssetSource(Asset.GetAsset());
     }
 }
 
@@ -834,7 +852,7 @@ void Snapshot(UObject* Object)
         }
     TArray<UObject*> Objects;
     GetObjectsWithOuter(
-        Object->GetOutermost()->GetFName() == GameScript ? Object : Object->GetOutermost(), Objects, true);
+        Object->GetOutermost(), Objects, true);
     Objects.AddUnique(Object);
     for (UObject* Part : Objects)
     {
@@ -993,13 +1011,7 @@ bool IsLockedPackageName(FName Package)
 
 bool IsLockedObject(const UObject* Object)
 {
-    if (!Object)
-        return false;
-    const UPackage* Package = Object->GetOutermost();
-    if (Owners.Contains(Package->GetFName()))
-        return true;
-    // Defaults of the game's own classes are not saved anywhere a mod could carry.
-    return Package->GetFName() == GameScript && Object->HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject);
+    return Object && IsLockedPackage(Object->GetOutermost());
 }
 
 void Tell(const FString& Message)
@@ -1035,7 +1047,7 @@ void FlushReadOnlyGuards()
     FlushEditGuards();
 }
 
-void UpdateReadOnlyAsset(UObject* Asset)
+void TrackAssetSource(UObject* Asset)
 {
     if (!Installed || !IsInGameThread() || !IsValid(Asset) || !Asset->IsAsset())
         return;
@@ -1090,7 +1102,7 @@ void RefreshReadOnlyAssets()
         return;
     for (TObjectIterator<UObject> It; It; ++It)
         if (It->IsAsset())
-            UpdateReadOnlyAsset(*It);
+            TrackAssetSource(*It);
 }
 
 void InitializeMutationGuards()
@@ -1158,7 +1170,7 @@ void InitializeMutationGuards()
                 {
                     Result.Set(false);
                     Tell(FString::Printf(
-                        TEXT("Kadan kept %s because it is a game asset, and game assets cannot be deleted."),
+                        TEXT("Kadan kept %s because it is an incomplete game reference."),
                         *AssetName(Object)));
                     return;
                 }
@@ -1166,8 +1178,8 @@ void InitializeMutationGuards()
     Modified = FCoreUObjectDelegates::OnObjectModified.AddStatic(&Snapshot);
     PreModified = FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddLambda(
         [](UObject* Object, const FEditPropertyChain&) { Snapshot(Object); });
-    Loaded = FCoreUObjectDelegates::OnAssetLoaded.AddStatic(&UpdateReadOnlyAsset);
-    Saved = FCoreUObjectDelegates::OnObjectSaved.AddStatic(&UpdateReadOnlyAsset);
+    Loaded = FCoreUObjectDelegates::OnAssetLoaded.AddStatic(&TrackAssetSource);
+    Saved = FCoreUObjectDelegates::OnObjectSaved.AddStatic(&TrackAssetSource);
     Tags = UObject::FAssetRegistryTag::OnGetExtraObjectTags.AddLambda(
         [](const UObject* Asset, TArray<UObject::FAssetRegistryTag>& Out)
         {
@@ -1231,6 +1243,7 @@ void ShutdownMutationGuards()
     Owners.Reset();
     Snapshots.Reset();
     SnapshotObjects.Reset();
+    CheckedLegacyFiles.Reset();
     PreviousSave.Unbind();
     OurSave.Unbind();
     Installed = false;

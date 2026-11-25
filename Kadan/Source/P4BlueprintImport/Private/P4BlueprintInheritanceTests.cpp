@@ -156,7 +156,7 @@ bool FP4BlueprintFreshInheritanceTest::RunTest(const FString&)
             UPackage::SavePackage(Child->GetOutermost(), Child, RF_Public | RF_Standalone, *File, GError, nullptr, false, true, SAVE_NoError))) return false;
     }
     TestTrue(TEXT("source annotation restores native publication scope"), !P4ImportPublication::IsImporting() && !P4ImportPublication::IsSaving(Child->GetOutermost()));
-    TestFalse(TEXT("source annotation leaves the game asset's file writable on disk"), IFileManager::Get().IsReadOnly(*File));
+    TestFalse(TEXT("the saved imported Blueprint remains writable"), IFileManager::Get().IsReadOnly(*File));
     Child->GetOutermost()->SetDirtyFlag(false);
     if (!Fixture.Run(*this, true)) return false;
     Child = LoadObject<UBlueprint>(nullptr, *Fixture.Object(TEXT("Child")));

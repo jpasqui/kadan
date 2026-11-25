@@ -201,7 +201,7 @@ bool FP4CreatorSourceTest::RunTest(const FString&)
         TestEqual(Label + TEXT(" keeps the current proxy role"), P4HasIntrinsicGameProxy(Asset), Proxy);
         TestFalse(Label + TEXT(" does not become a creator source"), P4HasCreatorSource(Asset));
         const P4Kadan::FAssetPolicy Policy = P4Kadan::GetAssetPolicy(Asset);
-        TestFalse(Label + TEXT(" ordinary policy keeps game payload locked"), Policy.AllowEdit);
+        TestEqual(Label + TEXT(" only incomplete imports are protected"), Policy.AllowEdit, !Policy.ReferenceOnly);
         TestEqual(Label + TEXT(" policy preserves proxy role"), Policy.StandIn, Proxy);
         IInterface_AssetUserData* Owner = Cast<IInterface_AssetUserData>(Asset);
         const UP4CreatorSourceData* Data = Owner
@@ -463,7 +463,7 @@ bool FP4CreatorSourceTest::RunTest(const FString&)
                 Game->GetOutermost()->SetDirtyFlag(false);
                 TestFalse(TEXT("Legacy loaded fixture has no intrinsic role before verified update"),
                     P4HasIntrinsicGameSource(Game));
-                P4Kadan::UpdateReadOnlyAsset(Game);
+                P4Kadan::TrackAssetSource(Game);
                 TestFalse(TEXT("Verified loaded original upgrade does not dirty the package"),
                     Game->GetOutermost()->IsDirty());
                 Negative(Game, Root + TEXT("/GamePublication"), false, TEXT("Verified loaded legacy original"));
@@ -556,7 +556,7 @@ bool FP4CreatorSourceTest::RunTest(const FString&)
     UObject* Proxy = ProxyInstance;
     Proxy->GetOutermost()->GetMetaData()->SetValue(Proxy, TEXT("P4BlueprintStandIn"), TEXT("1"));
     FAssetRegistryModule::AssetCreated(Proxy);
-    P4Kadan::UpdateReadOnlyAsset(Proxy);
+    P4Kadan::TrackAssetSource(Proxy);
     Negative(Proxy, Root + TEXT("/Proxy"), true, TEXT("Known proxy"));
     UObject* ProxyDuplicate = Copy(Proxy, TEXT("ProxyCopy"));
     if (ProxyDuplicate)
@@ -574,7 +574,7 @@ bool FP4CreatorSourceTest::RunTest(const FString&)
         if (!TestNotNull(TEXT("Synthetic texture-role fixture has actual decoded file source"), Proxy))
             return false;
         Proxy->GetOutermost()->GetMetaData()->SetValue(Proxy, TEXT("P4BlueprintStandIn"), TEXT("1"));
-        P4Kadan::UpdateReadOnlyAsset(Proxy);
+        P4Kadan::TrackAssetSource(Proxy);
         Negative(Proxy, Root + TEXT("/TextureProxy"), true, TEXT("Known texture-role proxy"));
     }
     Proxy = ImportFile(TEXT("TextureProxy"), false);

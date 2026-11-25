@@ -681,7 +681,7 @@ void Reroute(UObject* Asset, IAssetEditorInstance* Editor)
     if (!Asset || !Editor || !Protected(Asset))
         return;
     const FName Name = Editor->GetEditorName();
-    if (Name == FName(TEXT("KadanReference")) || Name == FName(TEXT("PropertyEditor")))
+    if (Name == FName(TEXT("KadanReference")))
         return;
     const TWeakObjectPtr<UObject> Weak(Asset);
     FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
@@ -695,7 +695,7 @@ void Reroute(UObject* Asset, IAssetEditorInstance* Editor)
             for (IAssetEditorInstance* Open : Editors->FindEditorsForAsset(Locked))
             {
                 const FName Kind = Open->GetEditorName();
-                if (Kind != FName(TEXT("KadanReference")) && Kind != FName(TEXT("PropertyEditor")))
+                if (Kind != FName(TEXT("KadanReference")))
                 {
                     Open->CloseWindow();
                     Closed = true;
@@ -714,12 +714,11 @@ TSharedRef<SWidget> LockMark(const FAssetData& Data)
     return LockIcon(Data);
 }
 
-void InitializeReadOnlyRouting()
+void InitializeAssetActions()
 {
     if (Routed.Num() || IsRunningCommandlet() || !IsInGameThread() || !FApp::CanEverRender())
         return;
     FModuleManager::LoadModuleChecked<IModuleInterface>("UMGEditor");
-    InitializeMutationGuards();
     IAssetTools& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
     Plain = MakeShared<FPlainActions>();
     Tools.RegisterAssetTypeActions(Plain.ToSharedRef());
@@ -743,7 +742,7 @@ void InitializeReadOnlyRouting()
         if (auto* Editors = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
             OpenedInEditor = Editors->OnAssetOpenedInEditor().AddStatic(&Reroute);
 }
-void ShutdownReadOnlyRouting()
+void ShutdownAssetActions()
 {
     FModuleManager::Get().OnModulesChanged().Remove(ModulesChanged);
     if (FModuleManager::Get().IsModuleLoaded(TEXT("ContentBrowser")))

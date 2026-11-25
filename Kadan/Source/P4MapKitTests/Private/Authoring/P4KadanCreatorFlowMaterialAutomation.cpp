@@ -26,7 +26,7 @@ private:
     // The inherited instance and its parent link.
     void AddInstanceSteps();
 
-    // A protected game master opens read-only and unchanged.
+    // A game master opens in its own editor.
     void AddProtectedSteps();
 
     bool MaterialDetailsFixture(bool Retained);
@@ -268,7 +268,7 @@ void FMaterialStage::AddInstanceSteps()
 void FMaterialStage::AddProtectedSteps()
 {
     Flow.Add(
-        TEXT("Open the protected imported master through its normal reference route"),
+        TEXT("Open the incomplete imported master in its reference viewer"),
         [this]() { return Details.OpenMaterialDetails(DetailsProtectedMaterial.Get()); }, 120);
     Flow.Add(TEXT("Search the protected material's Details panel"), [this]()
         { return Details.MaterialSearch(Flow.Stage == TEXT("MaterialBefore") ? TEXT("C4") : TEXT("Game settings")); });
@@ -276,7 +276,7 @@ void FMaterialStage::AddProtectedSteps()
         [this]() { return Details.MaterialCapture(TEXT("protected")); });
     Flow.Add(TEXT("Reading protected Details preserves source bytes and values"),
         [this]() { return ProtectedDetailsUnchanged(); });
-    Flow.Add(TEXT("Close only the reference editor opened by this fixture"),
+    Flow.Add(TEXT("Close the imported master's editor"),
         [this]()
         {
             Details.CloseMaterialDetails(DetailsProtectedMaterial.Get());
@@ -347,7 +347,7 @@ bool FMaterialStage::MaterialDetailsFixture(bool Retained)
                 FP4OriginalRecord Record;
                 FString Error;
                 if (Candidate && P4ReadOriginalRecord(Candidate, Record, Error) &&
-                    !P4Kadan::GetAssetPolicy(Candidate).AllowEdit)
+                    Record.ReferenceOnly && !P4Kadan::GetAssetPolicy(Candidate).AllowEdit)
                 {
                     DetailsProtectedMaterial = Candidate;
                     break;

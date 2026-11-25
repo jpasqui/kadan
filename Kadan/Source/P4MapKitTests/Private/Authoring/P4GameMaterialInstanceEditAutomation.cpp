@@ -255,7 +255,7 @@ bool FP4EditGameMaterialInstance::RunTest(const FString&)
     {
         return false;
     }
-    P4Kadan::UpdateReadOnlyAsset(Instance);
+    P4Kadan::TrackAssetSource(Instance);
     FString Error;
     const FString Before = P4MaterialInstanceJson(Instance, Error);
     if (!TestTrue(TEXT("Imported recipe reads"), Error.IsEmpty()))

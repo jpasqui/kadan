@@ -440,12 +440,11 @@ void FCreateStage::AddAssetInspectionSteps()
         {
             auto Policy = P4Kadan::GetAssetPolicy(LoadObject<UTexture2D>(nullptr, *(Flow.BPackage + TEXT(".Texture"))));
             return Flow.Expect(
-                Flow.VisibleText(
-                    Policy.AllowEdit ? TEXT("Texture is editable.") : TEXT("Texture is read-only."), true) &&
+                Policy.AllowEdit && Flow.VisibleText(TEXT("This asset can be edited."), true) &&
                     (Policy.Reason.IsEmpty() || Flow.VisibleText(Policy.Reason, true)),
                 TEXT("Asset inspector does not display the native edit policy"));
         });
-    Flow.Add(TEXT("Select the actual imported original for read-only inspection"),
+    Flow.Add(TEXT("Select the actual imported original for inspection"),
         [this]
         {
             UObject* Texture = LoadObject<UTexture2D>(nullptr,
@@ -457,15 +456,15 @@ void FCreateStage::AddAssetInspectionSteps()
         });
     Flow.Add(TEXT("Inspect actual original through UI"),
         [this] { return Flow.Click(TEXT("Inspect assets selected in Content Browser")); });
-    Flow.Add(TEXT("Original inspection explains its real read-only policy"),
+    Flow.Add(TEXT("Original inspection shows it can be edited"),
         [this]
         {
             auto Policy = P4Kadan::GetAssetPolicy(LoadObject<UTexture2D>(nullptr,
                 *(Flow.TexturePackage + TEXT(".") + FPackageName::GetLongPackageAssetName(Flow.TexturePackage))));
-            return Flow.Expect(!Policy.AllowEdit && !Policy.Reason.IsEmpty() && Flow.VisibleText(Policy.Reason, true) &&
+            return Flow.Expect(Policy.AllowEdit &&
                     Flow.VisibleText(
-                        FPackageName::GetLongPackageAssetName(Flow.TexturePackage) + TEXT(" is read-only."), true),
-                TEXT("Original inspector omits the protected asset policy"));
+                        TEXT("This asset can be edited."), true),
+                TEXT("Original inspector omits the edit status"));
         });
     Flow.Add(TEXT("Capture actual original asset inspection"), [this] { return Flow.Screenshot(TEXT("asset")); });
     Flow.Add(

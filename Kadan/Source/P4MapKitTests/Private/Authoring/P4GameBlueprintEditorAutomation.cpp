@@ -112,7 +112,7 @@ bool FP4GameBlueprintEditorRoute::RunTest(const FString&)
         !TestTrue(TEXT("Complete recovered original, not a stand-in"), P4Kadan::IsRecoveredGameActorBlueprint(BP)))
         return false;
     P4RegisterKadanEditor();
-    P4Kadan::UpdateReadOnlyAsset(BP);
+    P4Kadan::TrackAssetSource(BP);
     const bool Editable = P4Kadan::GetAssetPolicy(BP).AllowEdit;
     const auto Actions = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"))
                              .Get()

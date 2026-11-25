@@ -188,7 +188,7 @@ bool FP4MaterialInstanceEditorProof::RunTest(const FString&)
         return false;
     }
     P4RegisterKadanEditor();
-    P4Kadan::UpdateReadOnlyAsset(Instance);
+    P4Kadan::TrackAssetSource(Instance);
     auto Actions = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"))
                        .Get()
                        .GetAssetTypeActionsForClass(Instance->GetClass())
