@@ -32,7 +32,7 @@ CORE_TESTS = (
     'material_source_shadow_span_test.cpp', 'mesh_collision_fidelity_test.cpp', 'mesh_nav_collision_test.cpp',
     'native_custom_backend_archive_test.cpp', 'navigation_boundary_test.cpp', 'new_map_census_test.cpp',
     'ampere_encode_test.cpp', 'own_sage_payload_test.cpp',
-    'package_compare_test.cpp', 'package_index_test.cpp', 'physics_body_test.cpp', 'placement_params_test.cpp', 'quality_test.cpp',
+    'package_compare_test.cpp', 'package_index_test.cpp', 'physics_body_test.cpp', 'placement_params_test.cpp', 'quality_test.cpp', 'gate_wall_test.cpp',
     'static_mesh_facts_test.cpp', 'table_edit_export_test.cpp',
 )
 # Tests that link the compiler, staged as the plugin builds it (tools/native_custom_backend_sources.py).

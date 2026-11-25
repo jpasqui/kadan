@@ -13,6 +13,7 @@ KADAN_API int32 P4ApplyNativeConstructionPreviews(UWorld*);
 // copy of the master whose outputs carry the game's wet look as a stock color decal. The master itself when it has
 // another mode; null when the copy cannot be built.
 KADAN_API UMaterial* P4WaterBoxDecalPreview(UMaterial* Master, FString& Error);
+// Gate walls (P4GateWallPreview.h) are part of the call above too.
 // The environment controllers' step of the same (P4NativeEnvironmentRecord.inl); part of the call above.
 KADAN_API int32 P4ApplyNativeEnvironmentPreviews(UWorld*);
 // Before a preview changes a saved value: the map's own value is kept, once per object and property.
