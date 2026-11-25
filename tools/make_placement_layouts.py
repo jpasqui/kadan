@@ -41,6 +41,7 @@ struct FieldRow {
     bool Drops;
     const char* DropKey;
     const char* DropList;
+    bool FromActor;
 };
 // A named type: its kind, its item type, or its members as Count field rows from First.
 struct TypeRow {
@@ -74,6 +75,12 @@ struct PartRow {
     int First;
     int Count;
 };
+// A slot whose layouts are the whole blob for an owner whose most derived native class is Class: every blob of
+// the slot of such owners in the game's placement lists Kadan was checked against reads and writes back exactly.
+struct CompleteRow {
+    Slot Id;
+    const char* Class;
+};
 template <class T> struct Table {
     const T* Rows;
     std::size_t Count;
@@ -83,7 +90,7 @@ template <class T> struct Table {
 
 FIELD_KEYS = {
     "name", "type", "gate", "when", "stop_if_set", "derived", "runtime_default", "count_of", "component_tag",
-    "component_transform", "drops", "drop_key", "drop_list",
+    "component_transform", "drops", "drop_key", "drop_list", "from_actor",
 }
 
 
@@ -136,6 +143,7 @@ def field_row(field):
             number(field.get("runtime_default", 0)), text(field.get("count_of", "")),
             text(field.get("component_tag", "")), boolean(field.get("component_transform", False)),
             boolean(field.get("drops", False)), text(field.get("drop_key", "")), text(field.get("drop_list", "")),
+            boolean(field.get("from_actor", False)),
         ]) + "},"
     )
 
@@ -179,14 +187,34 @@ def generate(data):
             ]) + "},")
             fields.extend(own)
 
+    complete = []
+    for entry in data.get("complete", []):
+        if entry["slot"] not in by_key:
+            raise ValueError(f"complete: unknown slot {entry['slot']!r}")
+        unknown = set(entry) - {"slot", "classes"}
+        if unknown:
+            raise ValueError(f"complete {entry['slot']}: unknown keys {sorted(unknown)}")
+        classes = entry["classes"]
+        if len(set(classes)) != len(classes) or not all(classes):
+            raise ValueError(f"complete {entry['slot']}: classes repeat or are empty")
+        complete.extend("        {Slot::" + by_key[entry["slot"]] + ", " + text(name) + "}," for name in classes)
+    if len(complete) != len({row for row in complete}):
+        raise ValueError("complete: a slot is listed twice")
+
     def table(kind, name, rows):
         return (f"inline Table<{kind}> {name}() {{\n    static const {kind} Rows[] = {{\n" + "\n".join(rows) +
                 "\n    };\n    return {Rows, sizeof(Rows) / sizeof(Rows[0])};\n}\n")
 
+    def counted(kind, name, rows):
+        # A table that may be empty: an array of none is not C++, so it ends with an unused row.
+        return (f"inline Table<{kind}> {name}() {{\n    static const {kind} Rows[] = {{\n" +
+                "\n".join(rows + ["        {},"]) + f"\n    }};\n    return {{Rows, {len(rows)}}};\n}}\n")
+
     enum = "".join(f"    {slot},\n" for slot in slot_ids)
     return (PREAMBLE % enum + table("FieldRow", "FieldRows", [field_row(f) for f in fields]) + "\n" +
             table("TypeRow", "TypeRows", types) + "\n" + table("SlotRow", "SlotRows", slots) + "\n" +
-            table("PartRow", "PartRows", parts) + "\n} // namespace Generated\n\n} } // namespace P4MapKit::Placement\n")
+            table("PartRow", "PartRows", parts) + "\n" + counted("CompleteRow", "CompleteRows", complete) +
+            "\n} // namespace Generated\n\n} } // namespace P4MapKit::Placement\n")
 
 
 def main(argv=None):
