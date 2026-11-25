@@ -389,6 +389,52 @@ static void Own()
     CHECK(Encode(Slot::AIStatic, DecoContext, Deco, RowVersion, Bytes, Error));
     CHECK(Decode(Slot::AIStatic, DecoContext, Bytes, RowVersion, Back, Error) && Back.Exact() &&
         Lines(Deco) == Lines(Back));
+    // A Pikmin sprout spawner: its color, leaves and count, a spawn list of the game's drop shape and sniff points.
+    Context NoraContext;
+    NoraContext.ComponentChain = {"NoraSpawnerAIComponent", "CarrotAIComponent"};
+    Blob Nora;
+    CHECK(Fresh(Slot::AIStatic, NoraContext, RowVersion, Nora));
+    Path(Nora, "NoraSpawnerAIParam.PikminColor")->Bits = 3;
+    Path(Nora, "NoraSpawnerAIParam.SpawnHeadLeaves")->Bits = 2;
+    Path(Nora, "NoraSpawnerAIParam.SpawnNum")->Bits = 5;
+    Path(Nora, "NoraSpawnerAIParam.SpawnRadius")->SetFloat(120.f);
+    *Path(Nora, "NoraSpawnerAIParam.NoraIdlingPresetId") = NameFromUtf8("Idle");
+    CHECK(Path(Nora, "NoraSpawnerAIParam.AIWaitTime") && Path(Nora, "SniffPointParameter.OptionalPointOffsets"));
+    const Type* SpawnList = FieldType(Slot::AIStatic, NoraContext, "NoraSpawnerAIParam.RandomActorSpawnList");
+    CHECK(SpawnList && SpawnList->Is == Kind::Array && SpawnList->Item);
+    if (SpawnList && SpawnList->Item)
+    {
+        Value Spawn = EmptyOf(*SpawnList->Item, RowVersion);
+        *Spawn.Find("DropActor") = NameFromUtf8("/Game/Carrot4/Placeables/Pikmin/GPikminRed.GPikminRed_C");
+        Spawn.Find("bSetTerritory")->Bits = 1;
+        Spawn.Find("Territory")->Find("Radius")->SetFloat(50.f);
+        Path(Nora, "NoraSpawnerAIParam.RandomActorSpawnList")->Items.push_back(Spawn);
+    }
+    CHECK(Encode(Slot::AIStatic, NoraContext, Nora, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() > 13 && Bytes[0] == 5 && Bytes[12] == 3); // count, two radii, then the color byte
+    CHECK(Decode(Slot::AIStatic, NoraContext, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Nora) == Lines(Back));
+    // Before 0x202111179 the pongashi fields are not in the stream.
+    Blob OldNora;
+    CHECK(Fresh(Slot::AIStatic, NoraContext, UINT64_C(0x202111179), OldNora) &&
+        !Path(OldNora, "NoraSpawnerAIParam.bMabikiPongashi") && !Path(OldNora, "NoraSpawnerAIParam.AIWaitTime"));
+    // A gold nugget station: the nuggets it holds are in its dynamic blob, after the build object's fields.
+    Context Station;
+    Station.ComponentChain = {"PieceStationAIComponent", "BuildObjectAIComponent", "ObjectAIComponent", "CarrotAIComponent"};
+    Blob Nuggets;
+    CHECK(Fresh(Slot::AIDynamic, Station, RowVersion, Nuggets));
+    // The station's run-time word after the count is -1 as the game starts it (the layout's runtime default).
+    bool MinusOne = false;
+    const auto StationLayouts = Layouts(Slot::AIDynamic, Station);
+    for (const Field& F : StationLayouts[0].Fields)
+        MinusOne = MinusOne || (F.Name == "runtime_0x10b8" && F.Derived && F.RuntimeDefault == UINT64_C(0xffffffff));
+    CHECK(MinusOne);
+    Path(Nuggets, "runtime_0x10b8")->Bits = UINT64_C(0xffffffff);
+    Path(Nuggets, "PieceStationAIComponent.PieceNum")->Bits = 40;
+    CHECK(Encode(Slot::AIDynamic, Station, Nuggets, RowVersion, Bytes, Error));
+    CHECK(Bytes.size() >= 12 && Bytes[Bytes.size() - 8] == 40 && Bytes.back() == 0xff);
+    CHECK(Decode(Slot::AIDynamic, Station, Bytes, RowVersion, Back, Error) && Back.Exact() &&
+        Lines(Nuggets) == Lines(Back));
     for (const std::string Class :
         {"BuildObjectAIComponent", "TateanaAIComponent", "ExcavationAIComponent", "ShijimiAIComponent"})
     {

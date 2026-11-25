@@ -7,9 +7,9 @@ namespace
 {
 // A slot's blob from an object's values (the placed actor's, or its class's for comparison).
 bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor, P::Blob& Out, FString& Error,
-    bool ClassDefaults = false)
+    bool ClassDefaults = false, uint64 Version = P::RowVersion)
 {
-    if (!P::Fresh(Slot, Context, P::RowVersion, Out))
+    if (!P::Fresh(Slot, Context, Version, Out))
     {
         Error = TEXT("no layout");
         return false;
@@ -230,6 +230,20 @@ bool TakeChangedMember(const FIn& Row, AActor* Actor, const TCHAR* Name)
     TakeChanged(Struct->Struct, Target.Data, Field->ContainerPtrToValuePtr<void>(Actor),
         Field->ContainerPtrToValuePtr<void>(const_cast<UObject*>(Class)));
     return true;
+}
+
+// The options of an object that the creator set apart from its class's, by name.
+TArray<FString> EditedFromClass(UObject* Object)
+{
+    TArray<FString> Out;
+    const UObject* Class = Object ? Object->GetArchetype() : nullptr;
+    if (!Class || Class->GetClass() != Object->GetClass())
+        return Out;
+    for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
+        if (It->HasAnyPropertyFlags(CPF_Edit) && !It->HasAnyPropertyFlags(CPF_Transient | CPF_EditConst) &&
+            !It->Identical_InContainer(Object, Class))
+            Out.Add(It->GetName());
+    return Out;
 }
 
 // The values every row of Kadan's starts from: one actor made, kept once used up, not counted for the
@@ -470,6 +484,17 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
         for (const P::SlotName& Slot : P::Slots())
         {
             UObject* Owner = OwnerOf(Actor, Slot);
+            if (Owner && Owner != Actor && P::Layouts(Slot.S, Context).empty() && !NotAnOption(SlotKey(Slot)))
+            {
+                // A part whose blob Kadan cannot write: the game gives it the class's values, so the creator hears of
+                // the options set on it.
+                const TArray<FString> Edited = EditedFromClass(Owner);
+                if (Edited.Num())
+                    Out.Told.Add(FString::Printf(
+                        TEXT("%s: Kadan cannot write the game's options of %s (%s) yet, so the game uses the class's values in place of %s."),
+                        *Actor->GetName(), *Owner->GetClass()->GetName(), *SlotKey(Slot), *FString::Join(Edited, TEXT(", "))));
+                continue;
+            }
             if (!Owner || P::Layouts(Slot.S, Context).empty())
                 continue;
             UObject* Archetype = Owner->GetArchetype();
@@ -538,6 +563,243 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
     Held.Resize(1);
     Entry->SetObjectPropertyValue(Held.GetRawPtr(0), Asset);
     Error.Reset();
+    return true;
+}
+
+namespace
+{
+// The changed property whose value holds the memory at Data, or INDEX_NONE.
+int32 ChangedAt(const TArray<FP4ChangedProperty>& Changed, const void* Data)
+{
+    for (int32 Index = 0; Index < Changed.Num(); ++Index)
+    {
+        const FP4ChangedProperty& One = Changed[Index];
+        if (!One.Object || !One.Property)
+            continue;
+        const uint8* Start = One.Property->ContainerPtrToValuePtr<uint8>(One.Object);
+        const uint8* End = Start + One.Property->ElementSize * One.Property->ArrayDim;
+        if (static_cast<const uint8*>(Data) >= Start && static_cast<const uint8*>(Data) < End)
+            return Index;
+    }
+    return INDEX_NONE;
+}
+
+// Counted fields follow what they count, when the creator changed the list they count.
+void Recount(P::Blob& Blob, const std::vector<P::Field>& Fields, UObject* Owner)
+{
+    for (const P::Field& Field : Fields)
+    {
+        P::Value* Value = Field.CountOf.empty() ? nullptr : Blob.Root.Find(Field.Name);
+        if (!Value)
+            continue;
+        const int32 Count = CountOf(Owner, *Wide(Field.CountOf));
+        if (Field.Of->Is == P::Kind::Bools || Field.Of->Is == P::Kind::Repeat)
+        {
+            const size_t Before = Value->Items.size();
+            Value->Items.resize(size_t(Count));
+            for (size_t Item = Before; Item < Value->Items.size(); ++Item)
+                Value->Items[Item].Is = Field.Of->Item->Is;
+        }
+        else
+            Value->Bits = uint32(Count);
+    }
+}
+
+// Whether a blob holds a drop: a drop of the game's is a generator of its own, numbered in the game's lists.
+bool HasDrops(const P::Blob& Blob, const std::vector<P::Field>& Fields)
+{
+    for (const P::Field& Field : Fields)
+    {
+        const P::Value* Value = Field.Drops ? Blob.Root.Find(Field.Name) : nullptr;
+        if (Value && !Value->Items.empty())
+            return true;
+    }
+    return false;
+}
+} // namespace
+
+bool P4GameRowBlobChanges(AActor* Actor, const FP4GamePlacementRow& Row, const TArray<FP4ChangedProperty>& Changed,
+    TMap<FString, TArray<uint8>>& Out, TArray<FString>& Left, FString& Error)
+{
+    Out.Reset();
+    Left.Reset();
+    Error.Reset();
+    if (!IsInGameThread() || !IsValid(Actor))
+    {
+        Error = TEXT("A placement row is given new options on the editor thread, from an actor that is there");
+        return false;
+    }
+    // What became of each changed property: whether a field of a blob holds it, and why it was not written when not.
+    TArray<bool> Held;
+    Held.Init(false, Changed.Num());
+    TArray<FString> Why;
+    Why.SetNum(Changed.Num());
+    const auto Note = [&](int32 At, const FString& Reason)
+    {
+        Held[At] = true;
+        if (Why[At].IsEmpty())
+            Why[At] = Reason;
+    };
+    const P::Context Context = ContextOf(Actor);
+    for (const P::SlotName& Slot : P::Slots())
+    {
+        const FString Key = SlotKey(Slot);
+        UObject* Owner = OwnerOf(Actor, Slot);
+        if (!Owner || NotAnOption(Key))
+            continue;
+        if (P::Layouts(Slot.S, Context).empty())
+        {
+            // A part whose blob Kadan cannot write: what the creator changed on it stays as the game has it.
+            if (Owner != Actor)
+                for (int32 Index = 0; Index < Changed.Num(); ++Index)
+                    if (Changed[Index].Object == Owner)
+                        Note(Index, FString::Printf(TEXT("Kadan cannot write the game's options of %s (%s) yet"),
+                            *Owner->GetClass()->GetName(), *Key));
+            continue;
+        }
+        // The game reads a row's blob at the row's own version, so a blob given anew is written at it.
+        const uint64 Version = Slot.Static ? Row.AssetVersion : Row.GeneratorVersion;
+        const TArray<uint8>* Before = Row.Blobs.Find(Key);
+        TArray<int32> Here;
+        if (!Before)
+        {
+            // The row has no such blob, so the game gives the object the class's values. The creator's values go
+            // into a blob made whole from the actor, as for an object the creator placed.
+            const std::vector<P::Field> Fields = LayoutFields(Slot.S, Context);
+            for (const P::Field& Field : Fields)
+            {
+                FProperty* Leaf = nullptr;
+                void* Data = nullptr;
+                FString Miss;
+                if (Field.Derived || NotAProperty(Field) ||
+                    !ResolvePlacementField(Owner, Actor, Wide(Field.Name), Leaf, Data, Miss))
+                    continue;
+                const int32 At = ChangedAt(Changed, Data);
+                if (At != INDEX_NONE)
+                    Here.AddUnique(At);
+            }
+            if (!Here.Num())
+                continue;
+            for (const int32 At : Here)
+                Held[At] = true;
+            P::Blob Placed, Default;
+            FString Miss;
+            UObject* Archetype = Owner->GetArchetype();
+            if (!Version || !Fill(Slot.S, Context, Owner, Actor, Placed, Miss, false, Version) || Placed.UnreadFields ||
+                !Archetype || !Fill(Slot.S, Context, Archetype, Actor, Default, Miss, true, Version))
+            {
+                for (const int32 At : Here)
+                    Note(At, Miss.IsEmpty() ? FString(TEXT("its blob cannot be written yet")) : Miss);
+                continue;
+            }
+            if (Options(Slot.S, Context, Placed) == Options(Slot.S, Context, Default))
+                continue;
+            if (HasDrops(Placed, Fields))
+            {
+                for (const int32 At : Here)
+                    Note(At, TEXT("drops of one of the game's objects are not written yet"));
+                continue;
+            }
+            std::vector<uint8> Bytes;
+            std::string Wrong;
+            if (!P::Encode(Slot.S, Context, Placed, Version, Bytes, Wrong) || !Placed.Exact())
+            {
+                for (const int32 At : Here)
+                    Note(At, TEXT("its blob cannot be written yet (") + Wide(Wrong) + TEXT(")"));
+                continue;
+            }
+            Out.Add(Key, TArray<uint8>(Bytes.data(), int32(Bytes.size())));
+            continue;
+        }
+        // The row's blob as the game has it, with each field that a changed property holds taken from the actor.
+        // Every other field, the run-time state and the drops' numbers among them, stays the game's.
+        P::Blob Blob;
+        FString Unread;
+        const bool Read = ReadRowBlob(Row, Key, Context, Blob, Unread);
+        const std::vector<P::Field> Fields = LayoutFields(Slot.S, Context, Read ? Blob.Variant : 0);
+        if (!Read)
+        {
+            // Which changed properties the blob would hold, to say why their change is not written.
+            for (const P::Field& Field : Fields)
+            {
+                FProperty* Leaf = nullptr;
+                void* Data = nullptr;
+                FString Miss;
+                if (Field.Derived || NotAProperty(Field) ||
+                    !ResolvePlacementField(Owner, Actor, Wide(Field.Name), Leaf, Data, Miss))
+                    continue;
+                const int32 At = ChangedAt(Changed, Data);
+                if (At != INDEX_NONE)
+                    Note(At, TEXT("its blob in the game's row ") + Unread);
+            }
+            continue;
+        }
+        bool Touched = false;
+        for (auto& Member : Blob.Root.Members)
+        {
+            const P::Field* Field = FieldNamed(Fields, Member.first);
+            if (!Field || Field->Derived || NotAProperty(*Field))
+                continue;
+            FProperty* Leaf = nullptr;
+            void* Data = nullptr;
+            FString Miss;
+            if (!ResolvePlacementField(Owner, Actor, Wide(Member.first), Leaf, Data, Miss))
+                continue;
+            const int32 At = ChangedAt(Changed, Data);
+            if (At == INDEX_NONE)
+                continue;
+            Here.AddUnique(At);
+            Held[At] = true;
+            P::Value Now = Member.second;
+            if (!ToValue(Leaf, Data, *Field->Of, Now, Miss))
+            {
+                Note(At, Miss);
+                continue;
+            }
+            if (Canonical(Now, std::string()) == Canonical(Member.second, std::string()))
+                continue;
+            if (Field->Drops)
+            {
+                Note(At, TEXT("drops of one of the game's objects are not written yet"));
+                continue;
+            }
+            Member.second = MoveTemp(Now);
+            Touched = true;
+        }
+        if (!Touched)
+            continue;
+        if (!Blob.Exact())
+        {
+            for (const int32 At : Here)
+                Note(At, TEXT("a part of its blob in the game's row is not read yet"));
+            continue;
+        }
+        Recount(Blob, Fields, Owner);
+        std::vector<uint8> Bytes;
+        std::string Wrong;
+        if (!P::Encode(Slot.S, Context, Blob, Version, Bytes, Wrong))
+        {
+            for (const int32 At : Here)
+                Note(At, TEXT("its blob cannot be written (") + Wide(Wrong) + TEXT(")"));
+            continue;
+        }
+        if (Bytes.size() == size_t(Before->Num()) &&
+            (Bytes.empty() || !FMemory::Memcmp(Bytes.data(), Before->GetData(), Bytes.size())))
+            continue;
+        Out.Add(Key, TArray<uint8>(Bytes.data(), int32(Bytes.size())));
+    }
+    // A change no blob holds, or one a blob could not be written with, does not reach the game.
+    for (int32 Index = 0; Index < Changed.Num(); ++Index)
+    {
+        if (Held[Index] && Why[Index].IsEmpty())
+            continue;
+        const FP4ChangedProperty& One = Changed[Index];
+        const FString Name = (One.Object == Actor || !One.Object ? FString() : One.Object->GetName() + TEXT(".")) +
+            (One.Property ? One.Property->GetName() : FString(TEXT("?")));
+        Left.Add(Name + TEXT(": ") +
+            (Held[Index] ? Why[Index]
+                         : FString(TEXT("the game makes the object from its placement row, which does not hold this value"))));
+    }
     return true;
 }
 

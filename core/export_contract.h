@@ -33,8 +33,11 @@ struct LevelEdit {
 };
 // Moves and removals of rows of one of the game's own placement lists, by the row's placement number
 // (GenerateInfo.DebugUniqueId). The game builds its gameplay objects from these rows, not from the level.
+// Set gives a row blobs of its options anew: by the row's number, then by the blob's name and half ("AI.Static"),
+// the bytes as the game's serializer writes them at the row's own version. A row can be moved and given blobs.
 struct PlacementEdit {
     std::vector<std::uint64_t> Remove; std::map<std::uint64_t, Transform> Move;
+    std::map<std::uint64_t, std::map<std::string, std::vector<std::uint8_t>>> Set;
 };
 struct MapEdit {
     std::string Package;
@@ -47,6 +50,15 @@ struct MapEdit {
     bool Navigation = false;
 };
 inline bool Alnum(char C) { return (C >= 'a' && C <= 'z') || (C >= '0' && C <= '9'); }
+// A blob's name in a placement row: its row name, a dot, and its half.
+inline bool BlobName(const std::string& Text) {
+    const auto Dot = Text.find('.');
+    if (Dot == std::string::npos || Dot == 0 || Dot > 63) return false;
+    for (std::size_t I = 0; I < Dot; ++I) { const char C = Text[I]; if (!Alnum(C) && !(C >= 'A' && C <= 'Z') && C != '_') return false; }
+    const std::string Half = Text.substr(Dot + 1);
+    return Half == "Static" || Half == "Dynamic";
+}
+constexpr std::size_t MostBlobBytes = 1u << 20;
 // Tsuchi keeps the ID tsuchi and every ID under tsuchi. for itself and blocks a mod folder named so.
 inline bool ReservedId(const std::string& Id) { return Id == "tsuchi" || Id.compare(0,7,"tsuchi.") == 0; }
 inline bool ValidId(const std::string& Id) {
@@ -223,7 +235,8 @@ inline bool MapFiles(const Descriptor& Mod, const MapEdit& Map, std::string& Ent
     }
     Changes += "}}\n";
     // Rows of the game's lists: the list is the game's (never the mod's), an AP_ asset, and a row is
-    // moved or removed once. The numbers are written as decimal text, as Tsuchi reads them.
+    // moved or removed once. A row given new blobs ("set") keeps the game's row otherwise; the blobs are hex.
+    // The numbers are written as decimal text, as Tsuchi reads them.
     std::string RowChanges; std::vector<std::string> SeenGameLists;
     for (const auto& Pair : Map.PlacementChanges) {
         const auto& List = Pair.first; const auto& Edit = Pair.second;
@@ -233,11 +246,18 @@ inline bool MapFiles(const Descriptor& Mod, const MapEdit& Map, std::string& Ent
             Leaf.compare(0, 3, "AP_") != 0) { Error = "A placement change must name one of the game's placement lists"; return false; }
         if (std::find(SeenGameLists.begin(), SeenGameLists.end(), Lower) != SeenGameLists.end()) { Error = "A placement list is named twice"; return false; }
         SeenGameLists.push_back(Lower);
-        if (Edit.Remove.empty() && Edit.Move.empty()) continue;
+        if (Edit.Remove.empty() && Edit.Move.empty() && Edit.Set.empty()) continue;
         std::vector<std::uint64_t> Rows(Edit.Remove);
         for (const auto& Move : Edit.Move) { if (!ValidTransform(Move.second)) { Error = "Invalid placement row move"; return false; } Rows.push_back(Move.first); }
         std::sort(Rows.begin(), Rows.end());
         if (std::adjacent_find(Rows.begin(), Rows.end()) != Rows.end() || (!Rows.empty() && Rows.front() == 0)) { Error = "A placement row is changed twice or has no number"; return false; }
+        for (const auto& Row : Edit.Set) {
+            if (!Row.first || Row.second.empty() || std::find(Edit.Remove.begin(), Edit.Remove.end(), Row.first) != Edit.Remove.end()) {
+                Error = "A placement row given new options has no number or blobs, or is removed"; return false;
+            }
+            for (const auto& Blob : Row.second)
+                if (!BlobName(Blob.first) || Blob.second.empty() || Blob.second.size() > MostBlobBytes) { Error = "Invalid placement row blob"; return false; }
+        }
         if (!RowChanges.empty()) RowChanges += ',';
         RowChanges += Quote(List) + ":{"; bool Part = false;
         if (!Edit.Move.empty()) {
@@ -254,6 +274,23 @@ inline bool MapFiles(const Descriptor& Mod, const MapEdit& Map, std::string& Ent
             RowChanges += "\"remove\":[";
             for (std::size_t I = 0; I < Removed.size(); ++I) { if (I) RowChanges += ','; RowChanges += Quote(std::to_string(Removed[I])); }
             RowChanges += ']';
+        }
+        if (!Edit.Set.empty()) {
+            if (Part || !Edit.Remove.empty()) RowChanges += ',';
+            RowChanges += "\"set\":{"; bool First = true;
+            for (const auto& Row : Edit.Set) {
+                if (!First) RowChanges += ','; First = false;
+                RowChanges += Quote(std::to_string(Row.first)) + ":{"; bool FirstBlob = true;
+                for (const auto& Blob : Row.second) {
+                    if (!FirstBlob) RowChanges += ','; FirstBlob = false;
+                    static const char Digits[] = "0123456789abcdef";
+                    std::string Hex; Hex.reserve(Blob.second.size() * 2);
+                    for (std::uint8_t Byte : Blob.second) { Hex += Digits[Byte >> 4]; Hex += Digits[Byte & 15]; }
+                    RowChanges += Quote(Blob.first) + ':' + Quote(Hex);
+                }
+                RowChanges += '}';
+            }
+            RowChanges += '}';
         }
         RowChanges += '}';
     }

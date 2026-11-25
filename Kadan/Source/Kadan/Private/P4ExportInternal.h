@@ -121,8 +121,11 @@ struct FLevelEdit
     TArray<FString> NavigationOnly;
     bool Navigation = false;
     FString NavigationWhy;
-    // The game's gameplay objects moved or removed, which go into changes of the game's placement lists.
+    // The game's gameplay objects moved, removed or given other options, which go into changes of the game's
+    // placement lists.
     TArray<FP4GameRowEdit> RowEdits;
+    // What the creator changed that does not reach the game, one line each, for the export's notices.
+    TArray<FString> Told;
 };
 // When ReadRows is set, the moves and removals of the game's gameplay objects that come from rows of the
 // game's placement lists (GameRows, null when they were not found) become changes of those rows

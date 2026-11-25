@@ -21,6 +21,8 @@ struct FP4PlacementList
     TStrongObjectPtr<UObject> Asset, ListAsset;
     uint64 MarkId = 0;
     TArray<FP4PlacementRow> Rows;
+    // What the creator set that the rows do not hold, one line each, for the export's notices.
+    TArray<FString> Told;
 };
 
 // Builds the list for the gameplay objects placed in the edits of MapPackage. Each row names its class by
@@ -76,6 +78,20 @@ struct FP4LevelChangesResult;
 // edit of a gameplay object that has a placement number.
 KADAN_API bool P4GameRowsOfLevelEdit(UWorld* World, const FP4LevelChangesResult& Changes, const TArray<FP4GamePlacementRow>* Rows,
     TMap<FString, FP4GameRowEdit>& Out, FString& Error);
+// A property the creator changed on an actor or on one of its parts, as the level's changes name it.
+struct FP4ChangedProperty
+{
+    UObject* Object = nullptr;
+    const FProperty* Property = nullptr;
+};
+// The blobs of one of the game's rows that a changed gameplay object gives anew. A blob of the row is read as the
+// game has it, and each of its fields that a changed property holds takes the actor's value; a blob the row does not
+// have is made whole from the actor, as for a placed object. Out: the blobs that differ from the row's, by name
+// ("AI.Static"), written at the row's versions. Left: the changed properties that do not reach the game, each with
+// why, as "Component.Property: why". False only when the actor cannot be read.
+KADAN_API bool P4GameRowBlobChanges(AActor* Actor, const FP4GamePlacementRow& Row,
+    const TArray<FP4ChangedProperty>& Changed, TMap<FString, TArray<uint8>>& Out, TArray<FString>& Left,
+    FString& Error);
 // Where a gameplay object's values differ from what its row's decoded blobs say, one line each. Fields that the
 // stream counts or that no property holds are left out; blobs that are not read are told as such.
 KADAN_API TArray<FString> P4PlacementOptionDifferences(AActor* Actor, const FP4GamePlacementRow& Row);
