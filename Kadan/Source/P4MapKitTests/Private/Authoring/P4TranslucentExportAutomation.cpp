@@ -15,6 +15,7 @@
 #include "AssetRegistryModule.h"
 #include "AssetToolsModule.h"
 #include "Editor.h"
+#include "P4TestFixtureRelease.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Blueprint.h"
@@ -142,6 +143,7 @@ static bool RunCreatorMaterialExport(FAutomationTestBase& Test, bool Lit, bool O
         }
     ON_SCOPE_EXIT
     {
+        P4ForgetUndoOfTestFixtures();
         TArray<UPackage*> Packages;
         for (const TWeakObjectPtr<UObject>& Weak : Made)
         {

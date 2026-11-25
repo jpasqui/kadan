@@ -9,6 +9,7 @@
 #include "AssetRegistryModule.h"
 #include "AssetToolsModule.h"
 #include "Editor.h"
+#include "P4TestFixtureRelease.h"
 #include "Engine/Texture2D.h"
 #include "Factories/TextureFactory.h"
 #include "HAL/FileManager.h"
@@ -99,6 +100,7 @@ bool FP4LightFunctionExportTest::RunTest(const FString&)
     TArray<UObject*> Made;
     ON_SCOPE_EXIT
     {
+        P4ForgetUndoOfTestFixtures();
         for (UObject* Asset : Made)
         {
             if (!IsValid(Asset))
