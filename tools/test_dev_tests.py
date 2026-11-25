@@ -208,6 +208,19 @@ class TestNotRunExit(unittest.TestCase):
                          (['1 tests did not run'], False))
 
 
+class TestRecordedTimesAndResults(unittest.TestCase):
+    def test_only_a_test_that_ran_and_passed_has_its_time_kept(self):
+        times = {'P4MapKit.Ran': 70.0, 'P4MapKit.NotRun': 0.1, 'P4MapKit.Failed': 0.4, 'P4MapKit.Unfinished': 5.0}
+        passed = {'P4MapKit.Ran', 'P4MapKit.NotRun'}
+        self.assertEqual(dev_tests.times_to_record(times, passed, {'P4MapKit.NotRun'}), {'P4MapKit.Ran': 70.0})
+
+    def test_every_test_is_in_the_results_once(self):
+        record = dev_tests.results_record(
+            passed={'P4MapKit.A', 'P4MapKit.B'}, failed={'P4MapKit.C'}, skipped=['P4MapKit.B'], stopped=['P4MapKit.D'])
+        self.assertEqual(record, dict(passed=['P4MapKit.A'], failed=['P4MapKit.C'], not_run=['P4MapKit.B'],
+                                      stopped=['P4MapKit.D']))
+
+
 class TestNotRunCount(unittest.TestCase):
     def test_a_test_that_says_it_did_not_run_is_counted_apart(self):
         log = '\n'.join([

@@ -16,8 +16,9 @@ printed. Every editor call has a time limit.
 Without --only the fast tests run (test_tiers.py says which those are): the ones that neither import
 a whole map nor run the whole export, a few minutes together. --tier heavy runs the others that can use
 a copy of a kept imported project (kadan_fixture.py copy), --tier fresh the ones that test a map's
-import itself and need a project without it. Each run records how long every test took, so a test that
-becomes slow moves to the heavy tier by itself.
+import itself and need a project without it. Each run records how long every test that ran and passed took, so
+a test that becomes slow moves to the heavy tier by itself. Every test's result goes into dev-tests-results.json
+next to the logs: the printed lists name the first 40 failures and the first 80 tests that did not run.
 
 A test whose inputs are absent reports that it did not run, and Unreal records it as passed; it is counted
 as not run. A test named with --only that did not run makes the exit code 1 unless --allow-not-run is
@@ -98,6 +99,20 @@ def not_run_verdict(skipped, only, allow_not_run=False):
     if fails:
         lines.append('Named tests that did not run (--allow-not-run accepts this): ' + ', '.join(skipped))
     return lines, fails
+
+
+def times_to_record(times, passed, skipped):
+    """The times worth keeping for the tiers: those of tests that ran and passed. A test that did not run, or that
+    failed (often at its first check, for an input that is absent), took no time that says how long it runs. A
+    recorded time under a minute moved such heavy tests into the fast tier."""
+    return {name: seconds for name, seconds in times.items() if name in passed and name not in skipped}
+
+
+def results_record(passed, failed, skipped, stopped):
+    """Every test's result by its full name. A test counts once: not run rather than passed, and after a restart a
+    failure in any run as a failure."""
+    return dict(passed=sorted(set(passed) - set(skipped) - set(failed)), failed=sorted(failed),
+                not_run=sorted(set(skipped) - set(failed)), stopped=sorted(stopped))
 
 
 def selected_paths(text):
@@ -319,8 +334,6 @@ def main():
             lock.close()
     text = '\n'.join(texts)
     times = test_tiers.durations([path for path in logs if path.exists()]) if text else {}
-    if times:
-        test_tiers.record(times, test_tiers.LOCAL_TIMINGS)
     # Each start's log has to read back the deadline that start was given.
     deadline_verified = bool(texts) and all(controller_deadline_readback(run_text, deadline) for run_text, deadline in zip(texts, deadlines))
     # The first start's count, or every start's when a filter list was split over several.
@@ -335,6 +348,12 @@ def main():
     passed, failed = len(passed_paths), len(failed_paths)
     skipped = sorted(not_run_tests(text) & passed_paths)
     ran = passed - len(skipped)
+    kept = times_to_record(times, passed_paths, set(skipped))
+    if kept:
+        test_tiers.record(kept, test_tiers.LOCAL_TIMINGS)
+    results = log.with_name('dev-tests-results.json')
+    results.write_text(json.dumps(results_record(passed_paths, failed_paths, skipped, stopped), indent=1) + '\n',
+                       encoding='utf-8')
     names = [line.split('Name={', 1)[1].split('}', 1)[0] for line in text.splitlines() if 'Result={Failed}' in line and 'Name={' in line]
     errors = [line.split('Error: ', 1)[1] for line in text.splitlines()
               if 'LogAutomationController: Error:' in line or 'LogAutomationTest: Error:' in line]
@@ -356,6 +375,7 @@ def main():
     if slow:
         print('slowest:', ', '.join('{} {:.0f} s'.format(name.split('.')[-1], seconds) for name, seconds in slow))
     print('log:', ', '.join(str(path) for path in logs) or log)
+    print('results:', results)
     if shipping_runtime is not None:
         print('Shipping production DLLs and the separate native test DLL remained unchanged.')
     not_run_lines, not_run_fails = not_run_verdict(skipped, args.only, args.allow_not_run)

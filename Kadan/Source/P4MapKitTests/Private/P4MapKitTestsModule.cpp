@@ -3,6 +3,7 @@
 void P4StartPrivateNativeAutomationPacing();
 void P4StopPrivateNativeAutomationPacing();
 void P4StartMaterialParentProbe();
+void P4StartUndoResetAfterTests();
 
 class FP4MapKitTestsModule final : public IModuleInterface
 {
@@ -11,6 +12,7 @@ public:
     {
         P4StartPrivateNativeAutomationPacing();
         P4StartMaterialParentProbe();
+        P4StartUndoResetAfterTests();
     }
     void ShutdownModule() override { P4StopPrivateNativeAutomationPacing(); }
 };
