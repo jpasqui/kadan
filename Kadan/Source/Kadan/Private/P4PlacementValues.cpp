@@ -200,6 +200,41 @@ bool ToValue(const FProperty* Field, const void* Data, const P::Type& Type, P::V
                 }
                 return true;
             }
+            // A set is streamed as an array of its items, a map as an array of pairs: the item's first member is
+            // the key, its second the value.
+            if (const FSetProperty* Set = CastField<FSetProperty>(Field))
+            {
+                FScriptSetHelper Items(Set, Data);
+                for (int32 I = 0; I < Items.GetMaxIndex(); ++I)
+                {
+                    if (!Items.IsValidIndex(I))
+                        continue;
+                    P::Value Item;
+                    if (!ToValue(Set->ElementProp, Items.GetElementPtr(I), *Type.Item, Item, Error))
+                        return false;
+                    Out.Items.push_back(std::move(Item));
+                }
+                return true;
+            }
+            if (const FMapProperty* Map = CastField<FMapProperty>(Field))
+            {
+                const P::Type& Pair = *Type.Item;
+                if (Pair.Is != P::Kind::Struct || Pair.Members.size() != 2)
+                    break;
+                FScriptMapHelper Items(Map, Data);
+                for (int32 I = 0; I < Items.GetMaxIndex(); ++I)
+                {
+                    if (!Items.IsValidIndex(I))
+                        continue;
+                    P::Value Item = P::EmptyOf(Pair, P::RowVersion);
+                    if (Item.Members.size() != 2 ||
+                        !ToValue(Map->KeyProp, Items.GetKeyPtr(I), *Pair.Members[0].Of, Item.Members[0].second, Error) ||
+                        !ToValue(Map->ValueProp, Items.GetValuePtr(I), *Pair.Members[1].Of, Item.Members[1].second, Error))
+                        return Error.IsEmpty() ? (Error = TEXT("a map pair the stream does not hold"), false) : false;
+                    Out.Items.push_back(std::move(Item));
+                }
+                return true;
+            }
             break;
         case P::Kind::Struct:
             if (Struct)
@@ -477,6 +512,38 @@ bool FromValue(const FProperty* Field, void* Data, const P::Type& Type, const P:
                         Error = FString::Printf(TEXT("[%d]: "), I) + Error;
                         return false;
                     }
+                return true;
+            }
+            if (const FSetProperty* Set = CastField<FSetProperty>(Field))
+            {
+                FScriptSetHelper Items(Set, Data);
+                Items.EmptyElements(int32(In.Items.size()));
+                for (const P::Value& Item : In.Items)
+                {
+                    const int32 Added = Items.AddDefaultValue_Invalid_NeedsRehash();
+                    if (!FromValue(Set->ElementProp, Items.GetElementPtr(Added), *Type.Item, Item, Error))
+                        return false;
+                }
+                Items.Rehash();
+                return true;
+            }
+            if (const FMapProperty* Map = CastField<FMapProperty>(Field))
+            {
+                const P::Type& Pair = *Type.Item;
+                if (Pair.Is != P::Kind::Struct || Pair.Members.size() != 2)
+                    break;
+                FScriptMapHelper Items(Map, Data);
+                Items.EmptyValues(int32(In.Items.size()));
+                for (const P::Value& Item : In.Items)
+                {
+                    if (Item.Members.size() != 2)
+                        break;
+                    const int32 Added = Items.AddDefaultValue_Invalid_NeedsRehash();
+                    if (!FromValue(Map->KeyProp, Items.GetKeyPtr(Added), *Pair.Members[0].Of, Item.Members[0].second, Error) ||
+                        !FromValue(Map->ValueProp, Items.GetValuePtr(Added), *Pair.Members[1].Of, Item.Members[1].second, Error))
+                        return false;
+                }
+                Items.Rehash();
                 return true;
             }
             break;

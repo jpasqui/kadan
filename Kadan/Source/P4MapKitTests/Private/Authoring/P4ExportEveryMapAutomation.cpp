@@ -1193,6 +1193,17 @@ bool FP4EveryMapWithGameReferencesImportExport::RunTest(const FString& Map)
             for (AActor* Actor : RowActors)
                 RowActorNames.Add(Actor->GetName());
         }
+        // P4_NATIVE_SWEEP_PAINTED=1: a cube with painted vertex colors from an FBX file, 3 m to the cube's other side.
+        if (FPlatformMisc::GetEnvironmentVariable(TEXT("P4_NATIVE_SWEEP_PAINTED")) == TEXT("1"))
+        {
+            const FVector PaintedAt = CubeAt + FVector(0, -300, 0);
+            AActor* Painted =
+                AddPaintedCube(*this, World, ModNames.PackageRoot / TEXT("Painted"), PaintedAt, CubeAssets.Made);
+            if (!Painted)
+                return false;
+            Report->SetStringField(TEXT("painted_cube"), PaintedAt.ToString());
+            RowActorNames.Add(Painted->GetName());
+        }
     }
     else
         Added = World->SpawnActor<APointLight>(APointLight::StaticClass(), FTransform(FVector(0, 0, 150)), Spawn);

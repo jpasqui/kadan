@@ -158,8 +158,8 @@ FP4OriginalLevelImportResult P4RepairRetainedPlayerDefaultsForTest(const FString
         return Fail(TEXT("retained-player-source-folder-unusable"));
     Root.LeftChopInline(Tail.Len());
     Game.SourceRoot = Root;
-    if (!FPackageName::DoesPackageExist(Package, nullptr, &File) || !IFileManager::Get().IsReadOnly(*File))
-        return Fail(TEXT("retained-player-not-a-protected-saved-layer"));
+    if (!FPackageName::DoesPackageExist(Package, nullptr, &File))
+        return Fail(TEXT("retained-player-not-a-saved-layer"));
     int64 Bytes = 0;
     FString SavedDigest;
     if (!P4HashFile(File, 64 * 1024 * 1024, Bytes, SavedDigest) || !P4SameText(SavedDigest, ExpectedSavedDigest))
@@ -342,18 +342,13 @@ FP4OriginalLevelImportResult P4RepairRetainedPlayerDefaultsForTest(const FString
     TArray<FString> ActualEngine;
     ActualLines.Reset();
     Lines(ActualCook, ActualLines, ActualEngine);
-    // Production levels are creator-editable, unlike locked reference assets. This private fixture's
-    // explicit file protection is released only after both full source proofs, and restored on exit.
+    // Production levels are creator-editable, unlike locked reference assets. A read-only mark an earlier
+    // version of Kadan left on this private fixture's file is taken off only after both full source proofs.
     IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
-    if (!Files.IsReadOnly(*File) || !P4HashFile(File, 64 * 1024 * 1024, Bytes, SavedDigest) ||
-        !P4SameText(SavedDigest, ExpectedSavedDigest))
-        return Fail(TEXT("retained-player-protected-file-changed-before-publication"));
-    if (!Files.SetReadOnly(*File, false) || Files.IsReadOnly(*File))
-        return Fail(TEXT("retained-player-protected-file-not-unlocked"));
-    ON_SCOPE_EXIT
-    {
-        Files.SetReadOnly(*File, true);
-    };
+    if (!P4HashFile(File, 64 * 1024 * 1024, Bytes, SavedDigest) || !P4SameText(SavedDigest, ExpectedSavedDigest))
+        return Fail(TEXT("retained-player-file-changed-before-publication"));
+    if (Files.IsReadOnly(*File) && (!Files.SetReadOnly(*File, false) || Files.IsReadOnly(*File)))
+        return Fail(TEXT("retained-player-file-not-writable"));
     FBaseline Repaired = Previous;
     if (!Digest(ActualLines, Repaired.State))
         return Fail(TEXT("retained-player-proven-state-unreadable"));
@@ -365,8 +360,6 @@ FP4OriginalLevelImportResult P4RepairRetainedPlayerDefaultsForTest(const FString
     Original->MarkPackageDirty();
     if (!P4SaveAssetPackage(Original.Get(), [&]() { return P4SameText(State(Original.Get()), Repaired.State); }, Error))
         return Fail(Error);
-    if (!Files.SetReadOnly(*File, true) || !Files.IsReadOnly(*File))
-        return Fail(TEXT("retained-player-protected-file-not-restored"));
     Result.Asset = Original.Get();
     Result.Package = Package;
     Result.AssetPath = Package + TEXT(".") + Short;

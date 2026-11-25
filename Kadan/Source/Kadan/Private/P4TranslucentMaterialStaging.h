@@ -35,6 +35,9 @@ public:
     FString RuntimePath(const FString& AuthoredPath) const;
     bool HasMaterials() const { return !Compiled.empty(); }
     bool HasDirectionalLightFunctions() const { return DirectionalLightFunctions; }
+    // What Prepare tells the creator about the compiled materials, for the export's notes: one line per material that
+    // reads engine values the game's layout does not list.
+    const TArray<FString>& Told() const { return CompileNotes; }
     // Before a runtime copy is cooked: the cook writes no shader map of the editor's for it (Kadan's takes its place).
     void BeginCook(UObject* Asset, const ITargetPlatform* Target) const;
     // After it is cooked to Base (.uasset/.uexp): Kadan's block goes in as its inline shader maps.
@@ -78,5 +81,6 @@ private:
     TArray<FKeptField> Fields;
     TArray<FKeptPackage> Packages;
     std::vector<FP4CreatorMaterialCompileResult> Compiled;
+    TArray<FString> CompileNotes;
     TMap<const UMaterialInterface*, int32> Positions; // authored material/instance or runtime copy -> compiled map
 };

@@ -3,11 +3,19 @@
 // from scratch, so a game run shows each one drawn. Every material is a new UMaterial built from nodes, as in the
 // material editor; the last two are instances of the row's own master.
 #include "P4ExportDriverTestShared.h"
+#include "AssetExportTask.h"
+#include "AssetImportTask.h"
 #include "AssetRegistryModule.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/Texture2D.h"
+#include "Engine/StaticMesh.h"
+#include "Exporters/Exporter.h"
+#include "Factories/FbxFactory.h"
+#include "Factories/FbxImportUI.h"
+#include "Factories/FbxStaticMeshImportData.h"
 #include "FileHelpers.h"
+#include "HAL/FileManager.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionAdd.h"
 #include "Materials/MaterialExpressionConstant.h"
@@ -24,6 +32,9 @@
 #include "Materials/MaterialExpressionVertexColor.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "Misc/ScopeExit.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "StaticMeshAttributes.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -311,6 +322,120 @@ bool AddMaterialRow(FAutomationTestBase& Test, UWorld* World, const FString& Roo
         Actors.Add(Actor);
     }
     return true;
+}
+
+AActor* AddPaintedCube(FAutomationTestBase& Test, UWorld* World, const FString& Root, const FVector& At,
+    TArray<UObject*>& Made)
+{
+    // The painted file: a cube whose corners take the colors of their side (red on +X, green on +Y, blue on +Z), written
+    // by Unreal's own FBX exporter. The cube it is written from is not kept.
+    UStaticMesh* Source = Cast<UStaticMesh>(ImportOwn(Test, Root, TEXT("SM_PaintedSource"), true));
+    if (!Test.TestNotNull(TEXT("The painted cube's source imports"), Source))
+        return nullptr;
+    ON_SCOPE_EXIT
+    {
+        FAssetRegistryModule::AssetDeleted(Source);
+        Source->ClearFlags(RF_Public | RF_Standalone);
+        Source->MarkPendingKill();
+        Source->GetOutermost()->SetDirtyFlag(false);
+    };
+    FMeshDescription* Description = Source->GetMeshDescription(0);
+    if (!Test.TestNotNull(TEXT("The painted cube's source has its mesh description"), Description))
+        return nullptr;
+    {
+        FStaticMeshAttributes Attributes(*Description);
+        const auto Positions = Attributes.GetVertexPositions();
+        auto Colors = Attributes.GetVertexInstanceColors();
+        for (const FVertexInstanceID Corner : Description->VertexInstances().GetElementIDs())
+        {
+            const FVector Where = Positions[Description->GetVertexInstanceVertex(Corner)];
+            Colors[Corner] = FVector4(Where.X > 0.f ? 1.f : 0.f, Where.Y > 0.f ? 1.f : 0.f, Where.Z > 0.f ? 1.f : 0.f, 1.f);
+        }
+    }
+    Source->CommitMeshDescription(0);
+    Source->Build(true);
+    const FString File = FPaths::ConvertRelativePathToFull(
+        FPaths::ProjectSavedDir() / TEXT("P4MapKit/ExportDriverTest/source/Painted.fbx"));
+    IFileManager::Get().Delete(*File, false, true, true);
+    auto* Export = NewObject<UAssetExportTask>();
+    Export->Object = Source;
+    Export->Exporter = UExporter::FindExporter(Source, TEXT("FBX"));
+    Export->Filename = File;
+    Export->bAutomated = true;
+    Export->bPrompt = false;
+    Export->bReplaceIdentical = true;
+    if (!Test.TestTrue(TEXT("Unreal's FBX exporter writes the painted cube"),
+            Export->Exporter && UExporter::RunAssetExportTask(Export) && IFileManager::Get().FileSize(*File) > 0))
+        return nullptr;
+
+    // The creator's import of the file, with Replace so the file's colors are kept.
+    const FString Package = Root / TEXT("SM_PaintedCube");
+    TStrongObjectPtr<UFbxFactory> Factory(NewObject<UFbxFactory>());
+    auto* Keep = NewObject<UFbxImportUI>();
+    Keep->StaticMeshImportData->VertexColorImportOption = EVertexColorImportOption::Replace;
+    Factory->AssetImportTask = NewObject<UAssetImportTask>(Factory.Get());
+    Factory->AssetImportTask->bAutomated = true;
+    Factory->AssetImportTask->Options = Keep;
+    Factory->SetDetectImportTypeOnImport(false);
+    for (UFbxImportUI* UI : {Factory->ImportUI, Keep})
+    {
+        UI->MeshTypeToImport = FBXIT_StaticMesh;
+        UI->bAutomatedImportShouldDetectType = false;
+        UI->bImportMaterials = false;
+        UI->bImportTextures = false;
+        UI->StaticMeshImportData->bAutoGenerateCollision = false;
+    }
+    bool Cancelled = false;
+    UStaticMesh* Painted = Cast<UStaticMesh>(Factory->ImportObject(UStaticMesh::StaticClass(), CreatePackage(*Package),
+        TEXT("SM_PaintedCube"), RF_Public | RF_Standalone | RF_Transactional, File, nullptr, Cancelled));
+    Factory->CleanUp();
+    if (!Test.TestNotNull(TEXT("The painted FBX imports with Replace"), Painted))
+        return nullptr;
+    FAssetRegistryModule::AssetCreated(Painted);
+    float Lowest = 9.f;
+    if (const FMeshDescription* Imported = Painted->GetMeshDescription(0))
+    {
+        const auto Colors = FStaticMeshConstAttributes(*Imported).GetVertexInstanceColors();
+        for (const FVertexInstanceID Corner : Imported->VertexInstances().GetElementIDs())
+            Lowest = FMath::Min(Lowest, Colors[Corner].X);
+    }
+    if (!Test.TestTrue(TEXT("The painted cube keeps its file's colors"), Lowest < 0.05f))
+        return nullptr;
+    Painted->CreateBodySetup();
+    FKBoxElem Box;
+    Box.X = Box.Y = Box.Z = 100;
+    Painted->BodySetup->AggGeom.BoxElems.Add(Box);
+    Painted->BodySetup->InvalidatePhysicsData();
+    Painted->BodySetup->CreatePhysicsMeshes();
+    Painted->PostEditChange();
+
+    // Unlit, so the colors read the same however the level is lit.
+    const FString MaterialName = TEXT("M_PaintedVertexColor");
+    auto* Material = NewObject<UMaterial>(CreatePackage(*(Root / MaterialName)), *MaterialName,
+        RF_Public | RF_Standalone | RF_Transactional);
+    FAssetRegistryModule::AssetCreated(Material);
+    Material->SetShadingModel(MSM_Unlit);
+    auto* Color = NewObject<UMaterialExpressionVertexColor>(Material);
+    Material->Expressions.Add(Color);
+    Material->EmissiveColor.Connect(0, Color);
+    Material->PreEditChange(nullptr);
+    Material->PostEditChange();
+    Painted->SetMaterial(0, Material);
+    Made.Append({Painted, Material});
+    if (!Test.TestTrue(TEXT("The painted cube's assets save through the normal editor"),
+            UEditorLoadingAndSavingUtils::SavePackages({Painted->GetOutermost(), Material->GetOutermost()}, true)))
+        return nullptr;
+
+    FActorSpawnParameters Spawn;
+    Spawn.Name = TEXT("P4PaintedCube");
+    Spawn.OverrideLevel = World->PersistentLevel;
+    Spawn.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    auto* Actor = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FTransform(At), Spawn);
+    if (!Test.TestNotNull(TEXT("The painted cube is placed"), Actor))
+        return nullptr;
+    Actor->GetStaticMeshComponent()->SetStaticMesh(Painted);
+    Actor->SetActorLabel(TEXT("PaintedCube"));
+    return Actor;
 }
 } // namespace P4ExportDriverTest
 #endif

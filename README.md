@@ -9,12 +9,28 @@ The guides are on [kadan.jpasqui.dev](https://kadan.jpasqui.dev). Releases are o
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup and pull requests.
 - [CI](docs/CI.md): hosted checks and documentation builds.
-- [Releases](docs/RELEASING.md): qualified plugin archives and draft releases.
+- [Releases](docs/RELEASING.md): building a release on the desktop and uploading it by hand.
+- [Walkthrough](docs/WALKTHROUGH.md): a new creator's first hour, run on the desktop and recorded step by step.
 - [Discord announcements](docs/DISCORD.md): published release notes and webhook setup.
 
 Kadan's original source uses the [MIT license](LICENSE). Dependencies and development tools
-keep their own licenses. Building and qualifying the native plugin requires a licensed Unreal
-Engine installation and the inputs described in the release guide.
+keep their own licenses. Building the native plugin requires a licensed Unreal Engine
+installation and the inputs described in the release guide.
+
+## What's in a release
+
+A release on GitHub is one ZIP with two plugins and a `README.txt`:
+
+- `Kadan/`: the editor plugin built from this repository, with `retoc.exe` and `repak.exe` in
+  `Kadan/Tools`. `Kadan/BUILD.json` names the commit and tag it was built from.
+- `P4Stubs/`: compiled declarations of the game's own classes, structs and enums, so that Unreal
+  Editor can open the game's assets. `tools/stubs/` generates them from the game's type information;
+  they carry the names, fields and default values of those types, and none of the game's assets or
+  code. Kadan does not load without P4Stubs, and both are enabled by default.
+
+The MIT license covers the project's own code. It does not cover the game, whose types P4Stubs
+declares, Unreal Engine, or the bundled retoc and repak, which keep their own licenses
+(`Kadan/Tools/licenses`).
 
 ## Layout
 
@@ -41,9 +57,10 @@ The development environment uses Python 3.11.9, LLVM 22.1.1, and the Python pack
 python tools/check.py
 ```
 
-This compiles and runs the host tests in `tests/` and runs the tool tests in `tools/`, including
-the stubs generator checks. The hosted gate uses authored fixtures and requires no game dump
-or editor installation. To run the stricter CI gate and write its report:
+This compiles and runs the host tests in `tests/` (`tools/check.py` names the few it cannot run,
+and why) and runs the tool tests in `tools/`, including the stubs generator checks. The hosted
+gate uses authored fixtures and requires no game dump or editor installation. To run the
+stricter CI gate and write its report:
 
 ```
 python tools/check.py --ci --report build/ci/checks.json
@@ -56,21 +73,24 @@ The plugin is built and tested on the desktop with Unreal's build tool:
 ```
 py -3.11 tools/remote_unreal.py run --background build -- py tools/dev_build.py --tests
 py -3.11 tools/remote_unreal.py wait build
-py -3.11 tools/remote_unreal.py run --background tests --session -- py tools/dev_tests.py --built private/mapkit-native-workflow/dev-host
+py -3.11 tools/remote_unreal.py run --background tests --session -- py tools/dev_tests.py --built private/mapkit-native-workflow/dev-host --input-root <inputs>
 py -3.11 tools/remote_unreal.py wait tests
 ```
 
 `dev_build.py` copies the plugin into the host project (`private/mapkit-native-workflow/dev-host` by
 default), stages `core/` and `compiler/` into it, and builds only what changed. `--tests` adds the
-`P4MapKitTests` module. `dev_tests.py` installs the built plugin into a project that has P4Stubs
-(`private/mapkit-native-workflow/native-coverage-clean-host` by default) and runs the fast automation
-tests there; the editor needs a desktop session, hence `--session`. The release archive is built with
-`tools/build_native_release.py`.
+`P4MapKitTests` module. `dev_tests.py` installs the plugin built in the `--built` host into a project that
+has P4Stubs (`private/mapkit-native-workflow/native-coverage-clean-host` by default) and runs the fast
+automation tests there; the editor needs a desktop session, hence `--session`. `--input-root` names the
+folder on the desktop whose `private/mapkit-native-workflow` holds the tests' private inputs (the
+repository root by default). A test whose inputs are absent reports that it did not run; a test named
+with `--only` that did not run fails the run unless `--allow-not-run` is given. A release is built with
+`py -3.11 tools/release.py build` ([Releases](docs/RELEASING.md)).
 
 Native editor and game checks use separately configured local inputs: the game's Paks,
 retoc and repak, the test project, and the game files the mesh tests read. Those inputs stay
 outside Git. A host check, an editor automation result, and an observation in the game are
-recorded separately. The native release gate checks the exact archive and source identity.
+recorded separately. A release archive records the commit and tag it was built from.
 
 ## Docs site
 

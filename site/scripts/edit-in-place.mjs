@@ -136,6 +136,21 @@ function frontMatter(full, key, value) {
   return value;
 }
 
+// Whether a request comes from a page of this dev server. Any site the person visits can send a form or a
+// `text/plain` POST here without asking first, and a name that resolves to this machine can carry another
+// site's pages: the Host has to be this server's localhost address and port, and an Origin, when the browser
+// sends one, the same address.
+export function fromDevServer(headers, port, secure = false) {
+  const host = String(headers.host || '').toLowerCase();
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])(?::(\d+))?$/.exec(host);
+  const scheme = secure ? 'https' : 'http';
+  if (!local || Number(local[2] || (secure ? 443 : 80)) !== port) return false;
+  return headers.origin === undefined || String(headers.origin).toLowerCase() === `${scheme}://${host}`;
+}
+
+// A JSON body: a browser asks before sending one to another site, which a plain-text body skips.
+export const sentAsJson = (headers) => /^application\/json\s*(;|$)/i.test(String(headers['content-type'] || ''));
+
 async function body(request) {
   let text = '';
   for await (const chunk of request) text += chunk;
@@ -159,6 +174,10 @@ export function editInPlace() {
           };
           try {
             if (request.method !== 'POST') return answer(405, { error: 'Not a way to ask this.' });
+            if (!fromDevServer(request.headers, request.socket.localPort, Boolean(request.socket.encrypted))) {
+              return answer(403, { error: 'Only a page of this dev server can edit its sources.' });
+            }
+            if (!sentAsJson(request.headers)) return answer(415, { error: 'The edit has to be sent as application/json.' });
             const sent = await body(request);
             const full = sourceOf(sent.page);
             refuseGenerated(full);

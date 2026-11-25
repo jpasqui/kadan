@@ -1,6 +1,8 @@
 // Cooking a package of the export for the game, and reading back what a cooked package names.
 
 #include "P4ExportInternal.h"
+#include "Misc/ScopeExit.h"
+#include "Engine/VolumeTexture.h"
 
 namespace
 {
@@ -186,7 +188,7 @@ ITargetPlatform* CookTarget()
 // the flag that says so, as the game's own cook writes it. Without a save context the editor writes an offset
 // the loader fixes up from the package's file summary, which the game's I/O store loader has none of: loading
 // such a mip read from a null summary, and the game stopped.
-bool CookTexture(UTexture2D* Texture, const FString& Stage, FString& Error)
+bool CookTexture(UTexture* Texture, const FString& Stage, FString& Error)
 {
     ITargetPlatform* Target = CookTarget();
     if (!Target || !GEditor)
@@ -201,6 +203,28 @@ bool CookTexture(UTexture2D* Texture, const FString& Stage, FString& Error)
         Error = TEXT("Cannot prepare cooked package directory");
         return false;
     }
+    // Stock 4.26 makes a volume texture of a block-compressed format only on a platform that supports compressed volume
+    // textures (UVolumeTexture::ShaderPlatformSupportsCompression); the game's does not, makes none, and the texture
+    // samples black. A volume texture is cooked uncompressed; the creator's asset gets its setting back after. The
+    // change goes through the editor's edit notifications: the cook target shares the editor's derived data.
+    const bool bUncompress = Texture->IsA<UVolumeTexture>() && !Texture->CompressionNone;
+    const bool bWasDirty = Texture->GetOutermost()->IsDirty();
+    auto SetCompressionNone = [Texture](bool bNone)
+    {
+        Texture->PreEditChange(nullptr);
+        Texture->CompressionNone = bNone;
+        Texture->PostEditChange();
+    };
+    if (bUncompress)
+        SetCompressionNone(true);
+    ON_SCOPE_EXIT
+    {
+        if (bUncompress)
+        {
+            SetCompressionNone(false);
+            Texture->GetOutermost()->SetDirtyFlag(bWasDirty);
+        }
+    };
     Texture->BeginCacheForCookedPlatformData(Target);
     Texture->FinishCachePlatformData();
     const uint32 Flags = Package->GetPackageFlags();

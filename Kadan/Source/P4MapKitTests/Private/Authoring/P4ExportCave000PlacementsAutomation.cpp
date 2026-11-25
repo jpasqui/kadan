@@ -274,6 +274,7 @@ bool FP4PlacementCave000Test::RunTest(const FString&)
     if (!TestFalse(TEXT("The project has no Cave000 before the test"), FPackageName::DoesPackageExist(Cave000))) return false;
     FP4KadanImportSettings ImportSettings; ImportSettings.GameFolder = Game; ImportSettings.GamePaks = Request.GamePaksDirectory; ImportSettings.Retoc = Request.Tools.Retoc;
     ImportSettings.Repak = Request.Tools.Repak;
+    ImportSettings.AllowGameBackedLevels = true;
     const FP4KadanImportResult Import = P4KadanImportMap(ImportSettings, Cave000, true);
     if (!KeepImport(*this, TEXT("PlacementsCave000"), Import)) return false;
     for (const FString& Problem : Import.Problems) AddInfo(TEXT("Not imported. ") + Problem);
@@ -486,6 +487,7 @@ bool FP4PlacementOptionsCave000Test::RunTest(const FString&)
     if (!TestFalse(TEXT("The project has no Cave000 before the test"), FPackageName::DoesPackageExist(Cave000))) return false;
     FP4KadanImportSettings ImportSettings; ImportSettings.GameFolder = Game; ImportSettings.GamePaks = Request.GamePaksDirectory; ImportSettings.Retoc = Request.Tools.Retoc;
     ImportSettings.Repak = Request.Tools.Repak;
+    ImportSettings.AllowGameBackedLevels = true;
     const FP4KadanImportResult Import = P4KadanImportMap(ImportSettings, Cave000, true);
     for (const FString& Problem : Import.Problems) AddInfo(TEXT("Not imported. ") + Problem);
     for (const FString& Warning : Import.Warnings) if (Warning.Contains(TEXT("placement"))) AddInfo(TEXT("told: ") + Warning);
@@ -630,6 +632,7 @@ bool FP4PlacementChangesCave000Test::RunTest(const FString&)
     if (!TestFalse(TEXT("The project has no Cave000 before the test"), FPackageName::DoesPackageExist(Cave000))) return false;
     FP4KadanImportSettings ImportSettings; ImportSettings.GameFolder = Game; ImportSettings.GamePaks = Request.GamePaksDirectory; ImportSettings.Retoc = Request.Tools.Retoc;
     ImportSettings.Repak = Request.Tools.Repak;
+    ImportSettings.AllowGameBackedLevels = true;
     const FP4KadanImportResult Import = P4KadanImportMap(ImportSettings, Cave000, true);
     for (const FString& Problem : Import.Problems) AddInfo(TEXT("Not imported. ") + Problem);
     if (!KeepImport(*this, TEXT("PlacementChangesCave000"), Import)) return false;

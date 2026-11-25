@@ -497,6 +497,29 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
             }
             if (!Owner || P::Layouts(Slot.S, Context).empty())
                 continue;
+            if (!Writable(Owner, Slot, Context))
+            {
+                // Kadan knows only a part of this blob for the owner's class, and the game would read past a short
+                // one, or the blob holds what the game takes from the actor's components and Kadan does not fill yet:
+                // the game keeps the class's values, and the creator hears of the options set on it.
+                // Only the options this blob holds: its fields' paths start with the property, or with the class and
+                // then the property.
+                TSet<FString> Held;
+                for (const P::Field& Field : LayoutFields(Slot.S, Context))
+                {
+                    TArray<FString> Steps;
+                    Wide(Field.Name).ParseIntoArray(Steps, TEXT("."));
+                    for (int32 Step = 0; Step < FMath::Min(2, Steps.Num()); ++Step)
+                        Held.Add(Steps[Step]);
+                }
+                TArray<FString> Edited = EditedFromClass(Owner);
+                Edited.RemoveAll([&](const FString& Name) { return !Held.Contains(Name); });
+                if (Edited.Num() && !NotAnOption(SlotKey(Slot)))
+                    Out.Told.Add(FString::Printf(
+                        TEXT("%s: Kadan cannot write the game's options of %s (%s) yet, so the game uses the class's values in place of %s."),
+                        *Actor->GetName(), *Owner->GetClass()->GetName(), *SlotKey(Slot), *FString::Join(Edited, TEXT(", "))));
+                continue;
+            }
             UObject* Archetype = Owner->GetArchetype();
             P::Blob Placed, Default;
             const FString Where = FString::Printf(TEXT("%s (%s)"), *Actor->GetName(), *SlotKey(Slot));
@@ -542,6 +565,29 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
                 return false;
             }
             Told.Blobs.Add(SlotKey(Slot), TArray<uint8>(Bytes.data(), int32(Bytes.size())));
+        }
+        // A value the creator set that neither a blob of the row nor the row's own settings hold does not reach the
+        // game, which makes the object from its row: the creator hears of it, as for the game's own objects.
+        {
+            TInlineComponentArray<UActorComponent*> Parts(Actor);
+            TArray<UObject*> Objects{Actor};
+            for (UActorComponent* Part : Parts)
+                if (Part)
+                    Objects.Add(Part);
+            for (UObject* Object : Objects)
+            {
+                const TArray<TPair<FProperty*, bool>> Held = HeldOptions(Actor, Object, Context);
+                for (const FString& Name : EditedFromClass(Object))
+                {
+                    const FProperty* Property = Object->GetClass()->FindPropertyByName(FName(*Name));
+                    if (!GameProperty(Property) || (Object == Actor && RowSetting(Property)) ||
+                        Held.ContainsByPredicate([&](const TPair<FProperty*, bool>& One) { return One.Key == Property; }))
+                        continue;
+                    Out.Told.Add(FString::Printf(
+                        TEXT("%s: the change to %s does not reach the game: the game makes the object from its placement row, which does not hold this value."),
+                        *Actor->GetName(), *((Object == Actor ? FString() : Object->GetName() + TEXT(".")) + Name)));
+                }
+            }
         }
         Out.Rows.Add(MoveTemp(Told));
     }

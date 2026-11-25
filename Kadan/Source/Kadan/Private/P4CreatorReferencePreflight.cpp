@@ -183,6 +183,7 @@ bool P4PreflightCreatorReferences(const FP4ModDescriptor& Mod, const FP4CreatorR
     {
         const FP4ExportAvailability Availability = P4CreatorPreflightAvailability(Asset, Mod, CustomMaterials);
         if (Availability.Route != EP4ExportAssetRoute::CreatorTexture &&
+            Availability.Route != EP4ExportAssetRoute::CreatorData &&
             Availability.Route != EP4ExportAssetRoute::CreatorStaticMesh &&
             Availability.Route != EP4ExportAssetRoute::CreatorMaterialInstance &&
             Availability.Route != EP4ExportAssetRoute::CreatorMaterial &&
