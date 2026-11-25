@@ -38,6 +38,7 @@
 #include "P4OriginalLandscapePreview.h"
 #include "P4NativeConstructionPreview.h"
 #include "P4GateWallPreview.h"
+#include "P4GameOptionsDetails.h"
 #include "P4LevelExport.h"
 #include "P4OriginalNavigationMesh.h"
 
@@ -106,6 +107,7 @@ void FKadanModule::StartupModule()
     P4StartGameFunctionStandIns();
     P4RegisterSwitchShaderCompiler();
     P4RegisterMaterialGameSettings();
+    P4RegisterGameOptionsDetails();
 #if P4_KADAN_TEST_SEAMS
     P4RegisterKadanTestSeams();
 #endif
@@ -295,6 +297,7 @@ void FKadanModule::ShutdownModule()
 {
     P4UnregisterSwitchShaderCompiler();
     P4UnregisterMaterialGameSettings();
+    P4UnregisterGameOptionsDetails();
     P4StopEditorExposure();
     P4StopOriginalComponentReferences();
     P4StopOriginalActorAttachments();

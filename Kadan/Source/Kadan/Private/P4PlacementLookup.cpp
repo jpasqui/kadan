@@ -133,14 +133,16 @@ FProperty* TopOption(UObject* Object, const FString& Path)
     return nullptr;
 }
 
-TArray<TPair<FProperty*, bool>> HeldOptions(AActor* Actor, UObject* Object, const P::Context& Context)
+TArray<TPair<FProperty*, bool>> HeldOptions(
+    AActor* Actor, UObject* Object, const P::Context& Context, bool bNewPlacement)
 {
     TArray<TPair<FProperty*, bool>> Out;
     for (const P::SlotName& Slot : P::Slots())
     {
         if (!Object || OwnerOf(Actor, Slot) != Object || NotAnOption(SlotKey(Slot)))
             continue;
-        const bool Can = P::Complete(Slot.S, NativeChain(Object->GetClass()));
+        const bool Can = bNewPlacement ? Writable(Object, Slot, Context)
+                                      : P::Complete(Slot.S, NativeChain(Object->GetClass()));
         for (const P::Field& Field : LayoutFields(Slot.S, Context))
         {
             FProperty* Property = NotAProperty(Field) ? nullptr : TopOption(Object, Wide(Field.Name));
