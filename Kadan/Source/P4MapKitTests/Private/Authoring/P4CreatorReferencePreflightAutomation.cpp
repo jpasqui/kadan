@@ -8,6 +8,7 @@
 #include "P4TranslucentMaterialStaging.h"
 #include "P4MaterialReferenceContext.h"
 #include "P4MaterialFactoryContext.h"
+#include "P4TestFixtureRelease.h"
 #include "AssetToolsModule.h"
 #include "AssetRegistryModule.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -82,6 +83,7 @@ bool FP4CreatorShaderReviewPreflightTest::RunTest(const FString&)
     TArray<UPackage*> Packages;
     ON_SCOPE_EXIT
     {
+        P4ForgetUndoOfTestFixtures();
         for (UObject* Object : Made)
             if (IsValid(Object))
             {
