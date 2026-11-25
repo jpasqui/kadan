@@ -12,6 +12,9 @@ derived class that derives CarrotAIComponent. Components are the actor's compone
 most derived class first, then the components its native classes declare, as name=classes (classes colon
 separated), semicolon separated; a native class's component has a * before its name. That one is its declared
 class, perhaps a base of the one the game makes, and in the editor its property often holds nothing.
+
+A fifth column holds the tags of the components the game's serializers find by tag (name=tag,tag; semicolon
+separated). Reflection does not hold them: they come from tools/placement_component_tags.txt.
 """
 import json
 import re
@@ -20,6 +23,11 @@ from pathlib import Path
 
 
 def main(argv):
+    tags = {}
+    for line in (Path(__file__).resolve().parent / 'placement_component_tags.txt').read_text(encoding='utf-8').splitlines():
+        if line and not line.startswith('#'):
+            path, _, held = line.partition(chr(9))
+            tags[path] = held
     if len(argv) != 3:
         print(__doc__)
         return 2
@@ -65,7 +73,7 @@ def main(argv):
         ai_chain = max(ai, key=len) if ai else []
         lines.append('\t'.join([
             path, ','.join(native_chain(path)), ','.join(ai_chain),
-            ';'.join(name + '=' + ':'.join(chain) for name, chain in components)]))
+            ';'.join(name + '=' + ':'.join(chain) for name, chain in components), tags.get(path, '')]))
     out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print(f'{len(lines)} classes')
     return 0

@@ -4,7 +4,9 @@
 //     clang++ -std=c++17 -O1 -I . -I core tools/placement_census.cpp -o placement_census
 //     placement_census <placement folder> <classes.txt> [complete.json]
 //
-// classes.txt is what tools/placement_chains.py writes. A blob is exact when it decodes with nothing left over and
+// classes.txt is what tools/placement_chains.py writes, perhaps with a fifth column: the tags of the class's
+// components, as name=tag,tag entries separated by semicolons (the game finds some components by tag; reflection does
+// not hold them, so they come from the Blueprints). A blob is exact when it decodes with nothing left over and
 // encodes to the same bytes; partial when a tail is not decoded; raw when the slot has no layout for the row's
 // classes; bad when the bytes do not fit. The classes with a blob that is not exact are printed, then the count of
 // classes with every blob exact. A slot is complete for an owner class (the most derived native class of the
@@ -54,6 +56,7 @@ struct Classes
 {
     std::vector<std::string> Actor, AI;
     std::vector<std::pair<std::string, std::vector<std::string>>> Components;
+    std::vector<std::string> Tags;
 };
 
 bool Has(const std::vector<std::string>& Chain, const std::string& Class)
@@ -104,7 +107,7 @@ int main(int Argc, char** Argv)
         {
             std::vector<std::string> Columns;
             std::size_t Start = 0;
-            for (int I = 0; I < 4; ++I)
+            for (int I = 0; I < 5; ++I)
             {
                 const std::size_t End = std::min(Line.find('\t', Start), Line.size());
                 Columns.push_back(Start <= Line.size() ? Line.substr(Start, End - Start) : std::string());
@@ -118,6 +121,13 @@ int main(int Argc, char** Argv)
                 const std::size_t Equal = One.find('=');
                 if (Equal != std::string::npos)
                     C.Components.push_back({One.substr(0, Equal), Split(One.substr(Equal + 1), ':')});
+            }
+            for (const std::string& One : Split(Columns[4], ';'))
+            {
+                const std::size_t Equal = One.find('=');
+                if (Equal != std::string::npos)
+                    for (const std::string& Tag : Split(One.substr(Equal + 1), ','))
+                        C.Tags.push_back(Tag);
             }
         }
     }
@@ -168,8 +178,20 @@ int main(int Argc, char** Argv)
                 Context C;
                 C.ActorChain = Found->second.Actor;
                 C.ComponentChain = Found->second.AI;
+                // A native class's component (named with a *) may hold nothing: only the Blueprints' own count for
+                // the classes the actor's components have.
                 for (const auto& Component : Found->second.Components)
+                {
                     C.Components.push_back(Component.first);
+                    if (Component.first.rfind('*', 0) != 0)
+                        for (const std::string& Class : Component.second)
+                            if (!Has(C.ComponentClasses, Class))
+                                C.ComponentClasses.push_back(Class);
+                }
+                C.ComponentTags = Found->second.Tags;
+                for (const SlotName& Name : Slots())
+                    if (Name.Chain == 'o')
+                        C.OwnerChains[Name.S] = OwnerChain(Name, Found->second);
                 const FDecodedValue* Serialize = Row.Field("ActorSerializeParameter");
                 for (std::size_t F = 0; Serialize && F < Serialize->Fields.size(); ++F)
                 {

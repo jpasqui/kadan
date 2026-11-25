@@ -1,20 +1,23 @@
 // Placement export: the placement list of a mod's map, its rows and their blobs.
 #include "P4PlacementInternal.h"
+#include "P4PlacementFillers.h"
 
 using namespace P4PlacementDetail;
 
 namespace
 {
-// A slot's blob from an object's values (the placed actor's, or its class's for comparison).
-bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor, P::Blob& Out, FString& Error,
-    bool ClassDefaults = false, uint64 Version = P::RowVersion)
+// A slot's blob from an object's values (the placed actor's, or its class's for comparison), in one of the slot's
+// layouts. Lacks: it failed because the actor has no component a field of the layout reads.
+bool FillVariant(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor, P::Blob& Out, FString& Error,
+    bool ClassDefaults, uint64 Version, int Variant, bool& Lacks)
 {
-    if (!P::Fresh(Slot, Context, Version, Out))
+    Lacks = false;
+    if (!P::Fresh(Slot, Context, Version, Out, Variant))
     {
         Error = TEXT("no layout");
         return false;
     }
-    const std::vector<P::Field> Fields = LayoutFields(Slot, Context);
+    const std::vector<P::Field> Fields = LayoutFields(Slot, Context, Variant);
     for (auto& Member : Out.Root.Members)
     {
         const std::string& Name = Member.first;
@@ -64,6 +67,17 @@ bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor
                 Out.UnreadFields = Value.Set();
             continue;
         }
+        // Taken from the actor's components, as the game's serializer takes it. The class's defaults hold no options
+        // of it, so they keep the game's start value.
+        if (!Field.Fill.empty() && !ClassDefaults)
+        {
+            if (!FillFromActor(Actor, Owner, Field, Value, Error))
+            {
+                Lacks = true;
+                return false;
+            }
+            continue;
+        }
         // Written as the game starts it: dropped on load, or run-time state.
         if (Field.Derived)
         {
@@ -74,7 +88,10 @@ bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor
         void* Data = nullptr;
         AActor* FieldActor = ClassDefaults ? Cast<AActor>(Actor->GetArchetype()) : Actor;
         if (!ResolvePlacementField(Owner, FieldActor, Wide(Name), Leaf, Data, Error))
+        {
+            Lacks = !ClassDefaults && Name.rfind("PlacedActor.", 0) == 0;
             return false;
+        }
         if (!ToValue(Leaf, Data, *Field.Of, Value, Error))
         {
             Error = Wide(Name) + TEXT(": ") + Error;
@@ -82,6 +99,32 @@ bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor
         }
     }
     return true;
+}
+
+// A slot's blob in its first layout the object fills: a layout with a part the game writes only when the actor has a
+// component (a spline's points, a tagged box, a nav link) is passed over for an actor without it, and the slot lists
+// its layouts with those parts first. Any other failure is the blob's. The class's values are filled in the layout of
+// the placed actor's blob (Variant).
+bool Fill(P::Slot Slot, const P::Context& Context, UObject* Owner, AActor* Actor, P::Blob& Out, FString& Error,
+    bool ClassDefaults = false, uint64 Version = P::RowVersion, int Variant = -1)
+{
+    bool Lacks = false;
+    if (Variant >= 0)
+        return FillVariant(Slot, Context, Owner, Actor, Out, Error, ClassDefaults, Version, Variant, Lacks);
+    const int Count = int(P::Layouts(Slot, Context).size());
+    FString First;
+    for (int Each = 0; Each < FMath::Max(Count, 1); ++Each)
+    {
+        Error.Reset();
+        if (FillVariant(Slot, Context, Owner, Actor, Out, Error, ClassDefaults, Version, Each, Lacks))
+            return true;
+        if (Each == 0)
+            First = Error;
+        if (!Lacks)
+            break;
+    }
+    Error = First;
+    return false;
 }
 
 // What a blob says that the creator can change: every field but the derived ones.
@@ -536,7 +579,7 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
                 Error = TEXT("The options of ") + Where + TEXT(" include references that cannot be written yet.");
                 return false;
             }
-            if (!Archetype || !Fill(Slot.S, Context, Archetype, Actor, Default, Error, true))
+            if (!Archetype || !Fill(Slot.S, Context, Archetype, Actor, Default, Error, true, P::RowVersion, Placed.Variant))
             {
                 P4ReleasePlacementList(Out);
                 Error = TEXT("The options of ") + Where + TEXT(" cannot be read: ") + Error;
@@ -545,7 +588,7 @@ bool P4BuildPlacementList(const FString& ModId, const FString& PackageRoot, cons
             if (Options(Slot.S, Context, Placed) == Options(Slot.S, Context, Default))
                 continue;
             // A creature's drops are generators of their own, with numbers of the list's; a gimmick's are not.
-            NumberDrops(Placed.Root, LayoutFields(Slot.S, Context), Utf8(ActorKey(Actor)), std::string(), List, Taken);
+            NumberDrops(Placed.Root, LayoutFields(Slot.S, Context, Placed.Variant), Utf8(ActorKey(Actor)), std::string(), List, Taken);
             std::vector<uint8> Bytes;
             std::string Why;
             if (!P::Encode(Slot.S, Context, Placed, P::RowVersion, Bytes, Why) || !Placed.Exact())
@@ -732,7 +775,7 @@ bool P4GameRowBlobChanges(AActor* Actor, const FP4GamePlacementRow& Row, const T
             FString Miss;
             UObject* Archetype = Owner->GetArchetype();
             if (!Version || !Fill(Slot.S, Context, Owner, Actor, Placed, Miss, false, Version) || Placed.UnreadFields ||
-                !Archetype || !Fill(Slot.S, Context, Archetype, Actor, Default, Miss, true, Version))
+                !Archetype || !Fill(Slot.S, Context, Archetype, Actor, Default, Miss, true, Version, Placed.Variant))
             {
                 for (const int32 At : Here)
                     Note(At, Miss.IsEmpty() ? FString(TEXT("its blob cannot be written yet")) : Miss);
@@ -740,7 +783,7 @@ bool P4GameRowBlobChanges(AActor* Actor, const FP4GamePlacementRow& Row, const T
             }
             if (Options(Slot.S, Context, Placed) == Options(Slot.S, Context, Default))
                 continue;
-            if (HasDrops(Placed, Fields))
+            if (HasDrops(Placed, LayoutFields(Slot.S, Context, Placed.Variant)))
             {
                 for (const int32 At : Here)
                     Note(At, TEXT("drops of one of the game's objects are not written yet"));

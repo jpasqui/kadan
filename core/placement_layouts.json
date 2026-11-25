@@ -3,15 +3,18 @@
     "The per-placement blobs of a placement row, as the game's native serializers write them (placement_params.h).",
     "Generate placement_layouts.h from this file with tools/make_placement_layouts.py.",
     "A slot is one blob of a row: its fields start every layout of the slot. A slot with a chain also takes the parts of",
-    "the classes of the actor's native class chain (actor) or its AI component's (component), walked from the base class",
-    "down: a part with base replace replaces the stream of the classes above it, one with base inherit appends to it.",
+    "the classes of the actor's native class chain (actor), its AI component's (component) or the slot's owner's (owner),",
+    "walked from the base class down: a part with base replace replaces the stream of the classes above it, one with base",
+    "inherit appends to it.",
     "A part with variants has several layouts, tried in order when a blob is read.",
     "A field's type is a scalar (bool i32 u32 f32 u8 u16 u64 name vec rot quat) or one of the types. An item @Name in a",
     "field list is the fields of that list. Gates compare the row version: > above, < below, = equal.",
     "derived: no property holds the field; a writer gives it runtime_default, or count_of (the item count of the owner",
     "property), component_tag (a run of the world locations of the actor's scene components with that tag, in the",
-    "actor's component order, as many as its counter says) or component_transform (the actor's component of the field's",
-    "name; the field is there only when the actor has it) say how it is filled.",
+    "actor's component order, as many as its counter says) or component_transform (the actor's first component with the",
+    "field's name as a tag, which the game finds with GetComponentsByTag: its world transform, then its properties; the",
+    "field is there only when the actor has such a component) say how it is filled.",
+    "when_class: the field is there only when the actor has a component of that native class (FindComponentByClass).",
     "drops: an array of drops; drop_key: its drops are generators of their own, numbered from the list with keys of the actor,",
     "this word and their place, and listed in the sibling drop_list. Drops without drop_key get no number.",
     "A slot's owner is the component its blob is read from: the one the actor's property holds when it is of one of the",
@@ -20,19 +23,24 @@
     "blob of the slot of such owners in the game's placement lists read and wrote back byte for byte. Kadan writes a new",
     "placement's blob only for these. tools/placement_census.cpp checks the game's lists and prints them.",
     "from_actor: the game writes the actor's own value there (a component's place, its nav links, a spline's points),",
-    "which a writer does not fill yet; a new placement's blob with such a field is not written either."
+    "which a writer does not fill yet; a new placement's blob with such a field is not written either.",
+    "fill: a derived field a writer fills from the actor's components as the game's serializer does: the kind (the plugin's",
+    "P4PlacementFillers.h), with fill_class, fill_tag or fill_name for the component it reads. Checked against the game's rows.",
+    "A writer takes a slot's first layout the actor fills, so of variants that differ by a part the game writes only when",
+    "the actor has its component (a spline's points, a tagged box, a nav link), the one with the part comes first."
   ],
   "complete": [
     {"slot": "ActorParameter.Static", "classes": ["BranchActor", "BuildBaseActor", "CakAmbientSoundActor", "CampBaseActor", "ConveyorNavActor", "DEMOACTOR", "ExcavationActor", "FenceFallActor", "GActor", "GeyserActor", "HandleBoardActor", "HappyDoorActor", "LookTriggerActor", "MoveFloorActor", "NPCPLACEACTOR", "NavMeshTriggerActor", "ObjectBaseActor", "PullNekkoActor", "RouteSplineActor", "StringActor", "VarGateBaseActor", "WATERBOX", "WaterBoxNavActor", "YBoxActor"]},
-    {"slot": "AI.Static", "classes": ["ActorSpawnerComponent", "AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
+    {"slot": "AI.Static", "classes": ["ActorSpawnerComponent", "AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "BridgeFlexibleAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
     {"slot": "AI.Dynamic", "classes": ["AirWallAIComponent", "AreaBaseCampComponent", "ArikuiAIComponent", "BabyAIComponent", "BabyCrowAIComponent", "BranchAIComponent", "BridgeFlexibleAIComponent", "ChappyAIComponent", "CharcoalAIComponent", "ConveyorAAIComponent", "ConveyorNavAIComponent", "CrackPotAIComponent", "CrushJellyAIComponent", "DownFloorAIComponent", "DweevilBaseAIComponent", "EggAIComponent", "ElecMushiAIComponent", "ExcavationAIComponent", "FenceFallAIComponent", "FireFloorAIComponent", "FrogAIComponent", "GeyserAIComponent", "GroupDropManagerComponent", "HamboAIComponent", "HandleBoardAIComponent", "HappyDoorAIComponent", "HibaBaseAIComponent", "HiddenBoxAIComponent", "HikariKinokoAIComponent", "HoneyAIComponent", "KaburiAIComponent", "KajiokoshiAIComponent", "KanitamaAIComponent", "KareHamboAIComponent", "KingChappyAIComponent", "KochappyAIComponent", "KoganeAIComponent", "KomushAIComponent", "KumaChappyAIComponent", "KumaKochappyAIComponent", "KurageAIComponent", "KurioneAIComponent", "MarAIComponent", "MiniMochiAIComponent", "MitsuMochiAIComponent", "MoveFloorAIComponent", "NamazuAIComponent", "NightKochappyAIComponent", "NoraSpawnerAIComponent", "NpcAIComponent", "ObjectAIComponent", "OjamaBlockAIComponent", "OnyonAIComponent", "OnyonCarryAIComponent", "OtakaraAIComponent", "OtamaAIComponent", "PelplantAIComponent", "PieceStationAIComponent", "PodAIComponent", "PortalBaseAIComponent", "PullNekkoAIComponent", "PushGimmickAIComponent", "QueenAIComponent", "RopeBranchAIComponent", "RopeFishingAIComponent", "RusherAIComponent", "SenbeiBaseAIComponent", "SingleSwitchAIComponent", "SlopeBothAIComponent", "SpaceBusAIComponent", "SprinklerAIComponent", "StringAIComponent", "TamagoMushiAIComponent", "TankBaseAIComponent", "TateanaAIComponent", "TentenChappyAIComponent", "TobinkoAIComponent", "TriggerDoorAIComponent", "TwinSwitchAIComponent", "UjinkoAAIComponent", "UjinkoBAIComponent", "ValveAIComponent", "VarGateAIComponent", "WaterBoxAIComponent", "WaterBoxNavAIComponent"]},
     {"slot": "Life.Dynamic", "classes": ["LifeComponent"]},
     {"slot": "Strategy.Static", "classes": ["CarrotDestroyStrategyComponent", "CarrotGenseiStrategyComponent", "CarrotOtakaraStrategyComponent", "CarrotSeijinStrategyComponent"]},
     {"slot": "CakEmitterConfig.Static", "classes": ["CakEmitterConfigComponent"]},
     {"slot": "CakAudioTable.Static", "classes": ["CakAudioTableComponent"]},
-    {"slot": "Affordance.Static", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
+    {"slot": "Affordance.Static", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RideAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
     {"slot": "Affordance.Dynamic", "classes": ["BridgeAffordanceComponent", "CarrotAffordanceComponent", "CrushJellyAffordanceComponent", "EnterDoorAffordanceComponent", "ExcavationAffordanceComponent", "FormationAffordance", "GeyserAffordanceComponent", "HandleBoardAffordanceComponent", "HardObjAffordanceComponent", "MitsuMochiHairAffordanceComponent", "PullNekkoAffordanceComponent", "PushAffordanceComponent", "RideAffordanceComponent", "RopeAffordanceComponent", "SimpleAffordanceComponent", "StationAffordanceComponent", "SuckAffordanceComponent", "TestCarryAffordanceComponent", "ValveAffordanceComponent", "WallAffordanceComponent"]},
     {"slot": "ActionMarker.Static", "classes": ["ActionMarkerComponent"]},
+    {"slot": "DemoTrigger.Static", "classes": ["DemoTriggerComponent"]},
     {"slot": "CakSimpleState.Static", "classes": ["CakSimpleStateComponent"]},
     {"slot": "CakMultiplePosition.Static", "classes": ["CakMultiplePositionComponent"]},
     {"slot": "CharacterEdit.Static", "classes": ["CharacterEditComponent"]},
@@ -298,6 +306,15 @@
         {"name": "SphereRadius", "type": "f32"}
       ]
     },
+    {
+      "name": "NavLinkLeftRight",
+      "kind": "struct",
+      "members": [
+        {"name": "Left", "type": "vec"},
+        {"name": "Right", "type": "vec"}
+      ]
+    },
+    {"name": "NavLinkLeftRightArray", "kind": "array", "item": "NavLinkLeftRight"},
     {
       "name": "NavLink",
       "kind": "struct",
@@ -670,6 +687,7 @@
       "row": "Affordance",
       "half": "Static",
       "id": "AffordanceStatic",
+      "chain": "owner",
       "owner": {"property": "AffordanceComponent", "classes": ["CarrotAffordanceComponent"], "except": "AttackAffordanceComponent"},
       "fields": [
         {"name": "CarrotAffordanceComponent.bOnceOnWork", "type": "bool"},
@@ -809,13 +827,13 @@
       "id": "CakTriggerStatic",
       "owner": {"classes": ["CakTriggerComponent"]},
       "fields": [
-        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "from_actor": true},
-        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000"},
-        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000"},
-        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000"},
-        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000"}
+        {"name": "runtime_0x250_shape", "type": "u8", "derived": true, "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x254_box_extent_x", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x258_box_extent_y", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x25c_box_extent_z", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x260_capsule_half_height", "type": "f32", "derived": true, "runtime_default": "0x42300000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x264_capsule_radius", "type": "f32", "derived": true, "runtime_default": "0x41b00000", "fill": "trigger_shape", "fill_tag": "Trigger"},
+        {"name": "runtime_0x268_sphere_radius", "type": "f32", "derived": true, "runtime_default": "0x42000000", "fill": "trigger_shape", "fill_tag": "Trigger"}
       ]
     },
     {
@@ -850,8 +868,8 @@
       "id": "NavMeshTriggerStatic",
       "owner": {"classes": ["NavMeshTriggerComponent"]},
       "fields": [
-        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
-        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "TriggerBox.BoxExtent", "type": "vec", "derived": true, "fill": "nav_trigger_box_extent", "fill_tag": "TriggerBox"},
+        {"name": "NavBox.BoxExtent", "type": "vec", "derived": true, "fill": "nav_trigger_box_extent", "fill_tag": "NavBox"},
         {"name": "CIDList", "type": "NameArray"},
         {"name": "NavMeshTriggerID", "type": "name", "gate": ">0x202206209"}
       ]
@@ -1424,8 +1442,8 @@
       "fields": [
         {"name": "FenceFallAIParameter.SwitchID", "type": "name"},
         {"name": "FenceFallAIParameter.bEnableLockOtakara", "type": "bool"},
-        {"name": "AkComponentLocation", "type": "vec", "derived": true, "from_actor": true},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+        {"name": "AkComponentLocation", "type": "vec", "derived": true, "fill": "world_location_or_zero", "fill_class": "AkComponent"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "fill": "nav_links", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -1451,7 +1469,7 @@
       "fields": [
         {"name": "GeyserAIParameter.bSetCrystal", "type": "bool"},
         {"name": "GeyserAIParameter.StopQueenDistXY", "type": "f32"},
-        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "from_actor": true}
+        {"name": "NavLinkComponent.Links", "type": "NavLinkArray", "derived": true, "fill": "nav_links", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -1469,11 +1487,11 @@
       "base": "inherit",
       "fields": [
         {"name": "ConveyorNavAIParameter.SwitchID", "type": "name"},
-        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
-        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "from_actor": true},
-        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "from_actor": true},
-        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "from_actor": true},
-        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "from_actor": true}
+        {"name": "NavModifierALocation", "type": "vec", "gate": ">0x202207299", "derived": true, "fill": "relative_location", "fill_class": "ChildActorComponent", "fill_tag": "NavModifierA"},
+        {"name": "NavModifierBLocation", "type": "vec", "gate": ">0x202207299", "derived": true, "fill": "relative_location", "fill_class": "ChildActorComponent", "fill_tag": "NavModifierB"},
+        {"name": "NavLinkA", "type": "NavLinkPlace", "derived": true, "fill": "nav_link_place", "fill_tag": "NavLinkA"},
+        {"name": "NavLinkB", "type": "NavLinkPlace", "derived": true, "fill": "nav_link_place", "fill_tag": "NavLinkB"},
+        {"name": "TriggerBox", "type": "BoxCollision", "gate": ">0x202210189", "derived": true, "fill": "box_relative", "fill_class": "BoxComponent", "fill_tag": "Trigger"}
       ]
     },
     {
@@ -1534,7 +1552,7 @@
         {"name": "TriggerDoorAIParameter.OpenWaitTime", "type": "f32"},
         {"name": "TriggerDoorAIParameter.bEnableAirWall", "type": "bool", "gate": ">0x202112239"},
         {"name": "TriggerDoorAIParameter.bNoCollisionAirWall", "type": "bool", "gate": ">0x202301239"},
-        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "from_actor": true},
+        {"name": "SearchBox", "type": "BoxCollision", "derived": true, "fill": "relative_box", "fill_class": "BoxComponent", "fill_tag": "SearchBox"},
         {"name": "TriggerDoorAIParameter.CIDList", "type": "NameArray"}
       ]
     },
@@ -1666,17 +1684,17 @@
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
-          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
+          {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
         ],
         [
           {"name": "MoveFloorAIParameter.WaitTime", "type": "f32"},
           {"name": "MoveFloorAIParameter.MoveSpeed", "type": "f32"},
           {"name": "MoveFloorAIParameter.bEnableWarpActor", "type": "bool", "gate": ">0x202208229"},
           {"name": "MoveFloorAIParameter.WarpOffset", "type": "vec", "gate": ">0x202208229"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
-          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"},
-          {"name": "PlacedActor.NavLink.Links", "type": "NavLinkPoints"}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+          {"name": "PlacedActor.Spline.RelativeRotation", "type": "rot"}
         ]
       ]
     },
@@ -1721,7 +1739,7 @@
       "slot": "AI.Static",
       "base": "inherit",
       "fields": [
-        {"name": "decal_world_location", "type": "vec", "derived": true, "from_actor": true},
+        {"name": "decal_world_location", "type": "vec", "derived": true, "fill": "world_location", "fill_class": "DecalComponent"},
         {"name": "SprinklerAIParameter.WaterRange", "type": "f32"},
         {"name": "SprinklerAIParameter.OpenTime", "type": "f32"},
         {"name": "SprinklerAIParameter.bUseFlatEffect", "type": "bool", "gate": ">0x20220124a"},
@@ -1756,7 +1774,7 @@
         ],
         [
           {"name": "PushGimmickAIParameter.WarpPos", "type": "vec"},
-          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true}
+          {"name": "SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"}
         ]
       ]
     },
@@ -1804,11 +1822,13 @@
       "base": "inherit",
       "fields": [
         {"name": "BridgeFlexibleAIComponent.NeedColumnNum", "type": "i32"},
-        {"name": "runtime_0x1188_x", "type": "f32", "derived": true, "from_actor": true},
+        {"name": "runtime_0x1188_x", "type": "f32", "derived": true},
         {"name": "runtime_0x1188_y", "type": "f32", "derived": true, "runtime_default": "0x42200000"},
         {"name": "runtime_0x1188_z", "type": "f32", "derived": true},
         {"name": "BridgeFlexibleAIComponent.BaseWallColType", "type": "u8", "gate": ">0x202203039"},
-        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"}
+        {"name": "BridgeFlexibleAIComponent.bEnableAdjustNavLinkPos", "type": "bool", "gate": ">0x202301059"},
+        {"name": "NavLinkComponent.Links", "type": "NavLinkLeftRightArray", "gate": ">0x202301069", "derived": true,
+         "when_class": "NavLinkComponent", "fill": "nav_link_ends", "fill_class": "NavLinkComponent"}
       ]
     },
     {
@@ -1836,7 +1856,7 @@
         {"name": "drawer_terrain_tag", "type": "u32", "derived": true, "runtime_default": "0x80400002"},
         {"name": "ExcavationActor.EffectColor", "type": "LinearColor"},
         {"name": "ExcavationActor.bCastDynamicShadow", "type": "bool"},
-        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true, "from_actor": true}
+        {"name": "drawer_terrain_material", "type": "name", "gate": ">0x202207059", "derived": true, "fill": "terrain_material", "fill_class": "HeightMapDrawerComponent"}
       ]
     },
     {
@@ -1959,7 +1979,7 @@
       "slot": "AI.Dynamic",
       "base": "inherit",
       "fields": [
-        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "from_actor": true}
+        {"name": "CrystalComponent.CrystalParameters", "type": "CrystalLifeArray", "gate": ">0x202207079", "derived": true, "fill": "crystal_lives", "fill_class": "CrystalComponent"}
       ]
     },
     {
@@ -2039,9 +2059,9 @@
       "slot": "ActorParameter.Static",
       "base": "inherit",
       "fields": [
-        {"name": "spline_points", "type": "SplinePoints", "derived": true, "from_actor": true},
-        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true, "from_actor": true},
-        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true, "from_actor": true},
+        {"name": "spline_points", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
+        {"name": "RouteSplineComponent.AreaList", "type": "SplineAreaInfoArray", "derived": true, "fill": "component_property", "fill_class": "RouteSplineComponent"},
+        {"name": "RouteSplineComponent.JumpKeyList", "type": "I32Array", "derived": true, "fill": "component_property", "fill_class": "RouteSplineComponent"},
         {"name": "Actor.Tags", "type": "NameArray"}
       ]
     },
@@ -2060,8 +2080,8 @@
       "variants": [
         [
           "@PortalTriggerStatic",
-          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true, "from_actor": true},
-          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true, "from_actor": true},
+          {"name": "Trigger.BoxExtent", "type": "vec", "derived": true, "fill": "tagged_box_extent", "fill_class": "BoxComponent", "fill_tag": "Trigger"},
+          {"name": "Trigger.WorldLocation", "type": "vec", "derived": true, "fill": "tagged_box_location", "fill_class": "BoxComponent", "fill_tag": "Trigger"},
           {"name": "legacy_word", "type": "i32", "gate": "<0x20220112b", "derived": true},
           {"name": "legacy_vector", "type": "vec", "gate": "<0x20220112b", "derived": true}
         ],
@@ -2079,11 +2099,11 @@
       "variants": [
         [
           "@NarrowSpaceTriggerStatic",
+          {"name": "SplineComponent.SplinePoints", "type": "SplinePoints", "derived": true, "fill": "spline_points", "fill_class": "SplineComponent"},
           {"name": "InputKeyOffset", "type": "f32"}
         ],
         [
           "@NarrowSpaceTriggerStatic",
-          {"name": "SplineComponent.SplinePoints", "type": "SplinePoints", "derived": true, "from_actor": true},
           {"name": "InputKeyOffset", "type": "f32"}
         ]
       ]
@@ -2177,6 +2197,14 @@
           {"name": "TateanaAIParameter.NumDig", "type": "i32"},
           {"name": "runtime_0xa40", "type": "i32", "derived": true, "runtime_default": "0xffffffff"}
         ]
+      ]
+    },
+    {
+      "class": "RideAffordanceComponent",
+      "slot": "Affordance.Static",
+      "base": "inherit",
+      "fields": [
+        {"name": "RideAffordanceComponent.NeedWeight", "type": "i32"}
       ]
     }
   ]
