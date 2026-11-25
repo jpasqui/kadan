@@ -6,7 +6,6 @@
 #if defined(P4_MAPKIT_TESTS) && P4_MAPKIT_TESTS
 #include "P4OriginalRecord.h"
 #include "P4KadanAssetPolicy.h"
-#include "P4KadanReadOnly.h"
 #endif
 #include "AssetRegistryModule.h"
 #include "BlueprintEditorSettings.h"
@@ -253,58 +252,27 @@ bool FP4BlueprintTransactionDefaults::RunTest(const FString& Parameters)
  const FTemplateIdentity Original(Blueprint);
  if(!CheckState(*this,TEXT("original"),Fixture,Blueprint,false,Original))return false;
  const FString File=FPackageName::LongPackageNameToFilename(Fixture.ActorPackage,FPackageName::GetAssetPackageExtension());
- const FString Stem=File.LeftChop(FPaths::GetExtension(File,true).Len());
  const FString SourceRecordText=Blueprint->GetOutermost()->GetMetaData()->GetValue(Blueprint,TEXT("P4OriginalRecord"));
  const FP4OriginalStatus SourceStatus=P4QueryOriginalAsset(Blueprint);
  const P4Kadan::FAssetPolicy SourcePolicy=P4Kadan::GetAssetPolicy(Blueprint);
- UE_LOG(LogTemp,Display,TEXT("Synthetic source annotation fixture %s: original=%d state=%d record-readonly=%d reference-only=%d edit-allowed=%d package-locked=%d file-readonly=%d reason=%s record=%s"),
+ UE_LOG(LogTemp,Display,TEXT("Synthetic source annotation fixture %s: original=%d state=%d record-readonly=%d reference-only=%d edit-allowed=%d file-readonly=%d reason=%s record=%s"),
   *Blueprint->GetPathName(),SourceStatus.IsOriginal(),int32(SourceStatus.State),SourceStatus.Record.ReadOnly,SourceStatus.Record.ReferenceOnly,
-  SourcePolicy.AllowEdit,P4Kadan::IsLockedPackage(Blueprint->GetOutermost()),IFileManager::Get().IsReadOnly(*File),*SourcePolicy.Reason,*SourceRecordText.Left(2048));
+  SourcePolicy.AllowEdit,IFileManager::Get().IsReadOnly(*File),*SourcePolicy.Reason,*SourceRecordText.Left(2048));
  if(!TestTrue(TEXT("synthetic source has actual native original provenance"),SourceStatus.IsOriginal()&&SourceStatus.Error.IsEmpty()&&!SourceRecordText.IsEmpty()))return false;
- TestTrue(TEXT("native policy classifies the imported Blueprint as a protected original"),SourcePolicy.Original&&!SourcePolicy.AllowEdit);
- TestTrue(TEXT("actual native save guard locks the imported Blueprint package"),P4Kadan::IsLockedPackage(Blueprint->GetOutermost()));
+ TestTrue(TEXT("native policy identifies an editable original"),SourcePolicy.Original&&SourcePolicy.AllowEdit);
  TestTrue(TEXT("ordinary save starts outside native import publication"),!P4ImportPublication::IsImporting()&&!P4ImportPublication::IsSaving(Blueprint->GetOutermost()));
- TestFalse(TEXT("published imported-source file stays writable on disk; Kadan's save guard protects it"),IFileManager::Get().IsReadOnly(*File));
- TMap<FString,TArray<uint8>> PublishedFiles;
- for(const TCHAR* Suffix : {TEXT(".uasset"),TEXT(".uexp"),TEXT(".ubulk"),TEXT(".uptnl")})
- {
-  const FString One=Stem+Suffix;
-  if(IFileManager::Get().FileExists(*One))
-  {
-   TArray<uint8> Bytes;
-   if(!TestTrue(TEXT("reads unique synthetic-source package before ordinary save"),FFileHelper::LoadFileToArray(Bytes,*One)))return false;
-   PublishedFiles.Add(One,MoveTemp(Bytes));
-  }
- }
- if(!TestTrue(TEXT("synthetic source already has a published package"),PublishedFiles.Contains(File)))return false;
- TestFalse(TEXT("ordinary unscoped save of imported source is refused"),UPackage::SavePackage(Blueprint->GetOutermost(),Blueprint,RF_Public|RF_Standalone,*File,GError,nullptr,false,true,SAVE_NoError));
- for(const TCHAR* Suffix : {TEXT(".uasset"),TEXT(".uexp"),TEXT(".ubulk"),TEXT(".uptnl")})
- {
-  const FString One=Stem+Suffix;
-  if(const TArray<uint8>* Before=PublishedFiles.Find(One))
-  {
-   TArray<uint8> After;
-   TestTrue(TEXT("refused ordinary save leaves source bundle bytes unchanged"),FFileHelper::LoadFileToArray(After,*One)&&After==*Before);
-  }
-  else TestFalse(TEXT("refused ordinary save creates no source bundle file"),IFileManager::Get().FileExists(*One));
- }
- // This is unique synthetic-source fixture setup, not a creator edit of an original.
- // Publish only an editor annotation through the same explicit native import/save scopes.
+ TestTrue(TEXT("published imported-source file is writable"),IFileManager::Get().FileExists(*File)&&!IFileManager::Get().IsReadOnly(*File));
  if(!TestTrue(TEXT("source annotation setup owns the exact unique fixture"),Blueprint->GetPathName()==Fixture.ActorPath&&Fixture.ActorPackage.StartsWith(Fixture.Root+TEXT("/"))))return false;
- {
-  P4ImportPublication::FImportScope Import;
-  P4ImportPublication::FSaveScope Save(Blueprint->GetOutermost());
-  Blueprint->BlueprintDescription=TEXT("Synthetic source description");
-  if(!TestTrue(TEXT("synthetic source annotation publication succeeds"),UPackage::SavePackage(Blueprint->GetOutermost(),Blueprint,RF_Public|RF_Standalone,*File,GError,nullptr,false,true,SAVE_NoError)))return false;
- }
- TestFalse(TEXT("source annotation publication leaves the file writable on disk"),IFileManager::Get().IsReadOnly(*File));
+ Blueprint->BlueprintDescription=TEXT("Synthetic source description");
+ if(!TestTrue(TEXT("ordinary save publishes the annotation"),UPackage::SavePackage(Blueprint->GetOutermost(),Blueprint,RF_Public|RF_Standalone,*File,GError,nullptr,false,true,SAVE_NoError)))return false;
+ TestFalse(TEXT("the saved source remains writable"),IFileManager::Get().IsReadOnly(*File));
  TestTrue(TEXT("source annotation publication restores native scope state"),!P4ImportPublication::IsImporting()&&!P4ImportPublication::IsSaving(Blueprint->GetOutermost()));
  const FP4OriginalStatus AfterAnnotationStatus=P4QueryOriginalAsset(Blueprint);
  const P4Kadan::FAssetPolicy AfterAnnotationPolicy=P4Kadan::GetAssetPolicy(Blueprint);
  TestTrue(TEXT("source annotation retains the exact native origin record and flags"),
   FString(Blueprint->GetOutermost()->GetMetaData()->GetValue(Blueprint,TEXT("P4OriginalRecord")))==SourceRecordText&&
   AfterAnnotationStatus.IsOriginal()&&AfterAnnotationStatus.Record.ReadOnly==SourceStatus.Record.ReadOnly&&AfterAnnotationStatus.Record.ReferenceOnly==SourceStatus.Record.ReferenceOnly);
- TestTrue(TEXT("source annotation restores actual native original protection"),AfterAnnotationPolicy.Original&&!AfterAnnotationPolicy.AllowEdit&&P4Kadan::IsLockedPackage(Blueprint->GetOutermost()));
+ TestTrue(TEXT("source annotation retains editable original identity"),AfterAnnotationPolicy.Original&&AfterAnnotationPolicy.AllowEdit);
  if(!TestTrue(TEXT("changed recipe written"),Fixture.Write(true))||!TestTrue(TEXT("in-place reimport succeeds"),Ok(Fixture.Import(true,this))))return false;
  CheckState(*this,TEXT("reimport"),Fixture,Blueprint,true,Original);
  TestEqual(TEXT("source annotation retained"),Blueprint->BlueprintDescription,FString(TEXT("Synthetic source description")));

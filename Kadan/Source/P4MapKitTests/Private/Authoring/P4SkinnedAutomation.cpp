@@ -2,6 +2,11 @@
 #include "P4OriginalAnimationData.h"
 #include "P4OriginalAssetImport.h"
 #include "P4LevelContent.h"
+#include "P4ExportDriver.h"
+#include "P4GameReplacement.h"
+#include "P4KadanAssetPolicy.h"
+#include "P4KadanReadOnly.h"
+#include "P4OriginalRecord.h"
 #include "P4MapKitCore/skinned_native.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimMontage.h"
@@ -16,9 +21,12 @@
 #include "Misc/FileHelper.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
+#include "Misc/ScopeExit.h"
+#include "HAL/FileManager.h"
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/Package.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Rendering/SkeletalMeshModel.h"
 #include "Rendering/SkeletalMeshLODModel.h"
 #include "Rendering/SkeletalMeshRenderData.h"
@@ -153,6 +161,111 @@ bool FP4ArchivedSkeletonReferencePoseTest::RunTest(const FString&)
     Saved->ClearFlags(RF_Public | RF_Standalone);
     Saved->MarkPendingKill();
     Reload->SetDirtyFlag(false);
+    return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4RecoveredSkeletonSocketExportTest, "P4MapKit.Skinned.RecoveredSkeletonSocketExport",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FP4RecoveredSkeletonSocketExportTest::RunTest(const FString&)
+{
+    const FString Name = TEXT("KadanSocketTest_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
+    const FString GamePath = TEXT("/Game/Carrot4/") + Name;
+    UPackage* Package = CreatePackage(*GamePath);
+    TStrongObjectPtr<USkeleton> Skeleton(NewObject<USkeleton>(
+        Package, FName(*Name), RF_Public | RF_Standalone | RF_Transactional));
+    ON_SCOPE_EXIT
+    {
+        Skeleton->ClearFlags(RF_Public | RF_Standalone);
+        Skeleton->MarkPendingKill();
+        Package->SetDirtyFlag(false);
+    };
+    FSkinnedTestSkeleton::Identity(Skeleton.Get());
+    FSkinnedTestSkeleton::RootSettings(Skeleton.Get());
+    {
+        FReferenceSkeletonModifier Modifier(FSkinnedTestSkeleton::Reference(Skeleton.Get()), Skeleton.Get());
+        Modifier.Add(FMeshBoneInfo(TEXT("root"), TEXT("root"), INDEX_NONE), FTransform::Identity);
+    }
+    FP4OriginalRecord Record;
+    Record.Package = GamePath;
+    Record.Class = Skeleton->GetClass()->GetPathName();
+    Record.Kind = TEXT("object");
+    Record.ReadOnly = true; // Older imports recorded this even for complete assets.
+    Record.SourceDigest = FString::ChrN(64, TEXT('a'));
+    Record.SourceDigestKind = TEXT("header-body-sha256-v1");
+    Record.ComparisonDigest = P4OriginalObjectAssetState(Skeleton.Get());
+    Record.ComparisonSchema = TEXT("object-lines-v1");
+    FString Problem;
+    if (!TestFalse(TEXT("The unedited skeleton can be compared"), Record.ComparisonDigest.IsEmpty()) ||
+        !TestTrue(TEXT("The fixture has original provenance"), P4MarkOriginalAsset(Skeleton.Get(), Record, Problem)))
+    {
+        AddError(Problem);
+        return false;
+    }
+    Package->SetDirtyFlag(false);
+
+    TestTrue(TEXT("A recovered game skeleton is editable"), P4Kadan::GetAssetPolicy(Skeleton.Get()).AllowEdit);
+    TestFalse(TEXT("An unchanged game skeleton does not ship"), P4GameReplacementShips(Skeleton.Get()));
+    const FArrayProperty* Sockets = FindFProperty<FArrayProperty>(USkeleton::StaticClass(), TEXT("Sockets"));
+    const FObjectPropertyBase* SocketType = Sockets ? CastField<FObjectPropertyBase>(Sockets->Inner) : nullptr;
+    if (!TestNotNull(TEXT("A skeleton can own socket objects"), SocketType))
+        return false;
+    const bool Dirty = Skeleton->GetOutermost()->IsDirty();
+    FScriptArrayHelper SocketList(Sockets, Sockets->ContainerPtrToValuePtr<void>(Skeleton.Get()));
+    Skeleton->Modify();
+    auto* Socket = NewObject<USkeletalMeshSocket>(Skeleton.Get(), TEXT("KadanSocketFixture"), RF_Transactional);
+    Socket->SocketName = FName(TEXT("KadanSocketFixture"));
+    Socket->BoneName = Skeleton->GetReferenceSkeleton().GetBoneName(0);
+    Socket->RelativeLocation = FVector(11, 22, 33);
+    const int32 Index = SocketList.AddValue();
+    SocketType->SetObjectPropertyValue(SocketList.GetRawPtr(Index), Socket);
+    const FString Stage = FPaths::ProjectSavedDir() / TEXT("P4MapKit/SkeletonSocket") /
+        FGuid::NewGuid().ToString(EGuidFormats::Digits);
+    ON_SCOPE_EXIT
+    {
+        SocketList.RemoveValues(Index);
+        Skeleton->GetOutermost()->SetDirtyFlag(Dirty);
+        IFileManager::Get().DeleteDirectory(*Stage, false, true);
+    };
+    P4Kadan::FlushReadOnlyGuards();
+    FP4GameReplacement Replacement;
+    if (!TestTrue(TEXT("A socket edit is detected at the original game path"),
+            P4GameReplacementShips(Skeleton.Get(), &Replacement)))
+        return false;
+    TestEqual(TEXT("Replacement keeps the original package"), Replacement.Package, GamePath);
+    FP4ModDescriptor Mod;
+    Mod.Id = TEXT("test.skeleton");
+    Mod.Name = TEXT("Skeleton socket");
+    Mod.Version = TEXT("1.0.0");
+    TestTrue(TEXT("Normal export selects the skinned package cook"),
+        P4ExportAssetAvailability(Skeleton.Get(), Mod).Route == EP4ExportAssetRoute::CreatorSkinned);
+
+    FString Base;
+    if (!TestTrue(TEXT("The edited skeleton cooks"), P4CookGameAssetWhole(Skeleton.Get(), Stage, Base, Problem)))
+    {
+        AddError(Problem);
+        return false;
+    }
+    TArray<uint8> Header, Body;
+    if (!TestTrue(TEXT("The cooked skeleton files are readable"),
+            FFileHelper::LoadFileToArray(Header, *(Base + TEXT(".uasset"))) &&
+                FFileHelper::LoadFileToArray(Body, *(Base + TEXT(".uexp")))))
+        return false;
+    const std::vector<uint8> Bytes(Body.GetData(), Body.GetData() + Body.Num());
+    const auto Cooked = P4MapKit::ReadPackage(
+        std::vector<uint8>(Header.GetData(), Header.GetData() + Header.Num()), Bytes);
+    if (!TestTrue(TEXT("The cooked package parses"), Cooked.Error.Code.empty()))
+        return false;
+    bool FoundSocket = false;
+    for (const auto& Export : Cooked.Exports)
+    {
+        std::string Kind;
+        if (Export.Name == "KadanSocketFixture" && Cooked.Reference(Export.Class, Kind) &&
+            Kind == "/Script/Engine.SkeletalMeshSocket" && Export.Outer > 0 &&
+            std::size_t(Export.Outer) <= Cooked.Exports.size() &&
+            Cooked.Exports[std::size_t(Export.Outer - 1)].Name == TCHAR_TO_UTF8(*Name))
+            FoundSocket = true;
+    }
+    TestTrue(TEXT("The socket is cooked as an export owned by the skeleton"), FoundSocket);
     return !HasAnyErrors();
 }
 

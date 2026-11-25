@@ -104,7 +104,7 @@ public:
     /** The filter of the material's shadow. */
     UPROPERTY(EditAnywhere, Category = "C4", meta = (DisplayName = "Shadow filter")) TEnumAsByte<EC4ShadowPCF> C4MaterialParam2 = C4PCF_1x1;
     /** Cuts a translucent material at the scene's clipping plane. Kadan does not compile this yet. */
-    UPROPERTY(VisibleAnywhere, Category = "C4", meta = (DisplayName = "Scene clipping")) TEnumAsByte<EC4XluCut> C4MaterialParam3 = C4XC_Default;
+    UPROPERTY(EditAnywhere, Category = "C4", meta = (DisplayName = "Scene clipping")) TEnumAsByte<EC4XluCut> C4MaterialParam3 = C4XC_Default;
     /** This setting's effect is not known. Keep its current value. */
     UPROPERTY(EditAnywhere, Category = "C4", AdvancedDisplay, meta = (DisplayName = "Unknown bC4MaterialParam4")) bool bC4MaterialParam4 = false;
     /** This setting's effect is not known. Keep its current value. */

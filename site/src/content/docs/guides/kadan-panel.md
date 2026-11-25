@@ -68,7 +68,7 @@ A game map's day, night and Olimar versions are its sublevels. Show and hide the
 
 Material Details displays **Game settings**. Known fields have readable labels,
 unknown values belong in **Advanced**, and serialized names remain searchable.
-Scene clipping is uncompiled and read-only. Material instances show the game's
+Scene clipping can be saved, but Kadan's shader compiler does not apply it yet. Material instances show the game's
 supported instance fields with override checkboxes. Unchecked fields inherit through
 the parent chain. Enable an override to change its value, or click **Open parent**
 to inspect the parent. Older imports without typed C4 settings need a reimport.

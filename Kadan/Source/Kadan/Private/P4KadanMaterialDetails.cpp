@@ -1,6 +1,5 @@
 #include "P4KadanMaterialDetails.h"
 #include "P4KadanAssetPolicy.h"
-#include "P4KadanReadOnly.h"
 #include "P4MaterialGameSettings.h"
 #include "AssetToolsModule.h"
 #include "DetailCategoryBuilder.h"
@@ -151,7 +150,7 @@ public:
                 return;
             }
         }
-        bool ReadOnly = false;
+        bool ReferenceOnly = false;
         for (const auto& Object : Objects)
         {
             UMaterial* Material = Cast<UMaterial>(Object.Get());
@@ -159,15 +158,15 @@ public:
             {
                 return;
             }
-            UMaterial* Source = PolicySource(Material);
-            ReadOnly |= P4Kadan::IsLockedObject(Source) || !P4Kadan::GetAssetPolicy(Source).AllowEdit;
+            ReferenceOnly |= !P4Kadan::GetAssetPolicy(PolicySource(Material)).AllowEdit;
         }
         TArray<UObject*> Settings;
         for (const auto& Object : Objects)
         {
             UMaterial* Material = CastChecked<UMaterial>(Object.Get());
-            UP4MaterialGameSettings* Values = ReadOnly ? UP4MaterialGameSettings::Find(Material)
-                                                       : UP4MaterialGameSettings::FindOrAdd(Material);
+            UP4MaterialGameSettings* Values = UP4MaterialGameSettings::Find(Material);
+            if (!Values && !P4Kadan::GetAssetPolicy(PolicySource(Material)).Original)
+                Values = UP4MaterialGameSettings::FindOrAdd(Material);
             if (!Values)
             {
                 Note(Category,
@@ -179,14 +178,11 @@ public:
             Settings.Add(Values);
         }
         Note(Category,
-            ReadOnly
-                ? TEXT(
-                      "This game material is read-only. Make a material instance or create a material in the mod's content folder to author changes.")
-                : TEXT(
-                      "Apply and save the material after changing its game settings. Verify the exported result in the game."),
+            ReferenceOnly ? TEXT("These settings are shown for reference because the original material was only partially recovered.")
+                          : TEXT("Apply and save the material after changing its game settings."),
             TEXT("KadanMaterialStatus"));
         Note(Category,
-            TEXT("Kadan does not compile scene clipping for creator materials. The stored value is read-only."),
+            TEXT("Kadan stores scene clipping in the asset. Its shader compiler does not apply it yet."),
             TEXT("KadanMaterialClipping"));
         Note(Category,
             TEXT(
@@ -206,8 +202,7 @@ public:
             {
                 continue;
             }
-            const bool Compiled = It->GetFName() != GET_MEMBER_NAME_CHECKED(UP4MaterialGameSettings, C4MaterialParam3);
-            Row->IsEnabled(!ReadOnly && Compiled);
+            Row->IsEnabled(!ReferenceOnly);
             TSharedPtr<SWidget> Name;
             TSharedPtr<SWidget> Value;
             Row->GetDefaultWidgets(Name, Value, true);

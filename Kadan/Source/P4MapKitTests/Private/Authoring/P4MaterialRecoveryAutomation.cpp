@@ -797,7 +797,7 @@ bool FP4MaterialRecoveryHeld57Test::RunTest(const FString&)
             FName(*Record.Package) != Identity || !Record.ReferenceOnly || !Policy.Original || Policy.AllowEdit ||
             !Policy.ReferenceOnly)
         {
-            AddError(Name + TEXT(" is not a clean read-only reference-only original eligible for fixture reimport. ") +
+            AddError(Name + TEXT(" is not a clean reference-only original eligible for fixture reimport. ") +
                 Error);
             return false;
         }
@@ -889,7 +889,7 @@ bool FP4MaterialRecoveryHeld57Test::RunTest(const FString&)
         Sweep->SetObjectField(TEXT("previous_import"), PreviousImport);
     for (const FString& Problem : Imported.Problems)
         AddError(TEXT("Ordinary importer: ") + Problem);
-    int32 CompiledCount = 0, ReadOnlyCount = 0;
+    int32 CompiledCount = 0, RecoveredCount = 0;
     GShaderCompilingManager->FinishAllCompilation();
     for (const FString& Name : Roots)
     {
@@ -908,28 +908,28 @@ bool FP4MaterialRecoveryHeld57Test::RunTest(const FString&)
         FString IdentityError;
         const bool OriginalIdentity = Material && P4ReadOriginalRecord(Material, Record, IdentityError) &&
             FName(*Record.Package) == FName(*Source->Package);
-        const bool ReadOnly = OriginalIdentity && Policy.Original && !Policy.AllowEdit && !Policy.ReferenceOnly;
+        const bool Recovered = OriginalIdentity && Policy.Original && !Policy.ReferenceOnly;
         // A copied reference-only material can acquire an editor shader map. It
         // does not establish recovery of the original graph and never counts.
-        const bool Compiled = ReadOnly && RendererCompiled;
+        const bool Compiled = Recovered && RendererCompiled;
         Row->SetBoolField(TEXT("renderer_compiled"), RendererCompiled);
         Row->SetBoolField(TEXT("original_identity"), OriginalIdentity);
         Row->SetBoolField(TEXT("reference_only"), Policy.ReferenceOnly);
         Row->SetStringField(TEXT("identity_problem"), IdentityError);
         Row->SetBoolField(TEXT("compiled"), Compiled);
-        Row->SetBoolField(TEXT("read_only"), ReadOnly);
+        Row->SetBoolField(TEXT("read_only"), OriginalIdentity && !Policy.AllowEdit);
         Row->SetStringField(TEXT("compiler_problem"), Why);
         Rows->SetObjectField(Name, Row);
         CompiledCount += Compiled;
-        ReadOnlyCount += ReadOnly;
+        RecoveredCount += Recovered;
         if (!Compiled)
             AddError(Name + TEXT(" does not compile. ") + Why);
-        if (!ReadOnly)
-            AddError(Name + TEXT(" was not recovered as a read-only original graph."));
+        if (!Recovered)
+            AddError(Name + TEXT(" was not recovered as an original graph."));
     }
     Sweep->SetObjectField(TEXT("masters"), Rows);
     Sweep->SetNumberField(TEXT("compiled"), CompiledCount);
-    Sweep->SetNumberField(TEXT("read_only"), ReadOnlyCount);
+    Sweep->SetNumberField(TEXT("recovered"), RecoveredCount);
     Sweep->SetBoolField(TEXT("renderer_active"), true);
     FString Output;
     FJsonSerializer::Serialize(Sweep, TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Output));
@@ -939,7 +939,7 @@ bool FP4MaterialRecoveryHeld57Test::RunTest(const FString&)
             Output, *(Folder / TEXT("report.json")), FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
         AddError(TEXT("The held57 native evidence could not be saved."));
     TestEqual(TEXT("Held57 masters compile in the actual renderer"), CompiledCount, 57);
-    TestEqual(TEXT("Held57 masters remain read-only originals"), ReadOnlyCount, 57);
+    TestEqual(TEXT("Held57 masters retain original provenance"), RecoveredCount, 57);
     return !HasAnyErrors();
 }
 #endif

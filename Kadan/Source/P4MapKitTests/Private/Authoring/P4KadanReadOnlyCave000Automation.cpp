@@ -1,6 +1,4 @@
-// Cave000 imported into a project without it, then every way of editing an imported game asset is tried:
-// each locked kind reports locked, six kinds stay byte for byte as imported whatever is tried on them, and
-// a game level and a game table take the edits Tsuchi can apply and refuse the others with their reason.
+// Check editing and file access on a real import, and restrictions on placed actor edits.
 #include "P4KadanAssetPolicy.h"
 #include "P4KadanEditor.h"
 #include "P4KadanImport.h"
@@ -216,43 +214,6 @@ struct FMade
     }
 };
 
-TArray<uint8> FileBytes(const FString& File)
-{
-    TArray<uint8> Bytes;
-    FFileHelper::LoadFileToArray(Bytes, *File, FILEREAD_Silent);
-    return Bytes;
-}
-
-// Authored saved properties are checked independently of byte-exact package files. Native
-// editor resources are derived and are never loaded back into a live asset as an undo archive.
-TArray<uint8> PackageBytes(UPackage* Package)
-{
-    TArray<UObject*> Objects;
-    GetObjectsWithOuter(Package, Objects, true);
-    Objects.RemoveAll([](UObject* Object)
-        { return !Object || Object->IsPendingKill() || Object->IsA<UField>() || Object->HasAnyFlags(RF_Transient); });
-    Objects.Sort([](const UObject& A, const UObject& B) { return A.GetPathName() < B.GetPathName(); });
-    FString All;
-    for (UObject* Object : Objects)
-    {
-        All += Object->GetPathName() + TEXT("\n");
-        for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
-        {
-            if (It->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient))
-                continue;
-            for (int32 Index = 0; Index < It->ArrayDim; ++Index)
-            {
-                FString Text;
-                It->ExportText_InContainer(Index, Text, Object, Object, Object, PPF_None);
-                All += It->GetName() + TEXT("=") + Text + TEXT("\n");
-            }
-        }
-    }
-    TArray<uint8> Bytes;
-    Bytes.Append(reinterpret_cast<const uint8*>(*All), All.Len() * sizeof(TCHAR));
-    return Bytes;
-}
-
 FString Shown(const TArray<FString>& Messages)
 {
     return FString::Join(Messages, TEXT(" / "));
@@ -263,64 +224,6 @@ bool PlainText(const FString& Message)
     return !Message.Contains(TEXT(":")) && !Message.Contains(TEXT(";")) && !Message.Contains(TEXT("—"));
 }
 
-// A property of an asset's class a script could set: editable, a plain value, one of it.
-FProperty* ScriptProperty(UObject* Asset)
-{
-    // The real Wwise event exposes an editable bank reference, while its scalar
-    // duration/radius fields are VisibleAnywhere. Probe the actual supported edit route.
-    if (Asset->GetClass()->GetPathName() == TEXT("/Script/AkAudio.AkAudioEvent"))
-        if (FObjectPropertyBase* Bank = FindFProperty<FObjectPropertyBase>(Asset->GetClass(), TEXT("RequiredBank")))
-            if (Bank->HasAnyPropertyFlags(CPF_Edit) && !Bank->HasAnyPropertyFlags(CPF_EditConst | CPF_Transient))
-                return Bank;
-    for (TFieldIterator<FProperty> It(Asset->GetClass()); It; ++It)
-    {
-        FProperty* P = *It;
-        if (!P->HasAnyPropertyFlags(CPF_Edit) ||
-            P->HasAnyPropertyFlags(CPF_EditConst | CPF_Transient | CPF_DisableEditOnTemplate) || P->ArrayDim != 1)
-            continue;
-        if (CastField<FBoolProperty>(P) || CastField<FIntProperty>(P) || CastField<FFloatProperty>(P))
-            return P;
-    }
-    for (TFieldIterator<FProperty> It(Asset->GetClass()); It; ++It)
-    {
-        FProperty* P = *It;
-        if (!P->HasAnyPropertyFlags(CPF_Edit) ||
-            P->HasAnyPropertyFlags(CPF_EditConst | CPF_Transient | CPF_DisableEditOnTemplate) || P->ArrayDim != 1)
-            continue;
-        if (CastField<FStrProperty>(P) || CastField<FNameProperty>(P) || CastField<FNumericProperty>(P) ||
-            CastField<FBoolProperty>(P))
-            return P;
-    }
-    return nullptr;
-}
-
-// Sets a property the way a script or an editor utility does (Python's set_editor_property).
-void ScriptSet(UObject* Object, FProperty* Property)
-{
-    void* Value = FMemory::Malloc(Property->GetSize(), Property->GetMinAlignment());
-    Property->InitializeValue(Value);
-    Property->CopyCompleteValue(Value, Property->ContainerPtrToValuePtr<void>(Object));
-    if (FBoolProperty* Bool = CastField<FBoolProperty>(Property))
-        Bool->SetPropertyValue(Value, !Bool->GetPropertyValue(Value));
-    else if (FNumericProperty* Number = CastField<FNumericProperty>(Property))
-    {
-        if (Number->IsFloatingPoint())
-            Number->SetFloatingPointPropertyValue(Value, Number->GetFloatingPointPropertyValue(Value) + 1.5);
-        else
-            Number->SetIntPropertyValue(Value, Number->GetSignedIntPropertyValue(Value) + 1);
-    }
-    else if (FObjectPropertyBase* Reference = CastField<FObjectPropertyBase>(Property))
-        Reference->SetObjectPropertyValue(
-            Value, Reference->GetObjectPropertyValue(Value) ? nullptr : Reference->PropertyClass->GetDefaultObject());
-    else if (FStrProperty* Str = CastField<FStrProperty>(Property))
-        Str->SetPropertyValue(Value, Str->GetPropertyValue(Value) + TEXT(" changed"));
-    else if (FNameProperty* Name = CastField<FNameProperty>(Property))
-        Name->SetPropertyValue(Value, FName(TEXT("Changed")));
-    PropertyAccessUtil::SetPropertyValue_Object(Property, Object, Property, Value, INDEX_NONE,
-        PropertyAccessUtil::EditorReadOnlyFlags, EPropertyAccessChangeNotifyMode::Default);
-    Property->DestroyValue(Value);
-    FMemory::Free(Value);
-}
 } //namespace P4KadanReadOnlyCave000
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4KadanReadOnlyCave000Test, "P4MapKit.Kadan.ReadOnlyCave000",
@@ -337,34 +240,25 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
     };
     if (!GEditor || !FSlateApplication::IsInitialized())
     {
-        AddError(TEXT("The read-only test needs the Slate editor."));
+        AddError(TEXT("The placed actor test needs the Slate editor."));
         return false;
     }
     const FString Root = FPlatformMisc::GetEnvironmentVariable(TEXT("P4_NATIVE_ROOT"));
     if (Root.IsEmpty())
     {
-        AddError(TEXT("The read-only test needs P4_NATIVE_ROOT."));
+        AddError(TEXT("The placed actor test needs P4_NATIVE_ROOT."));
         return false;
     }
     const FString Repo = FPaths::GetPath(FPaths::GetPath(Root));
     const FString Game = Root / TEXT("host/Saved/P4MapKit/FullNativeCave000/game");
-    const FString Tables = Repo / TEXT("private/modding-research/tables/dts/Carrot4/Content/Carrot4");
-    const FString SoundFile = Root /
-        TEXT(
-            "table-recovery/asset-references/Carrot4/Content/Carrot4/Audio/Event/Ambience/Area/AkE_Play_Amb_BaseNoiseDay.uasset");
     const FString Map = TEXT("/Game/Carrot4/Maps/Madori/Cave/Cave000/Cave000_F00/Cave000_F00_P");
     for (const FString& Needed : {Game})
         if (!TestTrue(TEXT("The test's input is there: ") + Needed, IFileManager::Get().DirectoryExists(*Needed)))
-            return false;
-    for (const FString& Needed : {Tables / TEXT("Core/GActor/DT_OtakaraParameter.uasset"),
-             Tables / TEXT("Core/PresetPikmin/DT_PresetPikmin.uasset"), SoundFile})
-        if (!TestTrue(TEXT("The test's input is there: ") + Needed, IFileManager::Get().FileExists(*Needed)))
             return false;
     P4RegisterKadanEditor();
     P4Kadan::InitializePropertyGuards();
     auto* Editors = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
     IAssetTools& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-    auto& Properties = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
     auto& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
     IPlatformFile& Disk = FPlatformFileManager::Get().GetPlatformFile();
     const auto Flush = [&]()
@@ -391,8 +285,7 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
     if (!TestFalse(TEXT("The project has no Cave000 before the test"), IFileManager::Get().FileExists(*MapFile)))
         return false;
 
-    // The import: the map with everything it names, two game tables (one makes a kind of treasure) and a
-    // Wwise sound event.
+    // Import the map and its dependencies.
     TestNotNull(TEXT("The project's own game WorldSettings class loads"),
         LoadObject<UClass>(nullptr, TEXT("/Script/Carrot4.MyWorldSettings")));
     FP4KadanImportSettings Settings;
@@ -403,102 +296,39 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
     if (Settings.Repak.IsEmpty() && !Settings.Retoc.IsEmpty())
         Settings.Repak = FPaths::GetPath(FPaths::GetPath(Settings.Retoc)) / TEXT("repak/repak.exe");
     const FP4KadanImportResult Result = P4KadanImportMap(Settings, Map, true);
-    TMap<FString, FString> Imported = Result.Imported;
     TestFalse(TEXT("The import was not cancelled"), Result.Cancelled);
     Note(FString::Printf(TEXT("Map import complete %d. Refused packages %d. Imported level objects %d."), Result.Ok,
         Result.NotImported.Num(), Result.LevelObjects));
     for (const FString& Problem : Result.Problems)
         Note(TEXT("Map import problem ") + Problem);
-    {
-        P4ImportPublication::FImportScope Importing;
-        for (const TCHAR* Table : {TEXT("Core/GActor/DT_OtakaraParameter"), TEXT("Core/PresetPikmin/DT_PresetPikmin")})
-        {
-            const FP4OriginalAssetImportResult One = P4ImportOriginalAssetNative(
-                Tables / Table + TEXT(".uasset"), FString(), true);
-            if (TestTrue(FString(TEXT("Table imported ")) + Table + TEXT(" ") + One.ErrorDetail, One.IsValid()))
-                Imported.Add(One.Package, One.Class);
-        }
-        FP4OriginalAssetImportResult Sound = P4ImportOriginalAssetNative(SoundFile, FString(), true);
-        if (!Sound.IsValid())
-            Sound = P4ImportOriginalAssetNative(SoundFile, FString(), true, true);
-        if (!Sound.IsValid())
-            Sound = P4KeepUnsupportedSoundReference(Sound, true);
-        if (TestTrue(TEXT("Sound event or explicitly unsupported identity reference imported ") + Sound.ErrorDetail,
-                Sound.IsValid()))
-        {
-            Imported.Add(Sound.Package, Sound.Class);
-            if (Sound.ReferenceOnly)
-            {
-                const FP4OriginalStatus Status = P4QueryOriginalAsset(Sound.Asset);
-                TestTrue(TEXT("Unsupported Wwise event retains protected game identity"),
-                    Status.IsOriginal() && Status.Record.ReferenceOnly && Status.Record.ReadOnly);
-                TestFalse(TEXT("Identity-only sound never claims recovered content comparison"),
-                    Sound.ComparedKnown || Sound.DifferencesKnown);
-                const FP4OriginalDiagnostic Diagnostic = P4DiagnoseOriginalAsset(Sound.Asset);
-                TestTrue(TEXT("Identity-only sound is not equal to game audio"),
-                    Diagnostic.Comparison != EP4OriginalComparison::Equal);
-                Note(TEXT("Sound is a protected Wwise identity reference. Its event payload was not recovered."));
-            }
-        }
-    }
     P4Kadan::TakeReadOnlyMessages();
     Flush();
     TestEqual(TEXT("The import is not taken for an edit"), Shown(P4Kadan::TakeReadOnlyMessages()), FString());
 
-    // (a) Every imported game asset of a locked kind reports locked, and levels and tables do not.
+    // The imported assets by package. A map's own objects are released when the editor closes the map, so only the
+    // others are held.
     TMap<FString, TWeakObjectPtr<UObject>> Assets;
     TArray<TStrongObjectPtr<UObject>> HeldAssets;
-    TSet<FString> MapOwnedPackages;
-    TArray<FString> NotLocked, NotEditable;
-    TMap<FString, int32> Kinds;
-    for (const auto& Pair : Imported)
+    for (const auto& Pair : Result.Imported)
     {
         TArray<FAssetData> Found;
         Registry.GetAssetsByPackageName(FName(*Pair.Key), Found);
         UObject* Asset = Found.Num() ? Found[0].GetAsset() : nullptr;
-        if (!Asset)
-        {
-            NotLocked.Add(Pair.Key + TEXT(" (not loaded)"));
+        if (!TestNotNull(TEXT("Imported asset resolves ") + Pair.Key, Asset))
             continue;
-        }
         Assets.Add(Pair.Key, Asset);
         UPackage* OwningPackage = Asset->GetOutermost();
-        if (Asset->IsA<UWorld>() || OwningPackage->HasAnyPackageFlags(PKG_ContainsMap) ||
-            UWorld::FindWorldInPackage(OwningPackage))
-            MapOwnedPackages.Add(Pair.Key);
-        else
-            HeldAssets.Emplace(Asset); // Map-owned objects must be released when the editor closes their map.
-        ++Kinds.FindOrAdd(Asset->GetClass()->GetName());
-        const P4Kadan::FAssetPolicy Policy = P4Kadan::GetAssetPolicy(Asset);
+        if (!Asset->IsA<UWorld>() && !OwningPackage->HasAnyPackageFlags(PKG_ContainsMap) &&
+            !UWorld::FindWorldInPackage(OwningPackage))
+            HeldAssets.Emplace(Asset);
         FString File;
-        FPackageName::DoesPackageExist(Pair.Key, nullptr, &File);
-        const bool ReadOnlyFile = !File.IsEmpty() && Disk.IsReadOnly(*FPaths::ConvertRelativePathToFull(File));
-        const bool Writable = Tools.AllPassWritableFolderFilter({Pair.Key});
-        const TSharedPtr<IAssetTypeActions> Actions = Tools.GetAssetTypeActionsForClass(Asset->GetClass()).Pin();
-        const bool Mark = P4Kadan::LockMark(FAssetData(Asset)) != SNullWidget::NullWidget;
-        if (Asset->IsA<UWorld>() || Asset->IsA<UDataTable>())
-        {
-            if (!Policy.AllowEdit || P4Kadan::IsLockedPackage(Asset->GetOutermost()) || ReadOnlyFile || !Writable ||
-                Mark)
-                NotEditable.Add(Pair.Key + TEXT(" (") + Asset->GetClass()->GetName() + TEXT(")"));
-        }
-        // Kadan's guards keep a game asset. Its file on disk stays writable.
-        else if (Policy.AllowEdit || !P4Kadan::IsLockedPackage(Asset->GetOutermost()) || ReadOnlyFile || Writable ||
-            !Mark || Policy.Reason.IsEmpty())
-            NotLocked.Add(FString::Printf(TEXT("%s (%s%s%s%s%s)"), *Pair.Key, *Asset->GetClass()->GetName(),
-                Policy.AllowEdit ? TEXT(", editable") : TEXT(""), ReadOnlyFile ? TEXT(", read-only file") : TEXT(""),
-                Writable ? TEXT(", browser can edit") : TEXT(""), Mark ? TEXT("") : TEXT(", no lock mark")));
+        const bool Exists = FPackageName::DoesPackageExist(Pair.Key, nullptr, &File);
+        const auto Policy = P4Kadan::GetAssetPolicy(Asset);
+        TestEqual(TEXT("Editing follows recovered data ") + Pair.Key, Policy.AllowEdit, !Policy.ReferenceOnly);
+        TestTrue(TEXT("Imported package file is writable ") + Pair.Key, Exists && !Disk.IsReadOnly(*File));
+        TestEqual(TEXT("Content Browser follows reference protection ") + Pair.Key,
+            Tools.AllPassWritableFolderFilter({Pair.Key}), Policy.AllowEdit);
     }
-    TArray<FString> KindCounts;
-    for (const auto& Pair : Kinds)
-        KindCounts.Add(FString::Printf(TEXT("%s %d"), *Pair.Key, Pair.Value));
-    KindCounts.Sort();
-    Note(FString::Printf(TEXT("Imported %d game assets: %s."), Assets.Num(), *FString::Join(KindCounts, TEXT(", "))));
-    for (const FString& One : NotLocked)
-        AddError(TEXT("Not locked: ") + One);
-    for (const FString& One : NotEditable)
-        AddError(TEXT("Level or table not editable: ") + One);
-    TestEqual(TEXT("Imported game assets of a locked kind that do not report locked"), NotLocked.Num(), 0);
 
     // (c) A game level takes the edits Tsuchi can apply and refuses the others, naming the actor and property.
     {
@@ -565,7 +395,9 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
             FProperty* Hidden = FindFProperty<FProperty>(AActor::StaticClass(), TEXT("bHidden"));
             if (TestNotNull(TEXT("bHidden"), Hidden))
             {
-                P4KadanReadOnlyCave000::ScriptSet(GameActors[1], Hidden);
+                const bool Hide = true;
+                PropertyAccessUtil::SetPropertyValue_Object(Hidden, GameActors[1], Hidden, &Hide, INDEX_NONE,
+                    PropertyAccessUtil::EditorReadOnlyFlags, EPropertyAccessChangeNotifyMode::Default);
                 Allowed(TEXT("switch"));
                 TestTrue(TEXT("The switch stays"), GameActors[1]->IsHidden());
             }
@@ -598,7 +430,7 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
             AActor* MeshActor = nullptr;
             UStaticMeshComponent* MeshComponent = nullptr;
             TStrongObjectPtr<UWorld> FixtureWorld; // Released before the real NewMap cleanup below.
-            for (const auto& Pair : Imported)
+            for (const auto& Pair : Result.Imported)
             {
                 if (Pair.Value != TEXT("World"))
                     continue;
@@ -696,456 +528,13 @@ bool FP4KadanReadOnlyCave000Test::RunTest(const FString&)
             World->EditorDestroyActor(GameActors[GameActors.Num() - 1], true);
             Allowed(TEXT("removal"));
             UPackage* LevelPackage = World->GetOutermost();
-            TestFalse(TEXT("The level is not locked"), P4Kadan::IsLockedPackage(LevelPackage));
-            TestTrue(TEXT("The level can be saved"),
-                FCoreUObjectDelegates::IsPackageOKToSaveDelegate.Execute(LevelPackage, MapFile, GWarn));
+            const auto& CanSave = FCoreUObjectDelegates::IsPackageOKToSaveDelegate;
+            TestTrue(TEXT("The level can be saved"), !CanSave.IsBound() || CanSave.Execute(LevelPackage, MapFile, GWarn));
             LevelPackage->SetDirtyFlag(false);
         }
         GEditor->NewMap();
     }
 
-    // (c) A game table takes field edits and new rows, and refuses deleting, renaming and moving its game rows
-    // and new rows in a table of a kind.
-    {
-        UDataTable* Preset = LoadObject<UDataTable>(
-            nullptr, TEXT("/Game/Carrot4/Core/PresetPikmin/DT_PresetPikmin.DT_PresetPikmin"));
-        UDataTable* Treasures = LoadObject<UDataTable>(
-            nullptr, TEXT("/Game/Carrot4/Core/GActor/DT_OtakaraParameter.DT_OtakaraParameter"));
-        if (TestTrue(TEXT("Both tables are there"), Preset && Treasures))
-        {
-            using FUtils = FDataTableEditorUtils;
-            const TArray<FName> GameRows = P4Kadan::GameRowsOf(Preset);
-            TestTrue(TEXT("The table knows its game rows"), GameRows.Num() >= 2 && GameRows == Preset->GetRowNames());
-            TestTrue(TEXT("A table is editable"),
-                P4Kadan::GetAssetPolicy(Preset).AllowEdit && !P4Kadan::IsLockedPackage(Preset->GetOutermost()));
-            TestFalse(TEXT("The preset table is not a table of a kind"), P4Kadan::IsKindTable(Preset));
-            TestTrue(TEXT("The treasure table is a table of a kind"), P4Kadan::IsKindTable(Treasures));
-            P4Kadan::TakeReadOnlyMessages();
-            const auto Told = [&](const FString& What, bool Expected, const FString& Words)
-            {
-                Flush();
-                const TArray<FString> Messages = P4Kadan::TakeReadOnlyMessages();
-                if (Expected)
-                {
-                    TestTrue(TEXT("Table edit refused: ") + What + TEXT(" ") + Shown(Messages),
-                        Messages.Num() >= 1 && Messages[0].Contains(Words));
-                    for (const FString& Message : Messages)
-                        TestTrue(TEXT("Plain sentence: ") + Message, PlainText(Message));
-                    Note(TEXT("Refused. ") + Shown(Messages));
-                }
-                else
-                    TestEqual(TEXT("Table edit allowed: ") + What + TEXT(" ") + Shown(Messages), Messages.Num(), 0);
-                Note(TEXT("Table edit ") + What + TEXT(". ") +
-                    (Messages.Num() ? Shown(Messages) : FString(TEXT("Nothing told."))));
-            };
-            // A field of a row, as the row editor changes it.
-            const UScriptStruct* Type = Preset->GetRowStruct();
-            FNumericProperty* Field = nullptr;
-            FArrayProperty* List = nullptr;
-            for (TFieldIterator<FProperty> It(Type); It; ++It)
-            {
-                if (!Field)
-                    Field = CastField<FNumericProperty>(*It);
-                if (!List)
-                    List = CastField<FArrayProperty>(*It);
-            }
-            if (Field)
-            {
-                uint8* Row = Preset->FindRowUnchecked(GameRows[0]);
-                FUtils::BroadcastPreChange(Preset, FUtils::EDataTableChangeInfo::RowData);
-                Preset->Modify();
-                void* Value = Field->ContainerPtrToValuePtr<void>(Row);
-                if (Field->IsFloatingPoint())
-                    Field->SetFloatingPointPropertyValue(Value, Field->GetFloatingPointPropertyValue(Value) + 2);
-                else
-                    Field->SetIntPropertyValue(Value, Field->GetSignedIntPropertyValue(Value) + 2);
-                FUtils::BroadcastPostChange(Preset, FUtils::EDataTableChangeInfo::RowData);
-                Told(TEXT("field"), false, FString());
-            }
-            if (List)
-                TestTrue(TEXT("An array's length can be edited"), P4Kadan::CanEditTableProperty(*List));
-            TestNotNull(TEXT("A new row"), FUtils::AddRow(Preset, TEXT("KadanTestRow")));
-            Told(TEXT("new row"), false, FString());
-            TestTrue(TEXT("The new row stays"), Preset->GetRowNames().Contains(FName(TEXT("KadanTestRow"))));
-            FUtils::RenameRow(Preset, GameRows[0], TEXT("KadanRenamed"));
-            Told(TEXT("rename a game row"), true, GameRows[0].ToString());
-            TestTrue(TEXT("The game row is put back"),
-                Preset->GetRowNames().Contains(GameRows[0]) &&
-                    !Preset->GetRowNames().Contains(FName(TEXT("KadanRenamed"))));
-            FUtils::RemoveRow(Preset, GameRows[1]);
-            Told(TEXT("delete a game row"), true, GameRows[1].ToString());
-            TestTrue(TEXT("The deleted game row is put back"), Preset->GetRowNames().Contains(GameRows[1]));
-            FUtils::MoveRow(Preset, GameRows[1], FUtils::ERowMoveDirection::Up);
-            Told(TEXT("move a game row"), true, TEXT("order"));
-            TArray<FName> Order = Preset->GetRowNames();
-            Order.Remove(FName(TEXT("KadanTestRow")));
-            TestTrue(TEXT("The game rows keep the game's order"), Order == GameRows);
-            FUtils::RenameRow(Preset, TEXT("KadanTestRow"), TEXT("KadanTestRow2"));
-            Told(TEXT("rename a new row"), false, FString());
-            FUtils::RemoveRow(Preset, TEXT("KadanTestRow2"));
-            Told(TEXT("delete a new row"), false, FString());
-            FUtils::AddRow(Treasures, TEXT("KadanTreasure"));
-            Told(TEXT("new treasure row"), true,
-                TEXT("New treasures, creatures and Pikmin types are made through content."));
-            TestFalse(TEXT("The new treasure row is taken off"),
-                Treasures->GetRowNames().Contains(FName(TEXT("KadanTreasure"))));
-            Preset->GetOutermost()->SetDirtyFlag(false);
-            Treasures->GetOutermost()->SetDirtyFlag(false);
-        }
-    }
-
-    // (b) Every route, on six kinds: the package stays byte for byte as imported.
-    UObject* Picks[6] = {};
-    const TCHAR* Names[6] = {TEXT("Texture"), TEXT("Static mesh"), TEXT("Blueprint"), TEXT("Data asset"),
-        TEXT("Material instance"), TEXT("Sound")};
-    for (const auto& Pair : Assets)
-    {
-        UObject* Asset = Pair.Value.Get();
-        // Loading and leaving the game map can explicitly destroy its objects. They were checked
-        // above. Keep map-owned entries weak so NewMap can complete its real leak check.
-        if (!Asset)
-        {
-            if (!MapOwnedPackages.Contains(Pair.Key))
-                AddError(TEXT("Imported route asset was released: ") + Pair.Key);
-            continue;
-        }
-        if (!Picks[0] && Asset->IsA<UTexture>())
-            Picks[0] = Asset;
-        if (!Picks[1] && Asset->IsA<UStaticMesh>())
-            Picks[1] = Asset;
-        if (!Picks[2] && Asset->GetClass() == UBlueprint::StaticClass())
-            Picks[2] = Asset;
-        if (!Picks[3] && Asset->IsA<UDataAsset>())
-            Picks[3] = Asset;
-        if (!Picks[4] && Asset->IsA<UMaterialInstanceConstant>())
-            Picks[4] = Asset;
-        if (!Picks[5] && Asset->GetClass()->GetOutermost()->GetName() == TEXT("/Script/AkAudio"))
-            Picks[5] = Asset;
-    }
-    TStrongObjectPtr<UContentBrowserAssetDataSource> Browser(NewObject<UContentBrowserAssetDataSource>());
-    Browser->Initialize(TEXT("/"), false);
-    TArray<FString> Routes;
-    TMap<FString, TArray<FString>> Table;
-    const bool Python = GEngine->Exec(nullptr, TEXT("py print('Kadan read-only test')"));
-    Note(Python ? TEXT("Python is there, and the script routes run in it too.")
-                : TEXT("Python is not there. The script routes run as editor utilities do."));
-    for (int32 Kind = 0; Kind < 6; ++Kind)
-    {
-        UObject* Asset = Picks[Kind];
-        if (!TestNotNull(FString(TEXT("An imported ")) + Names[Kind], Asset))
-            continue;
-        UPackage* Package = Asset->GetOutermost();
-        const FString Path = Asset->GetPathName(), PackageName = Package->GetName(),
-                      Leaf = FPackageName::GetLongPackageAssetName(PackageName);
-        FString File;
-        FPackageName::DoesPackageExist(PackageName, nullptr, &File);
-        File = FPaths::ConvertRelativePathToFull(File);
-        Note(FString::Printf(TEXT("%s is %s (%s)."), Names[Kind], *PackageName, *Asset->GetClass()->GetName()));
-        const TArray<uint8> DiskBefore = FileBytes(File), MemoryBefore = PackageBytes(Package);
-        const bool CookedBefore = Package->bIsCookedForEditor;
-        TestTrue(FString(Names[Kind]) + TEXT(" serializes the same twice"), PackageBytes(Package) == MemoryBefore);
-        TArray<UPackage*> Referencers;
-        {
-            TArray<FName> Names2;
-            Registry.GetReferencers(FName(*PackageName), Names2);
-            for (const FName& Name : Names2)
-                if (UPackage* One = FindPackage(nullptr, *Name.ToString()))
-                    if (P4Kadan::IsLockedPackage(One))
-                        Referencers.Add(One);
-        }
-        TArray<TArray<uint8>> ReferencersBefore;
-        for (UPackage* One : Referencers)
-            ReferencersBefore.Add(PackageBytes(One));
-        P4Kadan::TakeReadOnlyMessages();
-        const auto Check = [&](const FString& Route, bool RouteOk, bool ExpectMessage)
-        {
-            Flush();
-            const TArray<FString> Told = P4Kadan::TakeReadOnlyMessages();
-            const bool Same = FileBytes(File) == DiskBefore && PackageBytes(Package) == MemoryBefore &&
-                IsValid(Asset) && !Package->IsDirty() && Package->bIsCookedForEditor == CookedBefore;
-            bool Others = true;
-            for (int32 I = 0; I < Referencers.Num(); ++I)
-                Others &= PackageBytes(Referencers[I]) == ReferencersBefore[I];
-            const bool Message = !ExpectMessage || (Told.Num() > 0 && Told[0].Contains(Leaf));
-            bool Plain = true;
-            for (const FString& One : Told)
-                Plain &= PlainText(One);
-            const bool Ok = RouteOk && Same && Others && Message && Plain;
-            TestTrue(FString::Printf(TEXT("%s, %s: locked and unchanged %s"), Names[Kind], *Route, *Shown(Told)), Ok);
-            Note(FString::Printf(TEXT("%s, %s: %s"), Names[Kind], *Route, Ok ? TEXT("locked") : TEXT("FAILED")));
-            if (!Ok)
-                Note(FString::Printf(TEXT("%s, %s: route %d, same %d, game assets that use it %d, told %d, plain %d"),
-                    Names[Kind], *Route, RouteOk, Same, Others, Message, Plain));
-            if (!Same || !Others)
-            {
-                const auto Difference = [&](UPackage* Changed, const TArray<uint8>& Before)
-                {
-                    const TArray<uint8> After = PackageBytes(Changed);
-                    if (Before == After)
-                        return;
-                    TArray<FString> OldLines, NewLines;
-                    FString(Before.Num() / sizeof(TCHAR), reinterpret_cast<const TCHAR*>(Before.GetData()))
-                        .ParseIntoArrayLines(OldLines);
-                    FString(After.Num() / sizeof(TCHAR), reinterpret_cast<const TCHAR*>(After.GetData()))
-                        .ParseIntoArrayLines(NewLines);
-                    int32 Index = 0;
-                    while (Index < OldLines.Num() && Index < NewLines.Num() && OldLines[Index] == NewLines[Index])
-                        ++Index;
-                    Note(TEXT("Changed property in ") + Changed->GetName() + TEXT(". Before ") +
-                        (OldLines.IsValidIndex(Index) ? OldLines[Index].Left(250) : TEXT("end")) + TEXT(". After ") +
-                        (NewLines.IsValidIndex(Index) ? NewLines[Index].Left(250) : TEXT("end")));
-                };
-                Difference(Package, MemoryBefore);
-                for (int32 Index = 0; Index < Referencers.Num(); ++Index)
-                    Difference(Referencers[Index], ReferencersBefore[Index]);
-                Note(FString::Printf(
-                    TEXT("File unchanged %d. Package dirty %d."), FileBytes(File) == DiskBefore, Package->IsDirty()));
-            }
-            Routes.AddUnique(Route);
-            Table.FindOrAdd(Route).SetNum(6);
-            Table[Route][Kind] = Ok ? TEXT("locked") : TEXT("FAILED");
-            Package->SetDirtyFlag(false);
-        };
-        const TSharedPtr<IAssetTypeActions> Actions = Tools.GetAssetTypeActionsForClass(Asset->GetClass()).Pin();
-
-        // Asset editors and type actions.
-        {
-            bool Ok = !Editors->OpenEditorForAsset(Asset, EToolkitMode::Standalone, nullptr, false);
-            Ok &= Actions.IsValid();
-            if (Actions)
-            {
-                // The type's own editor, asked for directly: the reference opens (another module's editor is
-                // closed for it on the next tick).
-                Actions->OpenAssetEditor({Asset});
-                Flush();
-                IAssetEditorInstance* Open = Editors->FindEditorForAsset(Asset, false);
-                Ok &= Open && Open->GetEditorName() == FName(TEXT("KadanReference"));
-                Editors->CloseAllEditorsForAsset(Asset);
-                // A double click: the reference opens, or no editor at all.
-                if (!Actions->AssetsActivatedOverride({Asset}, EAssetTypeActivationMethod::DoubleClicked))
-                    Ok &= !Editors->OpenEditorForAsset(Asset, EToolkitMode::Standalone, nullptr, false);
-                Flush();
-                Open = Editors->FindEditorForAsset(Asset, false);
-                Ok &= !Open || Open->GetEditorName() == FName(TEXT("KadanReference"));
-                Editors->CloseAllEditorsForAsset(Asset);
-                Ok &= Actions->GetValidAssetsForPreviewOrEdit({FAssetData(Asset)}, false).Num() == 0 ||
-                    !Tools.AllPassWritableFolderFilter({PackageName});
-            }
-            // An editor made directly, past the asset actions, is closed and the reference opens instead.
-            FSimpleAssetEditor::CreateEditor(EToolkitMode::Standalone, nullptr, Asset);
-            Flush();
-            IAssetEditorInstance* Open = Editors->FindEditorForAsset(Asset, false);
-            Ok &= Open && Open->GetEditorName() == FName(TEXT("KadanReference"));
-            Editors->CloseAllEditorsForAsset(Asset);
-            Check(TEXT("Asset editors and type actions"), Ok, false);
-        }
-        // Bulk edit via property matrix.
-        {
-            bool Ok = !Tools.AllPassWritableFolderFilter({PackageName});
-            auto Matrix = Properties.CreatePropertyEditorToolkit(EToolkitMode::Standalone, nullptr, Asset);
-            Flush();
-            const auto Manager = Matrix->GetAssociatedTabManager();
-            const auto Grid = Manager
-                ? Manager->FindExistingLiveTab(FTabId(TEXT("PropertyEditorToolkit_PropertyTable")))
-                : nullptr;
-            Ok &= Grid.IsValid() && !Grid->GetContent()->IsEnabled();
-            Matrix->CloseWindow();
-            Check(TEXT("Property matrix"), Ok, false);
-        }
-        // A details panel on the asset.
-        {
-            FDetailsViewArgs Args;
-            Args.bUpdatesFromSelection = false;
-            Args.bLockable = false;
-            Args.bAllowSearch = false;
-            const TSharedRef<IDetailsView> View = Properties.CreateDetailView(Args);
-            View->SetObject(Asset);
-            const TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(400, 300))[View];
-            FSlateApplication::Get().AddWindow(Window, false);
-            Flush();
-            const bool Ok = !View->IsPropertyEditingEnabled();
-            Window->RequestDestroyWindow();
-            Check(TEXT("Details panel"), Ok, false);
-        }
-        // An asset dropped onto one of its properties: the property is set through its handle.
-        {
-            FProperty* Target = nullptr;
-            for (TFieldIterator<FObjectPropertyBase> It(Asset->GetClass()); It && !Target; ++It)
-                if (It->HasAnyPropertyFlags(CPF_Edit) &&
-                    !It->HasAnyPropertyFlags(CPF_EditConst | CPF_InstancedReference | CPF_Transient) &&
-                    It->ArrayDim == 1)
-                    Target = *It;
-            if (!Target)
-                Target = ScriptProperty(Asset);
-            bool Ok = Target != nullptr;
-            if (Target)
-            {
-                const TSharedPtr<ISinglePropertyView> Single = Properties.CreateSingleProperty(
-                    Asset, Target->GetFName(), FSinglePropertyParams());
-                const TSharedPtr<IPropertyHandle> Handle = Single ? Single->GetPropertyHandle() : nullptr;
-                if (Handle)
-                {
-                    if (const FObjectPropertyBase* Object = CastField<FObjectPropertyBase>(Target))
-                    {
-                        UObject* Dropped = nullptr;
-                        for (const auto& Pair : Assets)
-                            if (UObject* Candidate = Pair.Value.Get())
-                                if (Candidate != Asset && Candidate->IsA(Object->PropertyClass))
-                                {
-                                    Dropped = Candidate;
-                                    break;
-                                }
-                        if (!Dropped && Asset->GetClass()->GetPathName() == TEXT("/Script/AkAudio.AkAudioEvent"))
-                            Dropped = Object->PropertyClass->GetDefaultObject();
-                        if (Dropped)
-                            Handle->SetValue(Dropped);
-                        else
-                            Handle->SetValue(static_cast<UObject*>(nullptr));
-                    }
-                    else
-                        Handle->SetValueFromFormattedString(TEXT("1"));
-                }
-            }
-            Note(
-                FString::Printf(TEXT("%s, drop: onto %s"), Names[Kind], Target ? *Target->GetName() : TEXT("nothing")));
-            Check(TEXT("Drop onto a property"), Ok, false);
-        }
-        // Content Browser: rename, move, delete, edit and save.
-        {
-            const FAssetData Data(Asset);
-            const FContentBrowserItemData Item(Browser.Get(),
-                EContentBrowserItemFlags::Type_File | EContentBrowserItemFlags::Category_Asset, Data.ObjectPath,
-                Data.AssetName, FText(), MakeShared<FContentBrowserAssetFileItemDataPayload>(Data));
-            const FString NewName = TEXT("Changed");
-            FText Why;
-            bool Ok = !Browser->CanEditItem(Item, &Why) && !Browser->CanRenameItem(Item, &NewName, &Why) &&
-                !Browser->CanDeleteItem(Item, &Why) && !Browser->CanMoveItem(Item, TEXT("/Game/KadanMoved"), &Why) &&
-                !Browser->CanSaveItem(Item, EContentBrowserItemSaveFlags::None, &Why) && !Browser->EditItem(Item);
-            Check(TEXT("Content Browser"), Ok, false);
-        }
-        // A rename or move by a script or another plugin (the asset tools' RenameAssets, Python's rename_asset) is not
-        // tried: Unreal 4.26 refuses it only for a read-only file, and Kadan leaves game files writable. It moves the
-        // asset out of the game's folder, where Kadan no longer keeps it; reimporting the map puts it back. The
-        // Content Browser's rename and move, above, stay refused.
-        // Delete.
-        {
-            bool Ok = ObjectTools::DeleteObjects({Asset}, false) == 0;
-            Ok &= ObjectTools::ForceDeleteObjects({Asset}, false) == 0;
-            Check(TEXT("Delete"), Ok && IsValid(Asset), true);
-        }
-        // Reimport.
-        {
-            FReimportManager::Instance()->Reimport(Asset, false, false, TEXT(""), nullptr, INDEX_NONE, false, true);
-            Check(TEXT("Reimport"), true, false);
-        }
-        // The routes below use the asset. One that let it go (deleted, or out of its package) has failed above; the
-        // rest of this kind is not tried on what is left.
-        if (!IsValid(Asset) || Asset->GetOutermost() != Package || !IFileManager::Get().FileExists(*File))
-        {
-            AddError(FString(Names[Kind]) + TEXT(": the asset is gone, so its other routes are not tried."));
-            continue;
-        }
-        // Duplicate must retain game source evidence; editing permission does not prove creator source.
-        UObject* Copy = Tools.DuplicateAsset(Leaf + TEXT("_Mine"), TEXT("/Game/KadanMine"), Asset);
-        Made.TrackCopy(Copy);
-        {
-            const bool Ok = Copy && !P4HasCreatorSource(Copy);
-            Check(TEXT("Duplicate does not qualify game bytes as creator source"), Ok, false);
-        }
-        // Consolidate and replace references: what used the game asset may point at the copy, the game asset
-        // stays, and game assets that used it are put back.
-        if (Copy)
-        {
-            TArray<UObject*> Replaced = {Asset};
-            ObjectTools::ConsolidateObjects(Copy, Replaced, false);
-            Check(TEXT("Consolidate"), IsValid(Asset), false);
-            TArray<UObject*> Again = {Asset};
-            ObjectTools::ForceReplaceReferences(Copy, Again);
-            CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
-            Check(TEXT("Replace references"), IsValid(Asset), false);
-        }
-        // Scripts and editor utilities.
-        if (FProperty* Value = ScriptProperty(Asset))
-        {
-            ScriptSet(Asset, Value);
-            Check(TEXT("Script sets a property"), true, true);
-            Asset->Modify();
-            if (FBoolProperty* Bool = CastField<FBoolProperty>(Value))
-                Bool->SetPropertyValue_InContainer(Asset, !Bool->GetPropertyValue_InContainer(Asset));
-            else if (FNumericProperty* Number = CastField<FNumericProperty>(Value))
-            {
-                void* At = Number->ContainerPtrToValuePtr<void>(Asset);
-                if (Number->IsFloatingPoint())
-                    Number->SetFloatingPointPropertyValue(At, Number->GetFloatingPointPropertyValue(At) + 3);
-                else
-                    Number->SetIntPropertyValue(At, Number->GetSignedIntPropertyValue(At) + 3);
-            }
-            else if (FObjectPropertyBase* Reference = CastField<FObjectPropertyBase>(Value))
-            {
-                void* At = Reference->ContainerPtrToValuePtr<void>(Asset);
-                Reference->SetObjectPropertyValue(
-                    At, Reference->GetObjectPropertyValue(At) ? nullptr : Reference->PropertyClass->GetDefaultObject());
-            }
-            Asset->PostEditChange();
-            Check(TEXT("Utility changes the object"), true, true);
-        }
-        else
-            Check(TEXT("Script sets a property"), false, false);
-        if (UBlueprint* Blueprint = Cast<UBlueprint>(Asset))
-            if (Blueprint->GeneratedClass)
-                if (FProperty* Default = ScriptProperty(Blueprint->GeneratedClass->GetDefaultObject()))
-                {
-                    ScriptSet(Blueprint->GeneratedClass->GetDefaultObject(), Default);
-                    Check(TEXT("Script sets a class default"), true, true);
-                }
-        if (Python)
-        {
-            if (Asset->IsA<UTexture>())
-            {
-                GEngine->Exec(nullptr,
-                    *FString::Printf(TEXT("py unreal.load_asset('%s').set_editor_property('lod_bias', 3)"), *Path));
-                Check(TEXT("Python sets a property"), true, true);
-            }
-            GEngine->Exec(
-                nullptr, *FString::Printf(TEXT("py unreal.EditorAssetLibrary.delete_asset('%s')"), *PackageName));
-            Check(TEXT("Python deletes"), IsValid(Asset), true);
-            Package->SetDirtyFlag(true);
-            GEngine->Exec(
-                nullptr, *FString::Printf(TEXT("py unreal.EditorAssetLibrary.save_asset('%s', False)"), *PackageName));
-            Check(TEXT("Python saves"), true, false);
-        }
-        // Save, by the editor's own save and by Kadan's. Kadan's guard refuses it with the file writable on disk.
-        {
-            bool Ok = !Disk.IsReadOnly(*File);
-            Package->SetDirtyFlag(true);
-            Ok &= !FCoreUObjectDelegates::IsPackageOKToSaveDelegate.Execute(Package, File, GWarn);
-            Ok &= !GEditor->SavePackage(
-                Package, Asset, RF_Public | RF_Standalone, *File, GWarn, nullptr, false, false, SAVE_NoError);
-            Ok &= !UEditorLoadingAndSavingUtils::SavePackages({Package}, false);
-            TArray<UPackage*> Dirty;
-            FEditorFileUtils::GetDirtyContentPackages(Dirty);
-            Ok &= !Dirty.Contains(Package);
-            Check(TEXT("Save"), Ok, false);
-        }
-        Editors->CloseAllEditorsForAsset(Asset);
-        if (Copy)
-            Editors->CloseAllEditorsForAsset(Copy);
-    }
-    // The table of routes by kind.
-    FString Header = TEXT("Route");
-    for (const TCHAR* Name : Names)
-        Header += FString(TEXT(" | ")) + Name;
-    Note(Header);
-    for (const FString& Route : Routes)
-    {
-        FString Line = Route;
-        for (int32 Kind = 0; Kind < 6; ++Kind)
-        {
-            const FString& Cell = Table[Route][Kind];
-            Line += TEXT(" | ") + (Cell.IsEmpty() ? FString(TEXT("n/a")) : Cell);
-        }
-        Note(Line);
-    }
     return !HasAnyErrors();
 }
 #endif

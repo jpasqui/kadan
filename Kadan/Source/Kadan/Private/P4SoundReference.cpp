@@ -124,6 +124,6 @@ FP4OriginalAssetImportResult P4KeepUnsupportedSoundReference(
             return Fail(EP4OriginalAssetImportError::SaveFailed, Why);
         Result.Saved = true;
     }
-    P4Kadan::UpdateReadOnlyAsset(Asset);
+    P4Kadan::TrackAssetSource(Asset);
     return Result;
 }

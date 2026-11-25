@@ -305,7 +305,7 @@ FP4OriginalBuiltLightingResult P4ImportOriginalBuiltLighting(
             return Fail(Why);
         Result.Saved = true;
     }
-    P4Kadan::UpdateReadOnlyAsset(Registry);
+    P4Kadan::TrackAssetSource(Registry);
     Result.Registry = Registry;
     return Result;
 }

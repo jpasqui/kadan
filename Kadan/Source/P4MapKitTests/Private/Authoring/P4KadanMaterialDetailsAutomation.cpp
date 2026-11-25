@@ -26,8 +26,8 @@ bool FKadanMaterialDetails::RunTest(const FString&)
     TestEqual(TEXT("A known field has its friendly label"), Capsule->GetDisplayNameText().ToString(), FString(TEXT("Capsule shadow scale")));
     TestTrue(TEXT("An unknown field belongs in Advanced"), Unknown->HasAnyPropertyFlags(CPF_AdvancedDisplay));
     const auto* Clipping = FindFProperty<FProperty>(UP4MaterialGameSettings::StaticClass(), TEXT("C4MaterialParam3"));
-    TestTrue(TEXT("The uncompiled value is read-only in generic asset user data too"),
-        Clipping && Clipping->HasAnyPropertyFlags(CPF_EditConst));
+    TestTrue(TEXT("Scene clipping can be authored and saved"),
+        Clipping && !Clipping->HasAnyPropertyFlags(CPF_EditConst));
     const FString Name = TEXT("/Game/Mods/MaterialDetailsTest_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
     TStrongObjectPtr<UMaterial> Material(NewObject<UMaterial>(CreatePackage(*Name), TEXT("ProtectedFixture"), RF_Public | RF_Standalone));
     ON_SCOPE_EXIT
@@ -40,13 +40,14 @@ bool FKadanMaterialDetails::RunTest(const FString&)
     Record.Package = Name;
     Record.Class = Material->GetClass()->GetPathName();
     Record.Kind = TEXT("material");
+    Record.ReferenceOnly = true;
     Record.SourceDigest = FString::ChrN(64, TEXT('a'));
     Record.ComparisonDigest = FString::ChrN(64, TEXT('b'));
     Record.SourceDigestKind = TEXT("fixture");
     Record.ComparisonSchema = TEXT("fixture");
     FString Error;
     if (!TestTrue(TEXT("The owned fixture is marked as an original"), P4MarkOriginalAsset(Material.Get(), Record, Error)) ||
-        !TestFalse(TEXT("The shared policy protects the material"), P4Kadan::GetAssetPolicy(Material.Get()).AllowEdit))
+        !TestFalse(TEXT("The reference-only material is protected"), P4Kadan::GetAssetPolicy(Material.Get()).AllowEdit))
     {
         return false;
     }

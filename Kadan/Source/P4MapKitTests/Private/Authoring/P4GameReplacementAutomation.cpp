@@ -308,7 +308,7 @@ bool FP4GameReplacementTest::RunTest(const FString&)
     TestTrue(TEXT("The game's texture can be replaced with a file"), P4CanReplaceGameAsset(GameTexture, &Why));
     TestTrue(TEXT("The game's mesh can be replaced with a file"), P4CanReplaceGameAsset(GameMesh, &Why));
     TestFalse(TEXT("The game's texture is not a replacement"), P4IsGameReplacement(GameTexture));
-    TestFalse(TEXT("The game's texture cannot be edited"), P4Kadan::GetAssetPolicy(GameTexture).AllowEdit);
+    TestTrue(TEXT("The game's texture can be edited locally"), P4Kadan::GetAssetPolicy(GameTexture).AllowEdit);
     TestFalse(TEXT("Export refuses the game's texture"), P4ExportAssetAvailability(GameTexture, Mod).IsAvailable());
     TestTrue(TEXT("Export says how to replace it"),
         P4ExportAssetAvailability(GameTexture, Mod).Reason.Contains(TEXT("Replace with my own file")));
@@ -343,7 +343,7 @@ bool FP4GameReplacementTest::RunTest(const FString&)
     TestTrue(TEXT("The refusal says what to choose"), Error.Contains(TEXT("image")));
     TestTrue(TEXT("The texture is still the game's"),
         !P4IsGameReplacement(GameTexture) && P4HasIntrinsicGameSource(GameTexture));
-    TestFalse(TEXT("The texture is still locked"), P4Kadan::GetAssetPolicy(GameTexture).AllowEdit);
+    TestTrue(TEXT("The original texture is still editable"), P4Kadan::GetAssetPolicy(GameTexture).AllowEdit);
 
     // The texture: the creator's image at the game texture's path, made by the editor's own factory.
     UTexture2D* Texture = Cast<UTexture2D>(P4ReplaceGameAsset(GameTexture, Image, Error));
@@ -362,7 +362,6 @@ bool FP4GameReplacementTest::RunTest(const FString&)
     TestFalse(TEXT("It has no game tag"), P4HasIntrinsicGameSource(Texture));
     TestFalse(TEXT("It does not say it is an original game asset"), P4QueryOriginalAsset(Texture).IsOriginal());
     TestTrue(TEXT("It can be edited"), P4Kadan::GetAssetPolicy(Texture).AllowEdit);
-    TestFalse(TEXT("Its package is not locked"), P4Kadan::IsLockedPackageName(FName(*TexturePackage)));
     FP4CreatorTextureSource Source;
     TestTrue(TEXT("It holds exactly the creator's image"), P4VerifyCreatorTextureSource(Texture, Image, Source, Error));
     TestTrue(TEXT("It keeps the game texture's settings"),
@@ -417,7 +416,7 @@ bool FP4GameReplacementTest::RunTest(const FString&)
     TestTrue(TEXT("The mesh is the creator's"),
         P4HasCreatorSource(Mesh) && P4IsCreatorAsset(Mesh) && !P4HasIntrinsicGameSource(Mesh));
     TestTrue(TEXT("The mesh can be edited"),
-        P4Kadan::GetAssetPolicy(Mesh).AllowEdit && !P4Kadan::IsLockedPackageName(FName(*MeshPackage)));
+        P4Kadan::GetAssetPolicy(Mesh).AllowEdit);
     const FMeshDescription* Description = Mesh->GetMeshDescription(0);
     TestTrue(TEXT("Its shape is the creator's cube"),
         Description && Description->Vertices().Num() == 8 && Description->Triangles().Num() == 12);
@@ -551,7 +550,7 @@ bool FP4GameReplacementTest::RunTest(const FString&)
             FPaths::GetCleanFilename(Replaced.File) == TEXT("replacement2.tga"));
     TestTrue(TEXT("Loaded again, it is the creator's and can be edited"),
         Saved && P4HasCreatorSource(Saved) && P4IsCreatorAsset(Saved) && !P4HasIntrinsicGameSource(Saved) &&
-            P4Kadan::GetAssetPolicy(Saved).AllowEdit && !P4Kadan::IsLockedPackageName(FName(*TexturePackage)));
+            P4Kadan::GetAssetPolicy(Saved).AllowEdit);
     if (Saved)
         TestTrue(TEXT("Loaded again, export ships it"),
             P4ExportAssetAvailability(Saved, Mod).Route == EP4ExportAssetRoute::CreatorTexture);

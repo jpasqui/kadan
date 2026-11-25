@@ -135,7 +135,7 @@ bool FP4CreatorSourceFill::RunTest(const FString&)
     Package->SetDirtyFlag(false);
     TestTrue(TEXT("Untouched actual placeholder has intrinsic proxy role"), P4HasIntrinsicGameProxy(Proxy));
     Meta->RemoveValue(Proxy, TEXT("P4BlueprintStandIn"));
-    P4Kadan::UpdateReadOnlyAsset(Proxy);
+    P4Kadan::TrackAssetSource(Proxy);
     TestTrue(TEXT("Removing editable metadata cannot retire intrinsic proxy"), P4HasIntrinsicGameProxy(Proxy));
     Meta->SetValue(Proxy, TEXT("P4BlueprintStandIn"), TEXT("1"));
     IInterface_AssetUserData* Owner = CastChecked<IInterface_AssetUserData>(Proxy);

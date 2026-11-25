@@ -15,10 +15,10 @@
 #include "UObject/Package.h"
 #include "UObject/StrongObjectPtr.h"
 
-// Kadan keeps a game asset by its own guards, not by its file's read-only mark. Locking a game asset leaves its file
-// writable on disk. A file an earlier version of Kadan marked read-only is writable once Kadan locks its package, which
-// is what both the start-up pass over the asset registry and the loading of an asset do. A save of a locked game asset
-// is still refused with Kadan's reason, and its file is not written.
+// Kadan keeps a game asset it holds only for reference by its own guards, not by its file's read-only mark. Locking
+// such an asset leaves its file writable on disk. A file an earlier version of Kadan marked read-only is writable once
+// Kadan locks its package, which is what both the start-up pass over the asset registry and the loading of an asset do.
+// A save of a locked reference is still refused with Kadan's reason, and its file is not written.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FP4KadanGameAssetFileTest, "P4MapKit.Kadan.GameAssetFileStaysWritable",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FP4KadanGameAssetFileTest::RunTest(const FString&)
@@ -36,7 +36,8 @@ bool FP4KadanGameAssetFileTest::RunTest(const FString&)
         FString Package, File;
         TStrongObjectPtr<UMaterial> Asset;
     };
-    // The first stands for a game asset imported by this version, the second for one an earlier version marked.
+    // The first stands for a reference-only game asset imported by this version, the second for one an earlier version
+    // marked.
     const TCHAR* const Names[2] = {TEXT("Fresh"), TEXT("Marked")};
     FOne Ones[2];
     for (int32 Index = 0; Index < 2; ++Index)
@@ -55,7 +56,7 @@ bool FP4KadanGameAssetFileTest::RunTest(const FString&)
             {
                 UPackage* Package = Asset->GetOutermost();
                 Package->GetMetaData()->RemoveValue(Asset, TEXT("P4OriginalRecord"));
-                P4Kadan::UpdateReadOnlyAsset(Asset);
+                P4Kadan::TrackAssetSource(Asset);
                 Package->SetDirtyFlag(false);
                 Packages.Add(Package);
             }
@@ -88,17 +89,19 @@ bool FP4KadanGameAssetFileTest::RunTest(const FString&)
         Record.Package = One.Package;
         Record.Class = One.Asset->GetClass()->GetPathName();
         Record.Kind = TEXT("test-game-asset");
+        // Kadan locks a game asset only when the editor cannot hold all of its data.
+        Record.ReferenceOnly = true;
         Record.SourceDigest = FString::ChrN(64, TEXT('a'));
         Record.ComparisonDigest = FString::ChrN(64, TEXT('b'));
         Record.SourceDigestKind = TEXT("fixture");
         Record.ComparisonSchema = TEXT("fixture");
         FString Why;
         const bool Marked = P4MarkOriginalAsset(One.Asset.Get(), Record, Why);
-        if (!TestTrue(TEXT("The game asset is locked: ") + One.Package + TEXT(" ") + Why,
+        if (!TestTrue(TEXT("The reference-only game asset is locked: ") + One.Package + TEXT(" ") + Why,
                 Marked && P4Kadan::IsLockedPackage(One.Asset->GetOutermost())))
             return false;
     }
-    TestFalse(TEXT("Locking a game asset leaves its file writable"), Disk.IsReadOnly(*Ones[0].File));
+    TestFalse(TEXT("Locking a game reference leaves its file writable"), Disk.IsReadOnly(*Ones[0].File));
     TestFalse(TEXT("A file an earlier version of Kadan marked read-only is writable once Kadan locks its package"),
         Disk.IsReadOnly(*Ones[1].File));
 
@@ -112,15 +115,15 @@ bool FP4KadanGameAssetFileTest::RunTest(const FString&)
         P4Kadan::TakeReadOnlyMessages();
         Package->SetDirtyFlag(true);
         // A plugin or a script that calls Unreal's save, and the editor's own save.
-        TestFalse(TEXT("A save of the locked game asset is refused: ") + One.Package,
+        TestFalse(TEXT("A save of the locked game reference is refused: ") + One.Package,
             UPackage::SavePackage(Package, One.Asset.Get(), RF_Public | RF_Standalone, *One.File, GWarn, nullptr, false,
                 true, SAVE_NoError));
-        TestFalse(TEXT("The editor's save of the locked game asset is refused: ") + One.Package,
+        TestFalse(TEXT("The editor's save of the locked game reference is refused: ") + One.Package,
             GEditor->SavePackage(Package, One.Asset.Get(), RF_Public | RF_Standalone, *One.File, GWarn, nullptr, false,
                 false, SAVE_NoError));
         const TArray<FString> Told = P4Kadan::TakeReadOnlyMessages();
         const FString Leaf = FPackageName::GetShortName(One.Package);
-        TestTrue(TEXT("Kadan says why it did not save the game asset: ") + FString::Join(Told, TEXT(" / ")),
+        TestTrue(TEXT("Kadan says why it did not save the game reference: ") + FString::Join(Told, TEXT(" / ")),
             Told.ContainsByPredicate([&Leaf](const FString& Message)
                 { return Message.Contains(TEXT("did not save")) && Message.Contains(Leaf); }));
         TArray<uint8> After;

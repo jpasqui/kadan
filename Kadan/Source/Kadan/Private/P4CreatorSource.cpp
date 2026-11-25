@@ -36,11 +36,6 @@
 #include "UObject/UObjectThreadContext.h"
 #include "UObject/UObjectIterator.h"
 
-namespace P4Kadan
-{
-void AcceptCompletedCreatorSource(UObject* Asset);
-}
-
 struct FP4CreatorSourceAccess
 {
     static void Set(UP4CreatorSourceData& Data, const UObject& Asset, const TCHAR* Kind, const FString& Mode)
@@ -317,7 +312,7 @@ void AfterImport(UFactory* Factory, UObject* Asset)
         Meta->RemoveValue(Asset, SourceKey);
         if (Attempt.HadGameSource)
             P4RecordKnownGameSource(Asset, Attempt.GameSourcePackage, Attempt.WasProxy);
-        P4Kadan::UpdateReadOnlyAsset(Asset);
+        P4Kadan::TrackAssetSource(Asset);
         P4Kadan::Tell(TEXT("Reimporting ") + Asset->GetName() +
             TEXT(" does not make it your own mesh. Import your mesh as a new asset."));
         return;
@@ -343,7 +338,7 @@ void AfterImport(UFactory* Factory, UObject* Asset)
         }
     }
     P4Kadan::AcceptCompletedCreatorSource(Asset);
-    P4Kadan::UpdateReadOnlyAsset(Asset);
+    P4Kadan::TrackAssetSource(Asset);
 }
 } //namespace
 

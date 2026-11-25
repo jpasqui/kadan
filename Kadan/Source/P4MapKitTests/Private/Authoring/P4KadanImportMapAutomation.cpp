@@ -184,9 +184,9 @@ bool FP4KadanImportMapCave000Test::RunTest(const FString&)
         if (!TestNotNull(TEXT("Actual recovered object: ") + Path, Asset))
             continue;
         const FP4OriginalStatus Original = P4QueryOriginalAsset(Asset);
-        TestTrue(TEXT("Faithful recovery retains original read-only status: ") + Path,
+        TestTrue(TEXT("Faithful recovery retains its source provenance: ") + Path,
             Original.IsOriginal() && Original.Record.ReadOnly);
-        TestFalse(TEXT("and the editor does not let it be edited: ") + Path, P4Kadan::GetAssetPolicy(Asset).AllowEdit);
+        TestTrue(TEXT("and it can be edited locally: ") + Path, P4Kadan::GetAssetPolicy(Asset).AllowEdit);
         const FP4OriginalDiagnostic Compared = P4DiagnoseOriginalAsset(Asset);
         TestTrue(
             TEXT("Actual recovery cook equals original: ") + Path, Compared.Comparison == EP4OriginalComparison::Equal);
@@ -201,7 +201,7 @@ bool FP4KadanImportMapCave000Test::RunTest(const FString&)
     AddInfo(FString::Printf(TEXT("Actual recovered physics/montage/scene comparisons: %d. Details: %s"),
         FaithfulTypes.Num(), *FaithfulFile));
     // Nothing is made up in place of a game asset. One Kadan cannot import for real stays the game's: the
-    // game's own asset kept for reference only, read-only, or, when even that cannot be made, nothing in
+    // game's own asset kept for reference only or, when even that cannot be made, nothing in
     // the project and the Blueprint keeping the game's value. The report names each.
     FARFilter Filter;
     Filter.PackagePaths.Add(TEXT("/Game"));
@@ -245,7 +245,7 @@ bool FP4KadanImportMapCave000Test::RunTest(const FString&)
         }
         ++KeptForReference;
         ++KeptCounts.FindOrAdd(Pair.Value + TEXT(" for reference"));
-        TestTrue(TEXT("The game's asset is kept for reference only and is read-only: ") + Pair.Key,
+        TestTrue(TEXT("Reference-only imports retain provenance and editor protection: ") + Pair.Key,
             P4QueryOriginalAsset(Asset).IsOriginal() && Policy.ReferenceOnly && !Policy.AllowEdit && !Policy.StandIn);
         TestTrue(TEXT("and the report names it with the reason: ") + Pair.Key,
             Result.Warnings.ContainsByPredicate(
@@ -517,7 +517,7 @@ bool FP4KadanFoliageRecoveryTest::RunTest(const FString&)
                     Cast<UFoliageType_InstancedStaticMesh>(Asset)))
             continue;
         const FP4OriginalStatus Status = P4QueryOriginalAsset(Asset);
-        TestTrue(TEXT("Recovered game foliage remains read-only"), Status.IsOriginal() && Status.Record.ReadOnly);
+        TestTrue(TEXT("Recovered game foliage retains source provenance"), Status.IsOriginal() && Status.Record.ReadOnly);
         FP4ModDescriptor Mod;
         Mod.Id = TEXT("test.foliagerecovery");
         Mod.Name = TEXT("Foliage recovery");
